@@ -1,0 +1,68 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+name: 1.0.$(Rev:r)
+
+pool:
+  vmImage: windows-latest
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'x64'
+  buildConfiguration: 'Release'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+- task: NuGetToolInstaller@1
+- task: NuGetCommand@2
+  displayName: "Nuget Restore"
+  enabled: true
+  inputs:
+    command: 'restore'
+    restoreSolution: '$(solution)'
+- task: Npm@1
+  displayName: 'NPM Install'
+  inputs:
+    command: 'install'
+    workingDir: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/ClientApp'
+    verbose: true
+
+- task: Npm@1
+  displayName: 'NPM Build'
+  inputs:
+    command: 'custom'
+    workingDir: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/ClientApp'
+    customCommand: 'run build'
+    verbose: true
+
+- task: CopyFiles@2
+  displayName: 'Copy react build files'
+  inputs:
+    sourceFolder: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/ClientApp/build'
+    Contents: '**/*'
+    TargetFolder: '$(build.artifactStagingDirectory)/SummersManorHalloweenPuzzle/ClientApp/build'
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactstagingdirectory)\\"'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
