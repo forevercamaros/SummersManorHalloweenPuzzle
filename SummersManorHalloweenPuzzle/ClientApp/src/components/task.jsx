@@ -10,6 +10,10 @@ const Container = styled.div`
   background-color: ${props => (props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'lightgreen' : 'white')};
 `;
 
+const Line = styled.div`
+  background-color: ${props => (props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'lightgreen' : 'white')};
+`;
+
 export default class Task extends React.Component {
     render() {
         const isDragDisabled = this.props.task.id === 'task-5';
@@ -23,8 +27,19 @@ export default class Task extends React.Component {
                         isDragging={snapshot.isDragging}
                         isDragDisabled={isDragDisabled}
                     >
-                        {this.props.task.content}
-                    </Container>
+                        <Line
+                            isDragging={snapshot.isDragging}
+                            isDragDisabled={isDragDisabled}
+                        >
+                            {this.props.task.line1}
+                        </Line>
+                        <Line
+                            isDragging={snapshot.isDragging}
+                            isDragDisabled={isDragDisabled}
+                        >
+                            {this.props.task.line2}
+                        </Line>
+                    </Container>                    
                 )}
             </Draggable>
         );
