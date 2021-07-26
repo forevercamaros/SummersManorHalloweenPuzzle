@@ -1,7 +1,7 @@
 import React from 'react';
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import initialData from './initial-data';
-import Column from './column';
+import Stanza from './Stanza';
 import styled from 'styled-components';
 
 const Container = styled.div``;
@@ -90,7 +90,7 @@ export default function FinalPuzzle() {
                             const column = data.columns[columnId];
                             const tasks = column.taskIds.map(taskId => data.tasks[taskId]);
 
-                            return <Column key={column.id} column={column} tasks={tasks} index={index} />;
+                            return <Stanza key={column.id} column={column} tasks={tasks} index={index} />;
                         })
                     }
                         {provided.placeholder}

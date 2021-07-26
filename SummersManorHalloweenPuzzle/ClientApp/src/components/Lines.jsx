@@ -14,7 +14,7 @@ const Line = styled.div`
   background-color: ${props => (props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'lightgreen' : 'white')};
 `;
 
-export default class Task extends React.Component {
+export default class Lines extends React.Component {
     render() {
         const isDragDisabled = this.props.task.id === 'task-5';
         return (
