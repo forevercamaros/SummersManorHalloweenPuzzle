@@ -13,6 +13,7 @@ const Container = styled.div`
 `;
 const DragHeader = styled.h3`
   padding: 8px;
+  background-color: grey;
 `;
 const TaskList = styled.div`
   padding: 8px;
@@ -29,7 +30,7 @@ export default class Stanza extends React.Component {
             <Draggable draggableId={this.props.column.id} index={this.props.index}>
                 {(provided) => (
                     <Container {...provided.draggableProps} ref={provided.innerRef}>
-                        <DragHeader {...provided.dragHandleProps}>{this.props.column.title}</DragHeader>
+                        <DragHeader {...provided.dragHandleProps}>{""}</DragHeader>
                         <Droppable droppableId={this.props.column.id} isDropDisabled={isDropDisabled} type="task">
                             {(provided, snapshot) => (
                                 <TaskList ref={provided.innerRef} {...provided.droppableProps} isDraggingOver={snapshot.isDraggingOver} isDropDisabled={isDropDisabled} >
