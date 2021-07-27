@@ -21,42 +21,56 @@
             title: 'Stanza 1',
             taskIds: ['part-10',
                 'part-3'],
+            completed: false,
+            realStanza:0
         },
         'stanza-2': {
             id: 'stanza-2',
             title: 'Stanza 2',
             taskIds: ['part-11',
                 'part-1'],
+            completed: false,
+            realStanza: 0
         },
         'stanza-3': {
             id: 'stanza-3',
             title: 'Stanza 3',
             taskIds: ['part-7',
                 'part-2'],
+            completed: false,
+            realStanza: 0
         },
         'stanza-4': {
             id: 'stanza-4',
             title: 'Stanza 4',
             taskIds: ['part-5',
                 'part-8'],
+            completed: false,
+            realStanza: 0
         },
         'stanza-5': {
             id: 'stanza-5',
             title: 'Stanza 5',
             taskIds: ['part-9',
                 'part-4'],
+            completed: false,
+            realStanza: 0
         },
         'stanza-6': {
             id: 'stanza-6',
             title: 'Stanza 6',
             taskIds: ['part-12',
                 'part-13'],
+            completed: false,
+            realStanza: 0
         },
         'stanza-7': {
             id: 'stanza-7',
             title: 'Stanza 7',
             taskIds: ['part-6',
                 'part-14'],
+            completed: false,
+            realStanza: 0
         },
     },
     // Facilitate reordering of the columns

@@ -9,6 +9,31 @@ const Container = styled.div``;
 export default function FinalPuzzle() {
     const [data, setData] = React.useState(initialData);
 
+    const checkForCompletedStanza = newData => {
+        var keys = Object.keys(newData.columns);
+        for (let i = 0; i < keys.length; i++) {
+            if (data.tasks[newData.columns[keys[i]].taskIds[0]].realOrder === 1 && newData.columns[keys[i]].taskIds.length === 2 &&
+                data.tasks[newData.columns[keys[i]].taskIds[1]].realOrder === 2 &&
+                data.tasks[newData.columns[keys[i]].taskIds[0]].realStanza === data.tasks[newData.columns[keys[i]].taskIds[1]].realStanza) {
+
+                const newColumn = {
+                    ...newData.columns[keys[i]],
+                    completed: 1,
+                    realStanza: data.tasks[newData.columns[keys[i]].taskIds[0]].realStanza
+                };
+
+                newData = {
+                    ...newData,
+                    columns: {
+                        ...data.columns,
+                        [newColumn.id]: newColumn
+                    }
+                };
+            }
+        }
+        setData(newData);
+    };
+
     const onDragEnd = result => {
         const { destination, source, draggableId, type } = result;
         if (!destination) {
@@ -26,7 +51,7 @@ export default function FinalPuzzle() {
                 ...data,
                 columnOrder: newColumnOrder
             };
-            setData(newData);
+            checkForCompletedStanza(newData);            
             return;
         }
 
@@ -50,7 +75,7 @@ export default function FinalPuzzle() {
                     [newColumn.id]: newColumn
                 }
             };
-            setData(newData);
+            checkForCompletedStanza(newData);
         } else {
             const startTaskIds = Array.from(start.taskIds);
             startTaskIds.splice(source.index, 1);
@@ -74,10 +99,8 @@ export default function FinalPuzzle() {
                     [newFinish.id]: newFinish
                 }
             };
-            setData(newData);
+            checkForCompletedStanza(newData);
         }
-
-
     };
 
     return (
