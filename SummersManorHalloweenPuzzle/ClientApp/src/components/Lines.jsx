@@ -16,7 +16,7 @@ const Line = styled.div`
 
 export default class Lines extends React.Component {
     render() {
-        const isDragDisabled = this.props.task.id === 'task-5';
+        const isDragDisabled = this.props.column.completed === true;
         return (
             <Draggable draggableId={this.props.task.id} index={this.props.index} isDragDisabled={isDragDisabled}>
                 {(provided, snapshot) => (

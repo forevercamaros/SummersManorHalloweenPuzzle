@@ -18,7 +18,7 @@ export default function FinalPuzzle() {
 
                 const newColumn = {
                     ...newData.columns[keys[i]],
-                    completed: 1,
+                    completed: true,
                     realStanza: data.tasks[newData.columns[keys[i]].taskIds[0]].realStanza
                 };
 
