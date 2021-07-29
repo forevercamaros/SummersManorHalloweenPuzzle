@@ -9,7 +9,17 @@ const Container = styled.div``;
 export default function FinalPuzzle() {
     const [data, setData] = React.useState(initialData);
 
-    const checkForCompletedStanza = newData => {
+    const checkAllStanzasComplete = newData => {
+        var keys = Object.keys(newData.columns);
+        var fullyCompleted = true;
+        for (let i = 0; i < keys.length; i++) {
+            if (newData.columns[keys[i]].completed === false) {
+                return false;
+            }
+        }
+    }
+
+    const checkForCompletion = newData => {
         var keys = Object.keys(newData.columns);
         for (let i = 0; i < keys.length; i++) {
             if (data.tasks[newData.columns[keys[i]].taskIds[0]].realOrder === 1 && newData.columns[keys[i]].taskIds.length === 2 &&
@@ -25,10 +35,28 @@ export default function FinalPuzzle() {
                 newData = {
                     ...newData,
                     columns: {
-                        ...data.columns,
+                        ...newData.columns,
                         [newColumn.id]: newColumn
                     }
                 };
+                if (checkAllStanzasComplete(newData)) {
+                    for (let i2 = 0; i2 < keys.length; i2++) {
+                        if (newData.columns[keys[i2]].realStanza === i2 + 1) {
+                            const newColumn2 = {
+                                ...newData.columns[keys[i2]],
+                                inCorrectPosition: true
+                            };
+
+                            newData = {
+                                ...newData,
+                                columns: {
+                                    ...newData.columns,
+                                    [newColumn2.id]: newColumn2
+                                }
+                            };
+                        }
+                    }
+                }
             }
         }
         setData(newData);
@@ -51,7 +79,7 @@ export default function FinalPuzzle() {
                 ...data,
                 columnOrder: newColumnOrder
             };
-            checkForCompletedStanza(newData);            
+            checkForCompletion(newData);            
             return;
         }
 
@@ -75,7 +103,7 @@ export default function FinalPuzzle() {
                     [newColumn.id]: newColumn
                 }
             };
-            checkForCompletedStanza(newData);
+            checkForCompletion(newData);
         } else {
             const startTaskIds = Array.from(start.taskIds);
             startTaskIds.splice(source.index, 1);
@@ -99,7 +127,7 @@ export default function FinalPuzzle() {
                     [newFinish.id]: newFinish
                 }
             };
-            checkForCompletedStanza(newData);
+            checkForCompletion(newData);
         }
     };
 
