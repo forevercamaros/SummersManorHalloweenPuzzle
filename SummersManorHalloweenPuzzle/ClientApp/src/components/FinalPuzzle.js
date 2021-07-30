@@ -14,50 +14,53 @@ export default function FinalPuzzle() {
         var fullyCompleted = true;
         for (let i = 0; i < keys.length; i++) {
             if (newData.columns[keys[i]].completed === false) {
-                return false;
+                fullyCompleted = false;
             }
         }
+        return fullyCompleted;
     }
 
     const checkForCompletion = newData => {
         var keys = Object.keys(newData.columns);
         for (let i = 0; i < keys.length; i++) {
-            if (data.tasks[newData.columns[keys[i]].taskIds[0]].realOrder === 1 && newData.columns[keys[i]].taskIds.length === 2 &&
-                data.tasks[newData.columns[keys[i]].taskIds[1]].realOrder === 2 &&
-                data.tasks[newData.columns[keys[i]].taskIds[0]].realStanza === data.tasks[newData.columns[keys[i]].taskIds[1]].realStanza) {
+            if (Object.keys(newData.columns[keys[i]].taskIds).length === 2) {
+                if (data.tasks[newData.columns[keys[i]].taskIds[0]].realOrder === 1 && newData.columns[keys[i]].taskIds.length === 2 &&
+                    data.tasks[newData.columns[keys[i]].taskIds[1]].realOrder === 2 &&
+                    data.tasks[newData.columns[keys[i]].taskIds[0]].realStanza === data.tasks[newData.columns[keys[i]].taskIds[1]].realStanza) {
 
-                const newColumn = {
-                    ...newData.columns[keys[i]],
-                    completed: true,
-                    realStanza: data.tasks[newData.columns[keys[i]].taskIds[0]].realStanza
-                };
+                    const newColumn = {
+                        ...newData.columns[keys[i]],
+                        completed: true,
+                        realStanza: data.tasks[newData.columns[keys[i]].taskIds[0]].realStanza
+                    };
 
-                newData = {
-                    ...newData,
-                    columns: {
-                        ...newData.columns,
-                        [newColumn.id]: newColumn
-                    }
-                };
-                if (checkAllStanzasComplete(newData)) {
-                    for (let i2 = 0; i2 < keys.length; i2++) {
-                        if (newData.columns[keys[i2]].realStanza === i2 + 1) {
-                            const newColumn2 = {
-                                ...newData.columns[keys[i2]],
-                                inCorrectPosition: true
-                            };
+                    newData = {
+                        ...newData,
+                        columns: {
+                            ...newData.columns,
+                            [newColumn.id]: newColumn
+                        }
+                    };
+                    if (checkAllStanzasComplete(newData)) {
+                        for (let i2 = 0; i2 < keys.length; i2++) {
+                            if (newData.columns[keys[i2]].realStanza === i2 + 1) {
+                                const newColumn2 = {
+                                    ...newData.columns[keys[i2]],
+                                    inCorrectPosition: true
+                                };
 
-                            newData = {
-                                ...newData,
-                                columns: {
-                                    ...newData.columns,
-                                    [newColumn2.id]: newColumn2
-                                }
-                            };
+                                newData = {
+                                    ...newData,
+                                    columns: {
+                                        ...newData.columns,
+                                        [newColumn2.id]: newColumn2
+                                    }
+                                };
+                            }
                         }
                     }
                 }
-            }
+            }            
         }
         setData(newData);
     };
@@ -113,7 +116,7 @@ export default function FinalPuzzle() {
             };
 
             const finishTaskIds = Array.from(finish.taskIds);
-            finishTaskIds.splice(source.index, 0, draggableId);
+            finishTaskIds.splice(destination.index, 0, draggableId);
             const newFinish = {
                 ...finish,
                 taskIds: finishTaskIds
