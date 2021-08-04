@@ -18,7 +18,7 @@ const DragHeader = styled.h3`
 const TaskList = styled.div`
   padding: ${props => (props.isDragDisabled ? '0px' : '8px')};
   transition: background-color 0.2s ease;
-  background-color: ${props => (props.isDragDisabled? 'black': props.isDropDisabled ? 'lightgrey' : props.isDraggingOver ? 'skyblue' : 'inherit')};
+  background-color: ${props => (props.isDragDisabled? 'black': props.isDropDisabled ? 'lightgrey' : props.isDraggingOver ? 'lightgrey' : 'inherit')};
   flex-grow: 1;
   min-height: ${props => (props.isDragDisabled ? '0px' :'100px')};
 `;

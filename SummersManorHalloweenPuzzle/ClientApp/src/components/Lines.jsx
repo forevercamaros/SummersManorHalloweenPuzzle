@@ -7,11 +7,11 @@ const Container = styled.div`
   border-radius: ${props => (props.isFullyCompleted ? '0px' : '2px')};
   padding: ${props => (props.isFullyCompleted ? '0px' : '8px')};
   margin-bottom: ${props => (props.isFullyCompleted ? '0px' : '8px')};
-  background-color: ${props => (props.isFullyCompleted ? 'black' : props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'lightgreen' : 'white')};
+  background-color: ${props => (props.isFullyCompleted ? 'black' : props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'red' : 'white')};
 `;
 
 const Line = styled.div`
-  background-color: ${props => (props.isFullyCompleted ? 'black' : props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'lightgreen' : 'white')};
+  background-color: ${props => (props.isFullyCompleted ? 'black' : props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'red' : 'white')};
   color: ${props => (props.isFullyCompleted ? 'white' : 'back')};
 `;
 
