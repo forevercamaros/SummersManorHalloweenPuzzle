@@ -42,10 +42,10 @@ export default function FinalPuzzle() {
                         }
                     };
                     if (checkAllStanzasComplete(newData)) {
-                        for (let i2 = 0; i2 < keys.length; i2++) {
-                            if (newData.columns[keys[i2]].realStanza === i2 + 1) {
+                        for (let i2 = 0; i2 < newData.columnOrder.length; i2++) {
+                            if (newData.columns[newData.columnOrder[i2]].realStanza === i2 + 1) {
                                 const newColumn2 = {
-                                    ...newData.columns[keys[i2]],
+                                    ...newData.columns[newData.columnOrder[i2]],
                                     inCorrectPosition: true
                                 };
 
@@ -56,6 +56,8 @@ export default function FinalPuzzle() {
                                         [newColumn2.id]: newColumn2
                                     }
                                 };
+                            } else {
+                                break;
                             }
                         }
                     }
@@ -74,7 +76,7 @@ export default function FinalPuzzle() {
             return;
         }
 
-        if(type === "column"){
+        if (type === "column") {            
             const newColumnOrder = Array.from(data.columnOrder);
             newColumnOrder.splice(source.index, 1);
             newColumnOrder.splice(destination.index, 0, draggableId);
@@ -82,6 +84,11 @@ export default function FinalPuzzle() {
                 ...data,
                 columnOrder: newColumnOrder
             };
+            for (let i = destination.index; i < newData.columnOrder.length; i++) {
+                if (newData.columns[newData.columnOrder[i]].inCorrectPosition === true) {
+                    return;
+                }
+            }
             checkForCompletion(newData);            
             return;
         }
