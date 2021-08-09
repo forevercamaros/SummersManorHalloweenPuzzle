@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactCodeInput from "react-code-input";
 import styled from 'styled-components';
-import ReactPinField from "react-pin-field"
+import ReactAudioPlayer from 'react-audio-player'
+import soundFile from '../ChopinsFuneralMarch.mp3'
 
 const Container = styled.div``;
 const RiddleText = styled.div`
@@ -19,7 +20,11 @@ export default function Riddle(props) {
     function AddAudio(props) {
         if (props.type === "audio") {
             return (
-                ""//TODO ADD AUDIO CODE
+                <ReactAudioPlayer
+                    src={soundFile}
+                    autoPlay
+                    controls
+                />
             )
         } else {
             return ("");
@@ -29,7 +34,7 @@ export default function Riddle(props) {
     function AddClue(props) {
         if (props.clueText !== "") {
             return (
-                ""//TODO CLUE CODE
+                ""//TODO ADD CLUE
             )
         } else {
             return ("");
@@ -39,7 +44,7 @@ export default function Riddle(props) {
     function AddBonus(props) {
         if (props.bonusText !== "") {
             return (
-                ""//TODO CLUE CODE
+                ""//TODO BONUS CODE
             )
         } else {
             return ("");

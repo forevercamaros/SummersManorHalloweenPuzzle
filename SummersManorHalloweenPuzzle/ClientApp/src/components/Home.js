@@ -1,25 +1,42 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import Riddle from './Riddle';
 import riddleData from './riddle-data';
+import Button from 'react-bootstrap/Button'
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = 1;//Math.floor(Math.random() * riddleKeys.length);
 
-export default function Home() {    
-    var currentIndex = startIndex;
-    const [riddle, setRiddle] = React.useState(riddleData.riddles[riddleKeys[startIndex]]);
+export default function Home() {
+    const [solved, setSolved] = useState(false);
+    const [finalPuzzle, setFinalPuzzle] = useState(false);
+    const [currentIndex, setCurrentIndex] = useState(startIndex);
+    const [riddle, setRiddle] = useState(riddleData.riddles[riddleKeys[startIndex]]);
     function onSolved() {
-        currentIndex++;
-        if (currentIndex + 1 > riddleKeys.length) {
-            currentIndex = 0;
+        setSolved(true);      
+    }
+
+    function nextRiddle() {
+        var index = currentIndex+1;        
+        if (index + 1 > riddleKeys.length) {
+            index = 0;
         }
-        if (currentIndex === startIndex) {
+        if (index === startIndex) {
+            setFinalPuzzle(true);
             //TODO Write Code to start final puzzle
         } else {
-            setRiddle(riddleData.riddles[riddleKeys[currentIndex]]);
+            setCurrentIndex(index);
+            setRiddle(riddleData.riddles[riddleKeys[index]]);
+            setSolved(false);            
         }
     }
-    return (
-        <Riddle RiddleData={riddle} onSolved = {onSolved} />
-    );
+    if (solved === false) {
+        return (
+            <Riddle RiddleData={riddle} onSolved={onSolved} />
+        );
+    } else {
+        return (
+            <Button variant="primary" onClick={nextRiddle}>Next Riddle</Button>
+        );
+    }
+    
 }
