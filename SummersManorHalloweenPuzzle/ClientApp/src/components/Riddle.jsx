@@ -17,23 +17,19 @@ const RiddleText = styled.div`
   flex-direction: column;
   color: white;
 `;
-const AudioHelpText = styled.div`
-  margin: 8px;
-  display: flex;
-  flex-direction: column;
-  color: white;
-`;
 
 export default function Riddle({ onSolved, RiddleData }) {
     var onSolved = onSolved;
     var answer = RiddleData.answer;
     const answerElement = useRef(null);
-    var bonusText = Riddle.bonusText;
+    const audioElement = useRef(null);
+    var bonusText = RiddleData.bonusText;
 
     const [showClue, setShowClue] = useState(false);
     const [clueRevealed, setClueRevealed] = useState(false);
     const handleCloseClue = () => setShowClue(false);
     const handleShowClue = () => {
+        audioElement.current.audioEl.current.pause();
         setClueRevealed(true);
         setShowClue(true);
     };
@@ -54,18 +50,13 @@ export default function Riddle({ onSolved, RiddleData }) {
                 <>
                     <Row>
                         <Col>
-                            <AudioHelpText>If Audio doesn't play automatically. Click the play button</AudioHelpText>
+                            <ReactAudioPlayer
+                                ref={audioElement}
+                                src={soundFile}
+                                controls
+                            />
                         </Col>                    
-                </Row>
-                    <Row>
-                    <Col>
-                        <ReactAudioPlayer
-                            src={soundFile}
-                            autoPlay
-                            controls
-                        />
-                    </Col>                    
-                </Row>
+                    </Row>
                 </>         
             )
         } else {
