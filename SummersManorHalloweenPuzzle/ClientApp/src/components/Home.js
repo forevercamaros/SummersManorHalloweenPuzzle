@@ -4,6 +4,7 @@ import riddleData from './riddle-data';
 import Button from 'react-bootstrap/Button';
 import { Container, Row, Col } from 'react-grid-system';
 import styled from 'styled-components';
+import FinalPuzzle from './FinalPuzzle';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = 1;//Math.floor(Math.random() * riddleKeys.length);
@@ -37,7 +38,11 @@ export default function Home() {
             setSolved(false);            
         }
     }
-    if (solved === false) {
+    if (finalPuzzle === true) {
+        return (
+            <FinalPuzzle />            
+        );
+    } else if (solved === false) {
         return (
             <Riddle RiddleData={riddle} onSolved={onSolved} />
         );
@@ -55,7 +60,7 @@ export default function Home() {
                     </Col>
                 </Row>
             </Container>
-        );
+        );        
     }
     
 }
