@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import Riddle from './Riddle';
 import riddleData from './riddle-data';
-import Button from 'react-bootstrap/Button'
+import Button from 'react-bootstrap/Button';
+import { Container, Row, Col } from 'react-grid-system';
+import styled from 'styled-components';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = 1;//Math.floor(Math.random() * riddleKeys.length);
+
+const NextRiddleText = styled.div`
+  display: flex;
+  flex-direction: column;
+  color: white;
+`;
 
 export default function Home() {
     const [solved, setSolved] = useState(false);
@@ -35,7 +43,18 @@ export default function Home() {
         );
     } else {
         return (
-            <Button variant="primary" onClick={nextRiddle}>Next Riddle</Button>
+            <Container fluid>
+                <Row>
+                    <Col>
+                        <NextRiddleText>Correct. Click Button For Next Riddle.</NextRiddleText>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <Button variant="primary" onClick={nextRiddle}>Next Riddle</Button>
+                    </Col>
+                </Row>
+            </Container>
         );
     }
     

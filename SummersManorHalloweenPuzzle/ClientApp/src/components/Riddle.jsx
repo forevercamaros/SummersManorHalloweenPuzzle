@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
-import soundFile from '../ChopinsFuneralMarch.mp3'
+import ChopinsFuneralMarch from '../ChopinsFuneralMarch.mp3'
 import { Container, Row, Col } from 'react-grid-system';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl'
@@ -18,12 +18,9 @@ const RiddleText = styled.div`
   color: white;
 `;
 
-export default function Riddle({ onSolved, RiddleData }) {
-    var onSolved = onSolved;
-    var answer = RiddleData.answer;
+export default function Riddle({ onSolved, RiddleData }) {    
     const answerElement = useRef(null);
     const audioElement = useRef(null);
-    var bonusText = RiddleData.bonusText;
 
     const [showClue, setShowClue] = useState(false);
     const [clueRevealed, setClueRevealed] = useState(false);
@@ -35,7 +32,10 @@ export default function Riddle({ onSolved, RiddleData }) {
     };
 
     const [showBonus, setShowBonus] = useState(false);
-    const handleCloseBonus = () => setShowBonus(false);
+    const handleCloseBonus = () => {        
+        setShowBonus(false);
+        onSolved();
+    }
     const handleShowBonus = () => setShowBonus(true);
 
     useEffect(() => {
@@ -44,7 +44,13 @@ export default function Riddle({ onSolved, RiddleData }) {
         }
     }, []);
 
-    function AddAudio({ type }) {
+    function AddAudio({ type, audioFile }) {
+        var _audioFile;
+        switch (audioFile) {
+            case "ChopinsFuneralMarch":
+                _audioFile = ChopinsFuneralMarch;
+                break;
+        }
         if (type === "audio") {
             return (
                 <>
@@ -52,7 +58,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                         <Col>
                             <ReactAudioPlayer
                                 ref={audioElement}
-                                src={soundFile}
+                                src={_audioFile}
                                 controls
                             />
                         </Col>                    
@@ -102,7 +108,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                     <Modal.Footer>
                         <InputGroup className="mb-3">
                             <InputGroup.Text id="basic-addon1">Answer</InputGroup.Text>
-                            <FormControl ref={answerElement} onChange={TextChange} />
+                            <FormControl onChange={BonusTextChange} />
                         </InputGroup>
                     </Modal.Footer>
                 </Modal>
@@ -113,15 +119,21 @@ export default function Riddle({ onSolved, RiddleData }) {
     }
 
     function TextChange(value) {
-        if (value.currentTarget.value.toLowerCase() === answer.toLowerCase()) {
-            if (bonusText === "" || typeof bonusText === 'undefined' || clueRevealed === true) {
+        if (value.currentTarget.value.toLowerCase() === RiddleData.answer.toLowerCase()) {
+            if (RiddleData.bonusText === "" || typeof RiddleData.bonusText === 'undefined' || clueRevealed === true) {
                 onSolved();
             } else {
                 handleShowBonus();
             }
             
         }
-    }   
+    }
+    function BonusTextChange(value) {
+        if (value.currentTarget.value.toLowerCase() === RiddleData.bonusAnswer.toLowerCase()) {
+            //TODO ADD TIME TO TIMER and notify of bonus answered
+            onSolved();
+        }
+    }
 
 
     return (
@@ -131,7 +143,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                     <RiddleText>{RiddleData.riddle}</RiddleText>
                 </Col>
             </Row>
-            <AddAudio type={RiddleData.type} />            
+            <AddAudio type={RiddleData.type} audioFile={RiddleData.audioFile} />
             <AddClue clueText={RiddleData.clueText} clue={RiddleData.clue} />
             <AddBonus bonusText={RiddleData.bonusText} bonusAnswer={RiddleData.bonusAnswer} />
             <Row>
