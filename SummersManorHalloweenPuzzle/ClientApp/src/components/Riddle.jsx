@@ -18,10 +18,20 @@ const RiddleText = styled.div`
   color: white;
 `;
 
+const ClueDiv = styled.div`
+  margin: 8px;  
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+`;
+
 export default function Riddle({ onSolved, RiddleData }) {    
     const answerElement = useRef(null);
+    const bonusElement = useRef(null);
     const audioElement = useRef(null);
 
+    const [readOnlyAnswer, setReadOnlyAnswer] = useState(false);
+    const [readOnlyBonus, setReadOnlyBonus] = useState(false);
     const [showClue, setShowClue] = useState(false);
     const [clueRevealed, setClueRevealed] = useState(false);
     const handleCloseClue = () => setShowClue(false);
@@ -37,6 +47,12 @@ export default function Riddle({ onSolved, RiddleData }) {
         onSolved();
     }
     const handleShowBonus = () => setShowBonus(true);
+
+    const focusBonusInput = () => {
+        if (bonusElement.current) {
+            bonusElement.current.focus();
+        }
+    }
 
     useEffect(() => {
         if (answerElement.current) {
@@ -73,7 +89,7 @@ export default function Riddle({ onSolved, RiddleData }) {
     function AddClue({ clueText, clue }) {
         if (clueText !== "" && typeof clueText !== 'undefined') {
             return (
-                <>
+                <ClueDiv>
                     <RiddleText>{clueText}</RiddleText>
                     <Button variant="primary" onClick={handleShowClue}>
                         Reveal Clue
@@ -90,7 +106,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                             </Button>
                         </Modal.Footer>
                     </Modal>
-                </>
+                </ClueDiv>
             )
         } else {
             return ("");
@@ -100,7 +116,7 @@ export default function Riddle({ onSolved, RiddleData }) {
     function AddBonus({ bonusText }) {
         if (bonusText !== "" && typeof bonusText !== 'undefined') {
             return (
-                <Modal show={showBonus} onHide={handleCloseBonus}>
+                <Modal show={showBonus} onHide={handleCloseBonus} onEntered={focusBonusInput}>
                     <Modal.Header closeButton>
                         <Modal.Title>Your Bonus</Modal.Title>
                     </Modal.Header>
@@ -108,7 +124,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                     <Modal.Footer>
                         <InputGroup className="mb-3">
                             <InputGroup.Text id="basic-addon1">Answer</InputGroup.Text>
-                            <FormControl onChange={BonusTextChange} />
+                            <FormControl ref={bonusElement} onChange={BonusTextChange} readOnly={readOnlyBonus}/>
                         </InputGroup>
                     </Modal.Footer>
                 </Modal>
@@ -120,6 +136,7 @@ export default function Riddle({ onSolved, RiddleData }) {
 
     function TextChange(value) {
         if (value.currentTarget.value.toLowerCase() === RiddleData.answer.toLowerCase()) {
+            setReadOnlyAnswer(true);
             if (RiddleData.bonusText === "" || typeof RiddleData.bonusText === 'undefined' || clueRevealed === true) {
                 onSolved();
             } else {
@@ -131,7 +148,8 @@ export default function Riddle({ onSolved, RiddleData }) {
     function BonusTextChange(value) {
         if (value.currentTarget.value.toLowerCase() === RiddleData.bonusAnswer.toLowerCase()) {
             //TODO ADD TIME TO TIMER and notify of bonus answered
-            onSolved();
+            setReadOnlyBonus(true);
+            handleCloseBonus();
         }
     }
 
@@ -150,7 +168,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                 <Col>
                     <InputGroup className="mb-3">
                         <InputGroup.Text id="basic-addon1">Answer</InputGroup.Text>
-                        <FormControl ref={answerElement} onChange={ TextChange }/>
+                        <FormControl ref={answerElement} onChange={TextChange} readOnly={readOnlyAnswer}/>
                     </InputGroup>
                 </Col>
             </Row>            

@@ -1,31 +1,31 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
+import Button from 'react-bootstrap/Button'
+import styled from 'styled-components';
+import { Transition } from 'react-transition-group';
 
-export class Counter extends Component {
-  static displayName = Counter.name;
+const NextRiddleText = styled.div`
+  transition: opacity  ${props => props.duration}ms ease-in-out;
+  opacity: ${props => (props.state === 'entering' || props.state === 'entered' ? '1' : '0')};
+  color: white;
+`;
 
-  constructor(props) {
-    super(props);
-    this.state = { currentCount: 0 };
-    this.incrementCounter = this.incrementCounter.bind(this);
-  }
 
-  incrementCounter() {
-    this.setState({
-      currentCount: this.state.currentCount + 1
-    });
-  }
-
-  render() {
+export default function Count() {
+    const [open, setOpen] = useState(true);
     return (
-      <div>
-        <h1>Counter</h1>
-
-        <p>This is a simple example of a React component.</p>
-
-        <p aria-live="polite">Current count: <strong>{this.state.currentCount}</strong></p>
-
-        <button className="btn btn-primary" onClick={this.incrementCounter}>Increment</button>
-      </div>
+        <div>
+            <Transition appear={true} in={open} timeout={500}>
+                {state => (
+                    <NextRiddleText state={state} duration={ 1000 }>
+                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus
+                        terry richardson ad squid. Nihil anim keffiyeh helvetica, craft beer
+                        labore wes anderson cred nesciunt sapiente ea proident.
+                    </NextRiddleText>
+                )}
+            </Transition>
+            <Button onClick={() => setOpen(!open)}>
+                Click to Toggle
+            </Button>
+        </div>        
     );
-  }
 }
