@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import FinalPuzzle from './FinalPuzzle';
 
 var riddleKeys = Object.keys(riddleData.riddles);
-var startIndex = 1;//Math.floor(Math.random() * riddleKeys.length);
+var startIndex = Math.floor(Math.random() * riddleKeys.length);
 
 const NextRiddleText = styled.div`
   display: flex;
