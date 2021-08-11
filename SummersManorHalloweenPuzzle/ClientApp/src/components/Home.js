@@ -20,6 +20,14 @@ const FinalFadeContainer = styled.div`
   opacity: ${props => (props.state === 'entering' || props.state === 'entered' ? '1' : '0')};
 `;
 
+const BottomTimer = styled.div`
+  position: fixed !important;
+  bottom: 0 !important;
+  z-index: 100;
+  background-color: black;
+  width: 100%;
+`;
+
 function formatTimeString(seconds) {
     var sec_num = parseInt(seconds, 10); // don't forget the second param
     var hours = Math.floor(sec_num / 3600);
@@ -70,15 +78,21 @@ export default function Home() {
     }
     return (
         <>
-            <CountdownCircleTimer
-                isPlaying
-                size={100}
-                duration={120}
-                colors={[["#004777", 0.33], ["#F7B801", 0.33], ["#A30000"]]}
-                onComplete={() => [true, 1000]}
-            >
-                {renderTime}
-            </CountdownCircleTimer>
+            <BottomTimer>
+                <CountdownCircleTimer
+                    strokeWidth={5}
+                    isPlaying
+                    size={70}
+                    duration={120}
+                    colors={[
+                        ['#00FF00', 0.5],
+                        ['#FF0000', 0.5]
+                    ]}
+                    onComplete={() => [true, 1000]}
+                >
+                    {renderTime}
+                </CountdownCircleTimer>
+            </BottomTimer>            
             <Transition in={showRiddle} timeout={fadeDuration} onExited={nextRiddle} mountOnEnter={true} unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>

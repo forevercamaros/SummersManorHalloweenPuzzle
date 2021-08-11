@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
-import ChopinsFuneralMarch from '../ChopinsFuneralMarch.mp3'
+import ChopinsFuneralMarch from '../donttrytocheat.mp3'
 import { Container, Row, Col } from 'react-grid-system';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl'
@@ -91,7 +91,7 @@ export default function Riddle({ onSolved, RiddleData }) {
             return (
                 <ClueDiv>
                     <RiddleText>{clueText}</RiddleText>
-                    <Button variant="primary" onClick={handleShowClue}>
+                    <Button variant="secondary" onClick={handleShowClue}>
                         Reveal Clue
                     </Button>
 
@@ -101,7 +101,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                         </Modal.Header>
                         <Modal.Body>{clue}</Modal.Body>
                         <Modal.Footer>
-                            <Button variant="primary" onClick={handleCloseClue}>
+                            <Button variant="secondary" onClick={handleCloseClue}>
                                 Close
                             </Button>
                         </Modal.Footer>
@@ -161,8 +161,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                     <RiddleText>{RiddleData.riddle}</RiddleText>
                 </Col>
             </Row>
-            <AddAudio type={RiddleData.type} audioFile={RiddleData.audioFile} />
-            <AddClue clueText={RiddleData.clueText} clue={RiddleData.clue} />
+            <AddAudio type={RiddleData.type} audioFile={RiddleData.audioFile} />            
             <AddBonus bonusText={RiddleData.bonusText} bonusAnswer={RiddleData.bonusAnswer} />
             <Row>
                 <Col>
@@ -171,7 +170,8 @@ export default function Riddle({ onSolved, RiddleData }) {
                         <FormControl ref={answerElement} onChange={TextChange} readOnly={readOnlyAnswer}/>
                     </InputGroup>
                 </Col>
-            </Row>            
+            </Row>
+            <AddClue clueText={RiddleData.clueText} clue={RiddleData.clue} />
         </Container>        
     )
 }
