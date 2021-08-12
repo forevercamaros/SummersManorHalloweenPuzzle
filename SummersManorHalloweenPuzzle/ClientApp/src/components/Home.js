@@ -40,25 +40,33 @@ function formatTimeString(seconds) {
     return hours + ':' + minutes + ':' + seconds;
 }
 
-const renderTime = ({ remainingTime }) => {
-    if (remainingTime === 0) {
-        return <div className="timer">Too lale...</div>;
-    }
-
-    return (
-        <div>
-            {formatTimeString(remainingTime)}
-        </div>
-    );
-};
 
 export default function Home() {
     const fadeDuration = 1000;
+    const timerDuration = 600;
     const [showRiddle, setShowRiddle] = useState(true);
     const [showRiddleSolved, setShowRiddleSolved] = useState(false);
     const [showFinalPuzzle, setShowFinalPuzzle] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(startIndex);
     const [riddle, setRiddle] = useState(riddleData.riddles[riddleKeys[startIndex]]);
+    const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
+    const [timerKey, setTimerKey] = useState(0);
+
+    var _remainingTime = 0;
+
+    const renderTime = ({ remainingTime }) => {
+        _remainingTime = remainingTime;
+        if (remainingTime === 0) {
+            return <div className="timer">Too late...</div>;
+        }
+
+        return (
+            <div>
+                {formatTimeString(remainingTime)}
+            </div>
+        );
+    };
+
     function onSolved() {
         setShowRiddle(false);
     }
@@ -76,14 +84,22 @@ export default function Home() {
             setShowRiddleSolved(true);           
         }
     }
+
+    function addTime(time) {
+        setTimerKey(timerKey + 1);
+        setInitialRemainingTime(_remainingTime + time);
+    }
+
     return (
         <>
             <BottomTimer>
                 <CountdownCircleTimer
+                    key={ timerKey }
                     strokeWidth={5}
                     isPlaying
                     size={70}
-                    duration={120}
+                    duration={timerDuration}
+                    initialRemainingTime={initialRemainingTime}
                     colors={[
                         ['#00FF00', 0.5],
                         ['#FF0000', 0.5]
@@ -96,7 +112,7 @@ export default function Home() {
             <Transition in={showRiddle} timeout={fadeDuration} onExited={nextRiddle} mountOnEnter={true} unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
-                        <Riddle RiddleData={riddle} onSolved={onSolved} />
+                        <Riddle RiddleData={riddle} onSolved={onSolved} onAddTime={addTime} />
                     </FadeContainer>
                 )}
             </Transition>

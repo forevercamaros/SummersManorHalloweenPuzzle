@@ -7,7 +7,13 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
+import { Transition } from 'react-transition-group';
 
+const FadeContainer = styled.div`
+  transition: opacity  ${props => props.duration}ms ease-in-out;
+  opacity: ${props => (props.state === 'entering' || props.state === 'entered' ? '1' : '0')};
+  color: white;
+`;
 
 const RiddleText = styled.div`
   margin: 8px;
@@ -25,7 +31,7 @@ const ClueDiv = styled.div`
   flex-direction: column;
 `;
 
-export default function Riddle({ onSolved, RiddleData }) {    
+export default function Riddle({ onSolved, RiddleData, onAddTime }) {    
     const answerElement = useRef(null);
     const bonusElement = useRef(null);
     const audioElement = useRef(null);
@@ -34,6 +40,8 @@ export default function Riddle({ onSolved, RiddleData }) {
     const [readOnlyBonus, setReadOnlyBonus] = useState(false);
     const [showClue, setShowClue] = useState(false);
     const [clueRevealed, setClueRevealed] = useState(false);
+    const [showClueOption, setShowClueOption] = useState(false);
+
     const handleCloseClue = () => setShowClue(false);
     const handleShowClue = () => {
         audioElement.current.audioEl.current.pause();
@@ -76,6 +84,7 @@ export default function Riddle({ onSolved, RiddleData }) {
                                 ref={audioElement}
                                 src={_audioFile}
                                 controls
+                                onEnded={() => setShowClueOption(true)}
                             />
                         </Col>                    
                     </Row>
@@ -147,7 +156,7 @@ export default function Riddle({ onSolved, RiddleData }) {
     }
     function BonusTextChange(value) {
         if (value.currentTarget.value.toLowerCase() === RiddleData.bonusAnswer.toLowerCase()) {
-            //TODO ADD TIME TO TIMER and notify of bonus answered
+            onAddTime(120);
             setReadOnlyBonus(true);
             handleCloseBonus();
         }
@@ -171,7 +180,13 @@ export default function Riddle({ onSolved, RiddleData }) {
                     </InputGroup>
                 </Col>
             </Row>
-            <AddClue clueText={RiddleData.clueText} clue={RiddleData.clue} />
+            <Transition in={showClueOption} timeout={1000}>
+                {state => (
+                    <FadeContainer state={state} duration={1000}>
+                        <AddClue clueText={RiddleData.clueText} clue={RiddleData.clue} />
+                    </FadeContainer>
+                )}                
+            </Transition>
         </Container>        
     )
 }
