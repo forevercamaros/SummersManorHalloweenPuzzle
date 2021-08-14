@@ -55,11 +55,11 @@ function formatTimeString(seconds, minutesOnly) {
 export default function Home() {
     const fadeDuration = 1000;
     const timerDuration = 600;
-    const [showLogin, setShowLogin] = useState(false);
+    const [showLogin, setShowLogin] = useState(true);
     const [showTimer, setShowTimer] = useState(false);
     const [showRiddle, setShowRiddle] = useState(false);
     const [showRiddleSolved, setShowRiddleSolved] = useState(false);
-    const [showFinalPuzzle, setShowFinalPuzzle] = useState(true);
+    const [showFinalPuzzle, setShowFinalPuzzle] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(startIndex);
     const [riddle, setRiddle] = useState(riddleData.riddles[riddleKeys[startIndex]]);
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
