@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import initialData from './initial-data';
 import Stanza from './Stanza';
 import styled from 'styled-components';
+import Card from 'react-bootstrap/Card';
 
 const Container = styled.div``;
 
 export default function FinalPuzzle() {
-    const [data, setData] = React.useState(initialData);
+    const [data, setData] = useState(initialData);
+    const [solved, setSolved] = useState(false);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [solved])
 
     const checkAllStanzasComplete = newData => {
         var keys = Object.keys(newData.columns);
@@ -57,6 +63,7 @@ export default function FinalPuzzle() {
                                     }
                                 };
                                 if (newData.columnOrder.length === i2 + 1) {
+                                    setSolved(true);
                                     console.log("Final Puzzle Solved");
                                 }
                             } else {
@@ -144,23 +151,44 @@ export default function FinalPuzzle() {
         }
     };
 
-    return (
-        <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="all-columns" type="column">
-                {(provided) => (
-                    <Container {...provided.droppableProps} ref={provided.innerRef}>
-                    {
-                        data.columnOrder.map((columnId,index) => {
-                            const column = data.columns[columnId];
-                            const tasks = column.taskIds.map(taskId => data.tasks[taskId]);
+    function ShowAuthor({ isSolved }) {
+        if (isSolved) {
+            return (
+                <Card className="bg-dark text-white">
+                    <Card.Body>
+                        <Card.Title>The Little Ghost</Card.Title>
+                        <Card.Text>
+                            Edna St. Vincent Millay - 1892-1950
+                    </Card.Text>
+                    </Card.Body>
+                </Card>
+                )
+        } else {
+            return "";
+        }
+        
+    }
 
-                            return <Stanza key={column.id} column={column} tasks={tasks} index={index} />;
-                        })
-                    }
-                        {provided.placeholder}
-                    </Container>
-                )}                
-            </Droppable>
-        </DragDropContext>
+    return (
+        <>
+            <ShowAuthor isSolved={solved}/>
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="all-columns" type="column">
+                    {(provided) => (
+                        <Container {...provided.droppableProps} ref={provided.innerRef}>
+                            {
+                                data.columnOrder.map((columnId, index) => {
+                                    const column = data.columns[columnId];
+                                    const tasks = column.taskIds.map(taskId => data.tasks[taskId]);
+
+                                    return <Stanza key={column.id} column={column} tasks={tasks} index={index} />;
+                                })
+                            }
+                            {provided.placeholder}
+                        </Container>
+                    )}
+                </Droppable>
+            </DragDropContext>
+            </>  
     )
 }

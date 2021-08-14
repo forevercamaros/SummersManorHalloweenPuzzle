@@ -11,6 +11,10 @@ import { Container, Row, Col } from 'react-grid-system';
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
 
+const BottomPadding = styled.div`  
+  min-height: 100px;
+`;
+
 const FadeContainer = styled.div`
   transition: opacity  ${props => props.duration}ms ease-in-out;
   opacity: ${props => (props.state === 'entering' || props.state === 'entered' ? '1' : '0')};
@@ -51,11 +55,11 @@ function formatTimeString(seconds, minutesOnly) {
 export default function Home() {
     const fadeDuration = 1000;
     const timerDuration = 600;
-    const [showLogin, setShowLogin] = useState(true);
+    const [showLogin, setShowLogin] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
     const [showRiddle, setShowRiddle] = useState(false);
     const [showRiddleSolved, setShowRiddleSolved] = useState(false);
-    const [showFinalPuzzle, setShowFinalPuzzle] = useState(false);
+    const [showFinalPuzzle, setShowFinalPuzzle] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(startIndex);
     const [riddle, setRiddle] = useState(riddleData.riddles[riddleKeys[startIndex]]);
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
@@ -194,6 +198,7 @@ export default function Home() {
                     </FinalFadeContainer>
                 )}
             </Transition>
+            <BottomPadding />
         </>
     );    
 }
