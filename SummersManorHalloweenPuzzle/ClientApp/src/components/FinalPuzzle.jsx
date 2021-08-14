@@ -56,6 +56,9 @@ export default function FinalPuzzle() {
                                         [newColumn2.id]: newColumn2
                                     }
                                 };
+                                if (newData.columnOrder.length === i2 + 1) {
+                                    console.log("Final Puzzle Solved");
+                                }
                             } else {
                                 break;
                             }
