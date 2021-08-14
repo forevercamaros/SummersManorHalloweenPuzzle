@@ -5,6 +5,8 @@ import styled from 'styled-components';
 import FinalPuzzle from './FinalPuzzle';
 import { Transition } from 'react-transition-group';
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import GroupLogin from './GroupLogin';
+import { Container, Row, Col } from 'react-grid-system';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -28,7 +30,7 @@ const BottomTimer = styled.div`
   width: 100%;
 `;
 
-function formatTimeString(seconds) {
+function formatTimeString(seconds, minutesOnly) {
     var sec_num = parseInt(seconds, 10); // don't forget the second param
     var hours = Math.floor(sec_num / 3600);
     var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
@@ -37,22 +39,36 @@ function formatTimeString(seconds) {
     if (hours < 10) { hours = "0" + hours; }
     if (minutes < 10) { minutes = "0" + minutes; }
     if (seconds < 10) { seconds = "0" + seconds; }
-    return hours + ':' + minutes + ':' + seconds;
+    if (minutesOnly) {
+        return minutes;
+    } else {
+        return hours + ':' + minutes + ':' + seconds;
+    }
+    
 }
 
 
 export default function Home() {
     const fadeDuration = 1000;
     const timerDuration = 600;
-    const [showRiddle, setShowRiddle] = useState(true);
+    const [showLogin, setShowLogin] = useState(true);
+    const [showTimer, setShowTimer] = useState(false);
+    const [showRiddle, setShowRiddle] = useState(false);
     const [showRiddleSolved, setShowRiddleSolved] = useState(false);
     const [showFinalPuzzle, setShowFinalPuzzle] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(startIndex);
     const [riddle, setRiddle] = useState(riddleData.riddles[riddleKeys[startIndex]]);
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
     const [timerKey, setTimerKey] = useState(0);
+    const [groupName, setGroupName] = useState("");
 
     var _remainingTime = 0;
+
+    
+    function onSetGroupName(inGroupName) {
+        setGroupName(inGroupName);
+        setShowLogin(false);
+    }
 
     const renderTime = ({ remainingTime }) => {
         _remainingTime = remainingTime;
@@ -62,7 +78,7 @@ export default function Home() {
 
         return (
             <div>
-                {formatTimeString(remainingTime)}
+                {formatTimeString(remainingTime,false)}
             </div>
         );
     };
@@ -92,23 +108,48 @@ export default function Home() {
 
     return (
         <>
-            <BottomTimer>
-                <CountdownCircleTimer
-                    key={ timerKey }
-                    strokeWidth={5}
-                    isPlaying
-                    size={70}
-                    duration={timerDuration}
-                    initialRemainingTime={initialRemainingTime}
-                    colors={[
-                        ['#00FF00', 0.5],
-                        ['#FF0000', 0.5]
-                    ]}
-                    onComplete={() => [true, 1000]}
-                >
-                    {renderTime}
-                </CountdownCircleTimer>
-            </BottomTimer>            
+            <Transition in={showTimer} timeout={fadeDuration} mountOnEnter={true}>
+                {state => (
+                    <FadeContainer state={state} duration={fadeDuration}>                        
+                        <BottomTimer>
+                            <Container fluid>
+                                <Row>
+                                    <Col>
+                                        <CountdownCircleTimer
+                                            key={timerKey}
+                                            strokeWidth={5}
+                                            isPlaying
+                                            size={70}
+                                            duration={timerDuration}
+                                            initialRemainingTime={initialRemainingTime}
+                                            colors={[
+                                                ['#00FF00', 0.5],
+                                                ['#FF0000', 0.5]
+                                            ]}
+                                            onComplete={() => [true, 1000]}
+                                        >
+                                            {renderTime}
+                                        </CountdownCircleTimer>
+                                    </Col>
+                                    <Col>
+                                        Group: {groupName}
+                                    </Col>
+                                </Row>
+                            </Container>
+                        </BottomTimer>
+                    </FadeContainer>
+                )}                
+            </Transition>
+            <Transition in={showLogin} timeout={fadeDuration} onExited={() => {
+                setShowTimer(true);
+                setShowRiddle(true);
+            }} mountOnEnter={true} unmountOnExit={true}>
+                {state => (
+                    <FadeContainer state={state} duration={fadeDuration}>
+                        <GroupLogin riddleCount={riddleKeys.length} countDownTime={formatTimeString(timerDuration, true)} onClick={onSetGroupName} />
+                    </FadeContainer>
+                )}                
+            </Transition>
             <Transition in={showRiddle} timeout={fadeDuration} onExited={nextRiddle} mountOnEnter={true} unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
