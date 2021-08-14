@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Riddle from './Riddle';
 import riddleData from './riddle-data';
 import styled from 'styled-components';
@@ -61,9 +61,32 @@ export default function Home() {
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
     const [timerKey, setTimerKey] = useState(0);
     const [groupName, setGroupName] = useState("");
+    const [showExitPrompt, setShowExitPrompt] = useState(true);
 
     var _remainingTime = 0;
 
+    const initBeforeUnLoad = (showExitPrompt) => {
+        window.onbeforeunload = (event) => {
+            // Show prompt based on state
+            if (showExitPrompt) {
+                const e = event || window.event;
+                e.preventDefault();
+                if (e) {
+                    e.returnValue = ''
+                }
+                return '';
+            }
+        };
+    };
+
+    window.onload = function () {
+        initBeforeUnLoad(showExitPrompt);
+    };
+
+    // Re-Initialize the onbeforeunload event listener
+    useEffect(() => {
+        initBeforeUnLoad(showExitPrompt);
+    }, [showExitPrompt]);
     
     function onSetGroupName(inGroupName) {
         setGroupName(inGroupName);
