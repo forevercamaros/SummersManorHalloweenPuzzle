@@ -10,6 +10,11 @@ import ghostImage from '../ghostbackground.jpg';
 
 const Container = styled.div``;
 
+const AuthorSticky = styled.div`
+  position: sticky;
+  top: 0;
+`;
+
 export default function FinalPuzzle() {
     const [data, setData] = useState(initialData);
     const [solved, setSolved] = useState(false);
@@ -159,14 +164,16 @@ export default function FinalPuzzle() {
     function ShowAuthor({ isSolved }) {
         if (isSolved) {
             return (
-                <Card className="bg-dark text-white">
-                    <Card.Body>
-                        <Card.Title>The Little Ghost</Card.Title>
-                        <Card.Text>
-                            Edna St. Vincent Millay - 1892-1950
-                    </Card.Text>
-                    </Card.Body>
-                </Card>
+                <AuthorSticky>
+                    <Card className="bg-dark text-white">
+                        <Card.Body>
+                            <Card.Title>The Little Ghost</Card.Title>
+                            <Card.Text>
+                                Edna St. Vincent Millay - 1892-1950
+                        </Card.Text>
+                        </Card.Body>
+                    </Card>
+                </AuthorSticky>
                 )
         } else {
             return "";
@@ -196,7 +203,6 @@ export default function FinalPuzzle() {
             </DragDropContext>
             <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
                 <Modal.Header closeButton>
-                    <Modal.Title>Good Job!!!</Modal.Title>
                     <img src={ghostImage} className="img-fluid" />
                 </Modal.Header>
                 <Modal.Body>You Solved the Final Puzzle!!!</Modal.Body>
