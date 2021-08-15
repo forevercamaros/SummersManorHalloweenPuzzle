@@ -6,7 +6,10 @@ import FinalPuzzle from './FinalPuzzle';
 import { Transition } from 'react-transition-group';
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 import GroupLogin from './GroupLogin';
-import { Container, Row, Col } from 'react-grid-system';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import { Textfit } from 'react-textfit';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -87,6 +90,10 @@ export default function Home() {
         initBeforeUnLoad(showExitPrompt);
     };
 
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    })
+
     // Re-Initialize the onbeforeunload event listener
     useEffect(() => {
         initBeforeUnLoad(showExitPrompt);
@@ -139,9 +146,9 @@ export default function Home() {
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>                        
                         <BottomTimer>
-                            <Container fluid>
-                                <Row>
-                                    <Col>
+                            <Container fluid="sm">
+                                <Row className="flex-nowrap">
+                                    <Col lg={true}>
                                         <CountdownCircleTimer
                                             key={timerKey}
                                             strokeWidth={5}
@@ -158,8 +165,10 @@ export default function Home() {
                                             {renderTime}
                                         </CountdownCircleTimer>
                                     </Col>
-                                    <Col>
-                                        Group: {groupName}
+                                    <Col lg={true}>
+                                        <Textfit mode="single">
+                                            {groupName}
+                                        </Textfit>
                                     </Col>
                                 </Row>
                             </Container>
@@ -191,7 +200,7 @@ export default function Home() {
                     </FadeContainer>
                 )}
             </Transition>            
-            <Transition in={showFinalPuzzle} timeout={fadeDuration}>
+            <Transition in={showFinalPuzzle} timeout={fadeDuration} mountOnEnter={true}>
                 {state => (
                     <FinalFadeContainer state={state} duration={fadeDuration}>
                         <FinalPuzzle />

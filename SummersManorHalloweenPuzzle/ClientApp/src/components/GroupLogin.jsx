@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import styled from 'styled-components';
-import { Container, Row, Col } from 'react-grid-system';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 const LoginText = styled.div`
   margin: 8px;
@@ -31,7 +33,7 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
             </Row>
             <Row>
                 <Col>
-                    <Button variant="primary" type="submit" onClick={e => onClick(groupName)}>
+                    <Button variant="secondary" type="submit" onClick={e => onClick(groupName)}>
                         Submit
                     </Button>
                 </Col>

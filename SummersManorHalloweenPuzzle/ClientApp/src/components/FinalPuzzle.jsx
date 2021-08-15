@@ -4,12 +4,17 @@ import initialData from './initial-data';
 import Stanza from './Stanza';
 import styled from 'styled-components';
 import Card from 'react-bootstrap/Card';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
+import ghostImage from '../ghostbackground.jpg';
 
 const Container = styled.div``;
 
 export default function FinalPuzzle() {
     const [data, setData] = useState(initialData);
     const [solved, setSolved] = useState(false);
+    const [showSolved, setShowSolved] = useState(false);
+    const handleCloseSolved = () => setShowSolved(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -64,7 +69,7 @@ export default function FinalPuzzle() {
                                 };
                                 if (newData.columnOrder.length === i2 + 1) {
                                     setSolved(true);
-                                    console.log("Final Puzzle Solved");
+                                    setShowSolved(true);
                                 }
                             } else {
                                 break;
@@ -189,6 +194,18 @@ export default function FinalPuzzle() {
                     )}
                 </Droppable>
             </DragDropContext>
-            </>  
+            <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
+                <Modal.Header closeButton>
+                    <Modal.Title>Good Job!!!</Modal.Title>
+                    <img src={ghostImage} className="img-fluid" />
+                </Modal.Header>
+                <Modal.Body>You Solved the Final Puzzle!!!</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseSolved}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </>  
     )
 }

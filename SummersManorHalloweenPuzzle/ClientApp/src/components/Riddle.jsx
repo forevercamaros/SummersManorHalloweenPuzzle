@@ -2,7 +2,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
 import ChopinsFuneralMarch from '../donttrytocheat.mp3'
-import { Container, Row, Col } from 'react-grid-system';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl'
 import Modal from 'react-bootstrap/Modal'
@@ -104,7 +106,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
                         Reveal Clue
                     </Button>
 
-                    <Modal show={showClue} onHide={handleCloseClue}>
+                    <Modal show={showClue} onHide={handleCloseClue} className="special_modal">
                         <Modal.Header closeButton>
                             <Modal.Title>Your Clue</Modal.Title>
                         </Modal.Header>
@@ -125,7 +127,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     function AddBonus({ bonusText }) {
         if (bonusText !== "" && typeof bonusText !== 'undefined') {
             return (
-                <Modal show={showBonus} onHide={handleCloseBonus} onEntered={focusBonusInput}>
+                <Modal show={showBonus} onHide={handleCloseBonus} onEntered={focusBonusInput} className="special_modal">
                     <Modal.Header closeButton>
                         <Modal.Title>Your Bonus</Modal.Title>
                     </Modal.Header>
