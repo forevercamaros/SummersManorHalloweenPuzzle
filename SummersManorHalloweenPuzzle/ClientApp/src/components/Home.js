@@ -9,7 +9,6 @@ import GroupLogin from './GroupLogin';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import { Textfit } from 'react-textfit';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -35,6 +34,10 @@ const BottomTimer = styled.div`
   z-index: 100;
   background-color: black;
   width: 100%;
+`;
+
+const GroupNameDiv = styled.div`
+  padding: 10%;
 `;
 
 function formatTimeString(seconds, minutesOnly) {
@@ -146,9 +149,9 @@ export default function Home() {
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>                        
                         <BottomTimer>
-                            <Container fluid="sm">
-                                <Row className="flex-nowrap">
-                                    <Col lg={true}>
+                            <div className="container">
+                                <div className="row">
+                                    <div className="col">
                                         <CountdownCircleTimer
                                             key={timerKey}
                                             strokeWidth={5}
@@ -164,14 +167,14 @@ export default function Home() {
                                         >
                                             {renderTime}
                                         </CountdownCircleTimer>
-                                    </Col>
-                                    <Col lg={true}>
-                                        <Textfit mode="single">
+                                    </div>
+                                    <div className="col">
+                                        <GroupNameDiv>
                                             {groupName}
-                                        </Textfit>
-                                    </Col>
-                                </Row>
-                            </Container>
+                                        </GroupNameDiv>
+                                    </div>
+                                </div>
+                            </div>
                         </BottomTimer>
                     </FadeContainer>
                 )}                
