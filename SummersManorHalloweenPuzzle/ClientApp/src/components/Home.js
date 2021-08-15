@@ -6,9 +6,8 @@ import FinalPuzzle from './FinalPuzzle';
 import { Transition } from 'react-transition-group';
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 import GroupLogin from './GroupLogin';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -71,7 +70,11 @@ export default function Home() {
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
     const [timerKey, setTimerKey] = useState(0);
     const [groupName, setGroupName] = useState("");
+    const [isPlaying, setIsPlaying] = useState(true);
     const [showExitPrompt, setShowExitPrompt] = useState(true);
+    const [showOutOfTime, setShowOutOfTime] = useState(false);
+    const handleCloseOutOfTime = () => setShowOutOfTime(false);
+    
 
     var _remainingTime = 0;
 
@@ -110,7 +113,7 @@ export default function Home() {
     const renderTime = ({ remainingTime }) => {
         _remainingTime = remainingTime;
         if (remainingTime === 0) {
-            return <div className="timer">Too late...</div>;
+            return <div>0 Time</div>;
         }
 
         return (
@@ -145,6 +148,17 @@ export default function Home() {
 
     return (
         <>
+            <Modal show={showOutOfTime} onHide={handleCloseOutOfTime} className="special_modal">
+                <Modal.Header closeButton>
+                    <Modal.Title>Time Out</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>You are out of time.</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseOutOfTime}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
             <Transition in={showTimer} timeout={fadeDuration} mountOnEnter={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>                        
@@ -155,7 +169,7 @@ export default function Home() {
                                         <CountdownCircleTimer
                                             key={timerKey}
                                             strokeWidth={5}
-                                            isPlaying
+                                            isPlaying={isPlaying}
                                             size={70}
                                             duration={timerDuration}
                                             initialRemainingTime={initialRemainingTime}
@@ -163,7 +177,10 @@ export default function Home() {
                                                 ['#00FF00', 0.5],
                                                 ['#FF0000', 0.5]
                                             ]}
-                                            onComplete={() => [true, 1000]}
+                                            onComplete={() => {
+                                                setShowOutOfTime(true);
+                                                return [false, 0];
+                                            }}
                                         >
                                             {renderTime}
                                         </CountdownCircleTimer>
