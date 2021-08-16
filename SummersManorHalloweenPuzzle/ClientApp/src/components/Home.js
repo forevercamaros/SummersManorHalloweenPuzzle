@@ -75,12 +75,20 @@ export default function Home() {
     const [isPlaying, setIsPlaying] = useState(true);
     const [showExitPrompt, setShowExitPrompt] = useState(true);
     const [showOutOfTime, setShowOutOfTime] = useState(false);
+    const [finalPuzzleCompleted, setFinalPuzzleCompleted] = useState(false);
     const handleCloseOutOfTime = () => setShowOutOfTime(false);
+
 
     const audioElement = useRef(null);
     
 
     var _remainingTime = 0;
+    var _finalTime = 0;
+
+    const onFinalPuzzleCompleted = () => {
+        _finalTime = _remainingTime;
+        setFinalPuzzleCompleted(true);
+    }
 
     const initBeforeUnLoad = (showExitPrompt) => {
         window.onbeforeunload = (event) => {
@@ -153,6 +161,37 @@ export default function Home() {
         setInitialRemainingTime(_remainingTime + time);
     }
 
+    function CounterOrCompleteButton({ showButton }) {
+        if (showButton) {
+            return (
+                <Button variant="secondary" onClick={handleCloseOutOfTime}>
+                    View Results
+                </Button>
+            );
+        } else {
+            return (
+                <CountdownCircleTimer
+                    key={timerKey}
+                    strokeWidth={5}
+                    isPlaying={isPlaying}
+                    size={70}
+                    duration={timerDuration}
+                    initialRemainingTime={initialRemainingTime}
+                    colors={[
+                        ['#00FF00', 0.5],
+                        ['#FF0000', 0.5]
+                    ]}
+                    onComplete={() => {
+                        setShowOutOfTime(true);
+                        return [false, 0];
+                    }}
+                >
+                    {renderTime}
+                </CountdownCircleTimer>
+                );
+        }
+    }
+
     return (
         <>
             <Modal show={showOutOfTime} onHide={handleCloseOutOfTime} className="special_modal">
@@ -173,24 +212,29 @@ export default function Home() {
                             <div className="container">
                                 <div className="row">
                                     <div className="col">
-                                        <CountdownCircleTimer
-                                            key={timerKey}
-                                            strokeWidth={5}
-                                            isPlaying={isPlaying}
-                                            size={70}
-                                            duration={timerDuration}
-                                            initialRemainingTime={initialRemainingTime}
-                                            colors={[
-                                                ['#00FF00', 0.5],
-                                                ['#FF0000', 0.5]
-                                            ]}
-                                            onComplete={() => {
-                                                setShowOutOfTime(true);
-                                                return [false, 0];
-                                            }}
-                                        >
-                                            {renderTime}
-                                        </CountdownCircleTimer>
+                                        {finalPuzzleCompleted
+                                            ? <Button size="lg" variant="secondary" onClick={handleCloseOutOfTime}>
+                                                View Results
+                                            </Button>
+                                            : <CountdownCircleTimer
+                                                key={timerKey}
+                                                strokeWidth={5}
+                                                isPlaying={isPlaying}
+                                                size={70}
+                                                duration={timerDuration}
+                                                initialRemainingTime={initialRemainingTime}
+                                                colors={[
+                                                    ['#00FF00', 0.5],
+                                                    ['#FF0000', 0.5]
+                                                ]}
+                                                onComplete={() => {
+                                                    setShowOutOfTime(true);
+                                                    return [false, 0];
+                                                }}
+                                            >
+                                                {renderTime}
+                                            </CountdownCircleTimer>
+                                        }                                        
                                     </div>
                                     <div className="col">
                                         <GroupNameDiv>
@@ -234,7 +278,7 @@ export default function Home() {
             <Transition in={showFinalPuzzle} timeout={fadeDuration} mountOnEnter={true}>
                 {state => (
                     <FinalFadeContainer state={state} duration={fadeDuration}>
-                        <FinalPuzzle />
+                        <FinalPuzzle onComplete={ onFinalPuzzleCompleted } />
                     </FinalFadeContainer>
                 )}
             </Transition>
@@ -243,6 +287,7 @@ export default function Home() {
                 ref={audioElement}
                 src={backgroundmusic}
                 onEnded={() => audioElement.current.audioEl.current.play()}
+                volume={0.1}
             />
         </>
     );    

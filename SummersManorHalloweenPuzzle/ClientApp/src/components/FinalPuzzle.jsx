@@ -15,7 +15,7 @@ const AuthorSticky = styled.div`
   top: 0;
 `;
 
-export default function FinalPuzzle() {
+export default function FinalPuzzle({ onComplete }) {
     const [data, setData] = useState(initialData);
     const [solved, setSolved] = useState(false);
     const [showSolved, setShowSolved] = useState(false);
@@ -75,6 +75,7 @@ export default function FinalPuzzle() {
                                 if (newData.columnOrder.length === i2 + 1) {
                                     setSolved(true);
                                     setShowSolved(true);
+                                    onComplete();
                                 }
                             } else {
                                 break;

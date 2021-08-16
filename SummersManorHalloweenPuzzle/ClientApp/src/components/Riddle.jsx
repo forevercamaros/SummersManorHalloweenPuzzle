@@ -76,6 +76,8 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             case "ChopinsFuneralMarch":
                 _audioFile = ChopinsFuneralMarch;
                 break;
+            default:
+                //Do nothing
         }
         if (type === "audio") {
             return (
@@ -87,7 +89,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
                                 src={_audioFile}
                                 controls
                                 onEnded={() => setShowClueOption(true)}
-                                onCanPlay={() => audioElement.current.audioEl.current.play()}
+                                onCanPlay={() => { if (!clueRevealed) { audioElement.current.audioEl.current.play(); }}}
                             />
                         </Col>                    
                     </Row>
