@@ -67,7 +67,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     useEffect(() => {
         if (answerElement.current) {
             answerElement.current.focus();
-        }
+        }      
     }, []);
 
     function AddAudio({ type, audioFile }) {
@@ -87,6 +87,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
                                 src={_audioFile}
                                 controls
                                 onEnded={() => setShowClueOption(true)}
+                                onCanPlay={() => audioElement.current.audioEl.current.play()}
                             />
                         </Col>                    
                     </Row>

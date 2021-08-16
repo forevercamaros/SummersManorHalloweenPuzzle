@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import houseImage from '../haunted-house.jpg';
 
 const LoginText = styled.div`
   margin: 8px;
@@ -15,6 +16,9 @@ const LoginText = styled.div`
   color: white;
 `;
 
+const HouseImageDiv = styled.div`
+  margin: 8px;  
+`;
 
 export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
     const [groupName, setGroupName] = useState("");    
@@ -27,7 +31,7 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
                         you will be presented with a final puzzle. You will have {countDownTime} minutes to complete the Challenge. Good Luck!!
                     </LoginText>
                     <Form.Group as={Col} controlId="formGridGroupName">
-                        <Form.Control type="text" placeholder="Enter group name" onChange={e => setGroupName(e.target.value) } />
+                        <Form.Control type="text" placeholder="Enter group name" onChange={e => setGroupName(e.target.value)} onKeyPress={(e) => { if (e.charCode === 13) { onClick(groupName) } }} />
                     </Form.Group>
                 </Col>
             </Row>
@@ -36,6 +40,13 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
                     <Button variant="secondary" type="submit" onClick={e => onClick(groupName)}>
                         Submit
                     </Button>
+                </Col>
+            </Row>
+            <Row>
+                <Col>
+                    <HouseImageDiv>
+                        <img src={houseImage} className="img-fluid" />
+                    </HouseImageDiv>
                 </Col>
             </Row>
         </Container>        

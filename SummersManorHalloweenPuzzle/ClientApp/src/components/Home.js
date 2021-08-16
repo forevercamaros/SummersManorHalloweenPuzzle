@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Riddle from './Riddle';
 import riddleData from './riddle-data';
 import styled from 'styled-components';
@@ -8,6 +8,8 @@ import { CountdownCircleTimer } from "react-countdown-circle-timer";
 import GroupLogin from './GroupLogin';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+import backgroundmusic from '../darren-curtis-i-am-not-what-i-thought.mp3';
+import ReactAudioPlayer from 'react-audio-player'
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -74,6 +76,8 @@ export default function Home() {
     const [showExitPrompt, setShowExitPrompt] = useState(true);
     const [showOutOfTime, setShowOutOfTime] = useState(false);
     const handleCloseOutOfTime = () => setShowOutOfTime(false);
+
+    const audioElement = useRef(null);
     
 
     var _remainingTime = 0;
@@ -108,6 +112,9 @@ export default function Home() {
     function onSetGroupName(inGroupName) {
         setGroupName(inGroupName);
         setShowLogin(false);
+        if (riddle.type !== 'audio') {
+            audioElement.current.audioEl.current.play();
+        }        
     }
 
     const renderTime = ({ remainingTime }) => {
@@ -135,7 +142,7 @@ export default function Home() {
         if (index === startIndex) {
             setShowFinalPuzzle(true);
         } else {
-            setCurrentIndex(index);
+            setCurrentIndex(index);            
             setRiddle(riddleData.riddles[riddleKeys[index]]);
             setShowRiddleSolved(true);           
         }
@@ -206,14 +213,18 @@ export default function Home() {
                     </FadeContainer>
                 )}                
             </Transition>
-            <Transition in={showRiddle} timeout={fadeDuration} onExited={nextRiddle} mountOnEnter={true} unmountOnExit={true}>
+            <Transition in={showRiddle} timeout={fadeDuration} onExited={nextRiddle} mountOnEnter={true} unmountOnExit={true} onEntered={() => {
+                if (riddle.type === 'audio') {
+                    audioElement.current.audioEl.current.pause();
+                }
+            }}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
                         <Riddle RiddleData={riddle} onSolved={onSolved} onAddTime={addTime} />
                     </FadeContainer>
                 )}
             </Transition>
-            <Transition in={showRiddleSolved} timeout={fadeDuration} onEntered={() => { setShowRiddleSolved(false) }} onExited={() => { setShowRiddle(true) }} unmountOnExit={true}>
+            <Transition in={showRiddleSolved} timeout={fadeDuration} onEntered={() => { setShowRiddleSolved(false); audioElement.current.audioEl.current.play(); }} onExited={() => { setShowRiddle(true) }} unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
                         Riddle Solved. Loading new riddle!!
@@ -228,6 +239,11 @@ export default function Home() {
                 )}
             </Transition>
             <BottomPadding />
+            <ReactAudioPlayer
+                ref={audioElement}
+                src={backgroundmusic}
+                onEnded={() => audioElement.current.audioEl.current.play()}
+            />
         </>
     );    
 }
