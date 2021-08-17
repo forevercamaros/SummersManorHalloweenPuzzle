@@ -27,6 +27,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [Route("GroupExists")]
         public bool GroupExists(string groupName)
         {
+            //Test
             using (SqlConnection con = new SqlConnection(Configuration["ConnectionString"]))
             using(SqlCommand cmd = new SqlCommand("SELECT GroupName FROM GroupCompletedTimes WHERE (GroupName = @GroupName)",con))
             using(SqlDataAdapter da = new SqlDataAdapter(cmd))
