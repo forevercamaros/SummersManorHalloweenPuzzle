@@ -21,7 +21,21 @@ const HouseImageDiv = styled.div`
 `;
 
 export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
-    const [groupName, setGroupName] = useState("");    
+    const [groupName, setGroupName] = useState("");
+    const [duplicateGroup, setDuplicateGroup] = useState(0);
+    const checkGroupName = async () => {
+        let response = await fetch(`GroupExists?groupName=${encodeURIComponent(groupName)}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/text' },
+        });
+        let isDuplicate = await response.text();
+        if (isDuplicate === "true") {
+            setDuplicateGroup(true);
+            //TODO Invalidate Input
+        } else {
+            onClick(groupName);
+        }
+    };
     return (
         <Container fluid>
             <Row>
@@ -31,13 +45,16 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
                         you will be presented with a final puzzle. You will have {countDownTime} minutes to complete the Challenge. Good Luck!!
                     </LoginText>
                     <Form.Group as={Col} controlId="formGridGroupName">
-                        <Form.Control type="text" placeholder="Enter group name" onChange={e => setGroupName(e.target.value)} onKeyPress={(e) => { if (e.charCode === 13) { onClick(groupName) } }} />
+                        <Form.Control isInvalid={duplicateGroup} type="text" placeholder="Enter group name" onChange={e => setGroupName(e.target.value)} onKeyPress={(e) => { if (duplicateGroup) { setDuplicateGroup(false); } if (e.charCode === 13) { checkGroupName() } }} />
+                        <Form.Control.Feedback type="invalid">
+                            Duplicate Group Name. Please Choose Another.
+                        </Form.Control.Feedback>
                     </Form.Group>
                 </Col>
             </Row>
             <Row>
                 <Col>
-                    <Button variant="secondary" type="submit" onClick={e => onClick(groupName)}>
+                    <Button variant="secondary" type="submit" onClick={e => checkGroupName()}>
                         Submit
                     </Button>
                 </Col>

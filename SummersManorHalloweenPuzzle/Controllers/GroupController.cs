@@ -24,7 +24,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
         }
 
         [HttpGet]
-        [Route("GetAllGroups")]
+        [Route("GroupExists")]
         public bool GroupExists(string groupName)
         {
             using (SqlConnection con = new SqlConnection(Configuration["ConnectionString"]))
@@ -34,6 +34,16 @@ namespace SummersManorHalloweenPuzzle.Controllers
                 cmd.Parameters.Add(new SqlParameter("GroupName",groupName));
                 var tbl = new DataTable();
                 da.Fill(tbl);
+                if (tbl.Rows.Count == 0)
+                {
+                    using (SqlCommand cmd2 = new SqlCommand("InsertGroup",con))
+                    {
+                        con.Open();
+                        cmd2.CommandType=CommandType.StoredProcedure;
+                        cmd2.Parameters.Add(new SqlParameter("GroupName",groupName));
+                        cmd2.ExecuteNonQuery();
+                    }
+                }
                 return (tbl.Rows.Count>0);
             }
         }
