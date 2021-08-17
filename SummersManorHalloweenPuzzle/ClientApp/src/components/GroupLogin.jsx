@@ -23,18 +23,24 @@ const HouseImageDiv = styled.div`
 export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
     const [groupName, setGroupName] = useState("");
     const [duplicateGroup, setDuplicateGroup] = useState(0);
-    const checkGroupName = async () => {
-        let response = await fetch(`GroupExists?groupName=${encodeURIComponent(groupName)}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/text' },
-        });
-        let isDuplicate = await response.text();
-        if (isDuplicate === "true") {
-            setDuplicateGroup(true);
-            //TODO Invalidate Input
-        } else {
-            onClick(groupName);
-        }
+    const checkGroupName = () => {
+        fetch(`GroupExists?groupName=${encodeURIComponent(groupName)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(isDuplicate => {
+                if (isDuplicate === "true") {
+                    setDuplicateGroup(true);
+                } else {
+                    onClick(groupName);
+                }
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
     };
     return (
         <Container fluid>
