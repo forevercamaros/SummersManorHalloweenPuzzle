@@ -25,7 +25,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
 
         [HttpGet]
         [Route("GroupExists")]
-        public bool GroupExists(string groupName)
+        public GroupExistsModel GroupExists(string groupName)
         {
             //Test
             using (SqlConnection con = new SqlConnection(Configuration["ConnectionString"]))
@@ -45,8 +45,13 @@ namespace SummersManorHalloweenPuzzle.Controllers
                         cmd2.ExecuteNonQuery();
                     }
                 }
-                return (tbl.Rows.Count>0);
+                return new GroupExistsModel() { GroupExists = tbl.Rows.Count > 0, };
             }
         }
+    }
+
+    public class GroupExistsModel
+    {
+        public bool GroupExists { get; set; }
     }
 }

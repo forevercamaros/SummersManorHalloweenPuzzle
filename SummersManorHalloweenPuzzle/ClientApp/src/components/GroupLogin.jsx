@@ -29,10 +29,10 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.text();
+                return response.json();
             })
-            .then(isDuplicate => {
-                if (isDuplicate === "true") {
+            .then(returnJson => {
+                if (returnJson.groupExists === true) {
                     setDuplicateGroup(true);
                 } else {
                     onClick(groupName);
