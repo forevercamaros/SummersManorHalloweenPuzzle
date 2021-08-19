@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Dapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -27,7 +28,6 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [Route("GroupExists")]
         public GroupExistsModel GroupExists(string groupName)
         {
-            //Test
             using (SqlConnection con = new SqlConnection(Configuration["ConnectionString"]))
             using(SqlCommand cmd = new SqlCommand("SELECT GroupName FROM GroupCompletedTimes WHERE (GroupName = @GroupName)",con))
             using(SqlDataAdapter da = new SqlDataAdapter(cmd))
@@ -48,6 +48,56 @@ namespace SummersManorHalloweenPuzzle.Controllers
                 return new GroupExistsModel() { GroupExists = tbl.Rows.Count > 0, };
             }
         }
+
+        [HttpGet]
+        [Route("GroupResults")]
+        public GroupResults[] GroupResults()
+        {
+            using (var connection = new SqlConnection(Configuration["ConnectionString"]))
+            {
+                return connection.Query<GroupResults>("SELECT ROW_NUMBER() OVER(ORDER BY RemainingTime ASC) AS Position, GroupName, RemainingTime FROM GroupCompletedTimes").ToArray();
+            }
+        }
+
+        [HttpPost]
+        [Route("UpdateRemainingTime")]
+        public void UpdateRemainingTime([FromBody] UpdateGroupRemainingTime groupRemainingTime)
+        {
+            using (SqlConnection con = new SqlConnection(Configuration["ConnectionString"]))
+            using (SqlCommand cmd = new SqlCommand("UPDATE GroupCompletedTimes SET RemainingTime = @RemainingTime WHERE (GroupName = @GroupName)", con))
+            {
+                con.Open();
+                cmd.Parameters.Add(new SqlParameter("GroupName", groupRemainingTime.groupName));
+                cmd.Parameters.Add(new SqlParameter("RemainingTime", groupRemainingTime.remainingTime));
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public class GroupResults
+    {
+        public int Position { get; set; }
+        public string GroupName {  get; set; }
+        public int RemainingTime {  get; set; }
+
+        public string FormattedRemainingTime 
+        { 
+            get 
+            {
+                TimeSpan time = TimeSpan.FromSeconds(RemainingTime);
+
+                //here backslash is must to tell that colon is
+                //not the part of format, it just a character that we want in output
+                return time.ToString(@"mm\:ss");
+                
+            } 
+        }
+    }
+
+    public class UpdateGroupRemainingTime
+    {
+        public string groupName { get; set; }
+        public int remainingTime {  get; set; }
     }
 
     public class GroupExistsModel

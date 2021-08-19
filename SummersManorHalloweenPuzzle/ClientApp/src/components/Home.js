@@ -9,7 +9,8 @@ import GroupLogin from './GroupLogin';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import backgroundmusic from '../darren-curtis-i-am-not-what-i-thought.mp3';
-import ReactAudioPlayer from 'react-audio-player'
+import ReactAudioPlayer from 'react-audio-player';
+import BootstrapTable from 'react-bootstrap-table-next';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -76,6 +77,8 @@ export default function Home() {
     const [showExitPrompt, setShowExitPrompt] = useState(true);
     const [showOutOfTime, setShowOutOfTime] = useState(false);
     const [finalPuzzleCompleted, setFinalPuzzleCompleted] = useState(false);
+    const [viewResults, setViewResults] = useState(false);
+    const [groupResults, setGroupResults] = useState(null);
     const handleCloseOutOfTime = () => setShowOutOfTime(false);
 
 
@@ -88,6 +91,15 @@ export default function Home() {
     const onFinalPuzzleCompleted = () => {
         _finalTime = _remainingTime;
         setFinalPuzzleCompleted(true);
+        const data = { groupName: groupName, remainingTime: _remainingTime };
+        fetch('UpdateRemainingTime', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' },
+        }).catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+        });
+        setShowExitPrompt(false);
     }
 
     const initBeforeUnLoad = (showExitPrompt) => {
@@ -161,39 +173,49 @@ export default function Home() {
         setInitialRemainingTime(_remainingTime + time);
     }
 
-    function CounterOrCompleteButton({ showButton }) {
-        if (showButton) {
-            return (
-                <Button variant="secondary" onClick={handleCloseOutOfTime}>
-                    View Results
-                </Button>
-            );
-        } else {
-            return (
-                <CountdownCircleTimer
-                    key={timerKey}
-                    strokeWidth={5}
-                    isPlaying={isPlaying}
-                    size={70}
-                    duration={timerDuration}
-                    initialRemainingTime={initialRemainingTime}
-                    colors={[
-                        ['#00FF00', 0.5],
-                        ['#FF0000', 0.5]
-                    ]}
-                    onComplete={() => {
-                        setShowOutOfTime(true);
-                        return [false, 0];
-                    }}
-                >
-                    {renderTime}
-                </CountdownCircleTimer>
-                );
-        }
+    const handleViewResults = () => {
+        fetch('GroupResults')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(returnJson => {
+                setGroupResults(returnJson);
+                setViewResults(true);
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
     }
 
+    const resultsColumns = [{
+        dataField: 'position',
+        text: 'Position'
+    }, {
+        dataField: 'groupName',
+        text: 'Group Name'
+    }, {
+        dataField: 'formattedRemainingTime',
+        text: 'Remaining Time'
+    }];
+    
     return (
         <>
+            <Modal show={viewResults} onHide={() => setViewResults(false)} className="special_modal">
+                <Modal.Header closeButton>
+                    <Modal.Title>Results</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <BootstrapTable keyField='position' data={groupResults} columns={resultsColumns} />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setViewResults(false)}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
             <Modal show={showOutOfTime} onHide={handleCloseOutOfTime} className="special_modal">
                 <Modal.Header closeButton>
                     <Modal.Title>Time Out</Modal.Title>
@@ -213,7 +235,7 @@ export default function Home() {
                                 <div className="row">
                                     <div className="col">
                                         {finalPuzzleCompleted
-                                            ? <Button size="lg" variant="secondary" onClick={handleCloseOutOfTime}>
+                                            ? <Button size="lg" variant="secondary" onClick={handleViewResults}>
                                                 View Results
                                             </Button>
                                             : <CountdownCircleTimer
