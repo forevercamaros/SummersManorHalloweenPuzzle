@@ -55,7 +55,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
         {
             using (var connection = new SqlConnection(Configuration["ConnectionString"]))
             {
-                return connection.Query<GroupResults>("SELECT ROW_NUMBER() OVER(ORDER BY RemainingTime ASC) AS Position, GroupName, RemainingTime FROM GroupCompletedTimes").ToArray();
+                return connection.Query<GroupResults>("SELECT ROW_NUMBER() OVER(ORDER BY RemainingTime DESC) AS Position, GroupName, RemainingTime FROM GroupCompletedTimes").ToArray();
             }
         }
 
