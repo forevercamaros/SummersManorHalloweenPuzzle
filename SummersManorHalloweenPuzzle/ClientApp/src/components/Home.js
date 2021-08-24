@@ -273,6 +273,13 @@ export default function Home() {
         text: 'Remaining Time'
         }];
 
+    const rowStyle = (row, rowIndex) => {
+        console.log(row);
+        if (row.groupName === groupName) {
+            return { backgroundColor: 'black', color: 'white' }
+        }        
+    };
+
     
     return (
         <>
@@ -281,7 +288,7 @@ export default function Home() {
                     <Modal.Title>Results</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <BootstrapTable keyField='position' data={groupResults} columns={resultsColumns} />
+                    <BootstrapTable keyField='position' data={groupResults} columns={resultsColumns} rowStyle={rowStyle} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setViewResults(false)}>
