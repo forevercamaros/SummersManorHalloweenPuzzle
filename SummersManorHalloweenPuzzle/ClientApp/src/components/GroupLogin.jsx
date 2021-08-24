@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import houseImage from '../haunted-house.jpg';
+import houseImage from '../images/haunted-house.jpg';
 
 const LoginText = styled.div`
   margin: 8px;

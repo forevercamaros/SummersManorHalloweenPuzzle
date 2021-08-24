@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
-import ChopinsFuneralMarch from '../donttrytocheat.mp3'
+import ChopinsFuneralMarch from '../audio/donttrytocheat.mp3'
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';

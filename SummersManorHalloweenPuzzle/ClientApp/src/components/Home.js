@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Riddle from './Riddle';
-import riddleData from './riddle-data';
+import Riddle from '../RiddleComponents/Riddle';
+import riddleData from '../data/riddle-data';
 import styled from 'styled-components';
 import FinalPuzzle from './FinalPuzzle';
 import { Transition } from 'react-transition-group';
@@ -8,7 +8,7 @@ import { CountdownCircleTimer } from "react-countdown-circle-timer";
 import GroupLogin from './GroupLogin';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import backgroundmusic from '../darren-curtis-i-am-not-what-i-thought.mp3';
+import backgroundmusic from '../audio/darren-curtis-i-am-not-what-i-thought.mp3';
 import ReactAudioPlayer from 'react-audio-player';
 import BootstrapTable from 'react-bootstrap-table-next';
 

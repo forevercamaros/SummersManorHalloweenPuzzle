@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
-import initialData from './initial-data';
-import Stanza from './Stanza';
+import initialData from '../data/initial-data';
+import Stanza from '../RiddleComponents/Stanza';
 import styled from 'styled-components';
 import Card from 'react-bootstrap/Card';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import ghostImage from '../ghostbackground.jpg';
+import ghostImage from '../images/ghostbackground.jpg';
 
 const Container = styled.div``;
 

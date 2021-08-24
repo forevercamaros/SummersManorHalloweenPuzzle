@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import styled from 'styled-components';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
-import Lines from './Lines';
+import Lines from '../RiddleComponents/Lines';
 
 const Container = styled.div`
   margin: ${props => (props.isDragDisabled ? '0px' : '8px')};
