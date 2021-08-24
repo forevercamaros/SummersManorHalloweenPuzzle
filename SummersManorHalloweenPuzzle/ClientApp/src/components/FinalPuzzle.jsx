@@ -22,6 +22,24 @@ export default function FinalPuzzle({ onComplete }) {
     const handleCloseSolved = () => setShowSolved(false);
 
     useEffect(() => {
+        const _data = localStorage.getItem('data');
+        if (_data) {
+            setData(JSON.parse(_data));
+        }
+
+        const _solved = localStorage.getItem('solved');
+        if (_solved) {
+            setSolved(_solved === "true" ? true : false);
+        }
+
+        const _showSolved = localStorage.getItem('showSolved');
+        if (_showSolved) {
+            setShowSolved(_showSolved === "true" ? true : false);
+        }
+        
+    }, []);
+
+    useEffect(() => {
         window.scrollTo(0, 0);
     }, [solved])
 
@@ -74,7 +92,9 @@ export default function FinalPuzzle({ onComplete }) {
                                 };
                                 if (newData.columnOrder.length === i2 + 1) {
                                     setSolved(true);
+                                    localStorage.setItem("solved", true);
                                     setShowSolved(true);
+                                    localStorage.setItem("showSolved", true);
                                     onComplete();
                                 }
                             } else {
@@ -86,6 +106,7 @@ export default function FinalPuzzle({ onComplete }) {
             }            
         }
         setData(newData);
+        localStorage.setItem("data", JSON.stringify(newData));
     };
 
     const onDragEnd = result => {

@@ -73,13 +73,15 @@ export default function Home() {
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
     const [timerKey, setTimerKey] = useState(0);
     const [groupName, setGroupName] = useState("");
-    const [isPlaying, setIsPlaying] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [showExitPrompt, setShowExitPrompt] = useState(true);
     const [showOutOfTime, setShowOutOfTime] = useState(false);
     const [finalPuzzleCompleted, setFinalPuzzleCompleted] = useState(false);
     const [viewResults, setViewResults] = useState(false);
     const [groupResults, setGroupResults] = useState(null);
     const handleCloseOutOfTime = () => setShowOutOfTime(false);
+
+    
 
 
     const audioElement = useRef(null);
@@ -91,6 +93,7 @@ export default function Home() {
     const onFinalPuzzleCompleted = () => {
         _finalTime = _remainingTime;
         setFinalPuzzleCompleted(true);
+        localStorage.setItem("finalPuzzleCompleted", true);
         const data = { groupName: groupName, remainingTime: _remainingTime };
         fetch('UpdateRemainingTime', {
             method: 'POST',
@@ -122,7 +125,67 @@ export default function Home() {
 
     useEffect(() => {
         window.scrollTo(0, 0);
-    })
+    });
+
+    useEffect(() => {
+        const _showLogin = localStorage.getItem('showLogin');
+        if (_showLogin) {
+            setShowLogin(_showLogin === "true" ? true:false);
+        }
+
+        const _showTimer = localStorage.getItem('showTimer');
+        if (_showTimer) {
+            setShowTimer(_showTimer === "true" ? true : false);
+        }
+
+        const _showRiddle = localStorage.getItem('showRiddle');
+        if (_showRiddle) {
+            setShowRiddle(_showRiddle === "true" ? true : false);
+        }
+
+        const _showRiddleSolved = localStorage.getItem('showRiddleSolved');
+        if (_showRiddleSolved) {
+            setShowRiddleSolved(_showRiddleSolved === "true" ? true : false);
+        }
+
+        const _showFinalPuzzle = localStorage.getItem('showFinalPuzzle');
+        if (_showFinalPuzzle) {
+            setShowFinalPuzzle(_showFinalPuzzle === "true" ? true : false);
+        }
+
+        const _currentIndex = localStorage.getItem('currentIndex');
+        if (_currentIndex) {
+            setCurrentIndex(parseInt(_currentIndex));
+        }
+
+        const _riddle = localStorage.getItem('riddle');
+        if (_riddle) {
+            setRiddle(JSON.parse(_riddle));
+        }
+
+        const _initialRemainingTime = localStorage.getItem('initialRemainingTime');
+        if (_initialRemainingTime) {            
+            setInitialRemainingTime(parseInt(_initialRemainingTime));
+            setTimerKey(timerKey + 1);            
+        }
+        setIsPlaying(true);
+
+        const _groupName = localStorage.getItem('groupName');
+        if (_groupName) {
+            setGroupName(_groupName);
+        }
+
+        const _showOutOfTime = localStorage.getItem('showOutOfTime');
+        if (_showOutOfTime) {
+            setShowOutOfTime(_showOutOfTime === "true" ? true : false);
+        }
+
+        const _finalPuzzleCompleted = localStorage.getItem('finalPuzzleCompleted');
+        if (_finalPuzzleCompleted) {
+            setFinalPuzzleCompleted(_finalPuzzleCompleted === "true" ? true : false);
+        }
+        
+    }, []);
 
     // Re-Initialize the onbeforeunload event listener
     useEffect(() => {
@@ -131,7 +194,9 @@ export default function Home() {
     
     function onSetGroupName(inGroupName) {
         setGroupName(inGroupName);
+        localStorage.setItem("groupName", inGroupName);
         setShowLogin(false);
+        localStorage.setItem("showLogin", false);
         if (riddle.type !== 'audio') {
             audioElement.current.audioEl.current.play();
         }        
@@ -139,6 +204,7 @@ export default function Home() {
 
     const renderTime = ({ remainingTime }) => {
         _remainingTime = remainingTime;
+        localStorage.setItem("initialRemainingTime", _remainingTime);
         if (remainingTime === 0) {
             return <div>0 Time</div>;
         }
@@ -152,6 +218,7 @@ export default function Home() {
 
     function onSolved() {
         setShowRiddle(false);
+        localStorage.setItem("showRiddle", false);
     }
 
     function nextRiddle() {
@@ -161,16 +228,21 @@ export default function Home() {
         }
         if (index === startIndex) {
             setShowFinalPuzzle(true);
+            localStorage.setItem("showFinalPuzzle", true);
         } else {
-            setCurrentIndex(index);            
+            setCurrentIndex(index);
+            localStorage.setItem("currentIndex", index);
             setRiddle(riddleData.riddles[riddleKeys[index]]);
-            setShowRiddleSolved(true);           
+            localStorage.setItem("riddle", JSON.stringify(riddleData.riddles[riddleKeys[index]]));
+            setShowRiddleSolved(true);
+            localStorage.setItem("showRiddleSolved", true);
         }
     }
 
     function addTime(time) {
         setTimerKey(timerKey + 1);
         setInitialRemainingTime(_remainingTime + time);
+        localStorage.setItem("initialRemainingTime", _remainingTime + time);
     }
 
     const handleViewResults = () => {
@@ -199,7 +271,8 @@ export default function Home() {
     }, {
         dataField: 'formattedRemainingTime',
         text: 'Remaining Time'
-    }];
+        }];
+
     
     return (
         <>
@@ -251,6 +324,7 @@ export default function Home() {
                                                 ]}
                                                 onComplete={() => {
                                                     setShowOutOfTime(true);
+                                                    localStorage.setItem("showOutOfTime", true);
                                                     return [false, 0];
                                                 }}
                                             >
@@ -271,7 +345,11 @@ export default function Home() {
             </Transition>
             <Transition in={showLogin} timeout={fadeDuration} onExited={() => {
                 setShowTimer(true);
-                setShowRiddle(true);
+                localStorage.setItem("showTimer", showTimer);
+                if (!showFinalPuzzle) {
+                    setShowRiddle(true);
+                    localStorage.setItem("showRiddle", true);
+                }                
             }} mountOnEnter={true} unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
@@ -290,7 +368,10 @@ export default function Home() {
                     </FadeContainer>
                 )}
             </Transition>
-            <Transition in={showRiddleSolved} timeout={fadeDuration} onEntered={() => { setShowRiddleSolved(false); audioElement.current.audioEl.current.play(); }} onExited={() => { setShowRiddle(true) }} unmountOnExit={true}>
+            <Transition in={showRiddleSolved} timeout={fadeDuration}
+                onEntered={() => { setShowRiddleSolved(false); localStorage.setItem("showRiddleSolved", false); audioElement.current.audioEl.current.play(); }}
+                onExited={() => { if (!showFinalPuzzle) { setShowRiddle(true); localStorage.setItem("showRiddle", true); } }}
+                unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
                         Riddle Solved. Loading new riddle!!
