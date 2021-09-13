@@ -298,9 +298,9 @@ export default function Home() {
             </Modal>
             <Modal show={showOutOfTime} onHide={handleCloseOutOfTime} className="special_modal">
                 <Modal.Header closeButton>
-                    <Modal.Title>Time Out</Modal.Title>
+                    <Modal.Title>Your Time Has Expired</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>You are out of time.</Modal.Body>
+                <Modal.Body>Press close to continue the challenge beyond your allotted time.</Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseOutOfTime}>
                         Close
@@ -381,7 +381,7 @@ export default function Home() {
                 unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
-                        Riddle Solved. Loading new riddle!!
+                        Riddle Solved. Loading new riddle...
                     </FadeContainer>
                 )}
             </Transition>            
