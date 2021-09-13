@@ -270,7 +270,7 @@ export default function Home() {
         text: 'Group Name'
     }, {
         dataField: 'formattedRemainingTime',
-        text: 'Remaining Time'
+        text: 'Time Remaining'
         }];
 
     const rowStyle = (row, rowIndex) => {

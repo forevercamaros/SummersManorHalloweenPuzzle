@@ -227,7 +227,7 @@ export default function FinalPuzzle({ onComplete }) {
                 <Modal.Header closeButton>
                     <img src={ghostImage} className="img-fluid" />
                 </Modal.Header>
-                <Modal.Body>You Solved the Final Puzzle!!!</Modal.Body>
+                <Modal.Body>You Have Succeeded.</Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseSolved}>
                         Close
