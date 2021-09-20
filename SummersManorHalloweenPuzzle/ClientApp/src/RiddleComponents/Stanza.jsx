@@ -12,7 +12,7 @@ const Container = styled.div`
   flex-direction: column;
 `;
 const DragHeader = styled.h3`
-  padding: ${props => (props.isDragDisabled ? '0px' :'8px')};
+  padding: ${props => (props.isDragDisabled ? '0px' :'16px')};
   background-color: ${props => (props.isDragDisabled ? 'black' : 'grey')};;
 `;
 const TaskList = styled.div`
