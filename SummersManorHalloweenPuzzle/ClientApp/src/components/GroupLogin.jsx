@@ -48,7 +48,7 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
                 <Col>
                     <LoginText>
                         Welcome to the Summers Manor Challenge. You will be presented with a series of {riddleCount} riddles that you must solve. Once you solve all the riddles,
-                        you will be presented with a final puzzle. You will have {countDownTime} minutes to complete the Challenge.
+                        you will be presented with a final puzzle. You will have {countDownTime} minutes to complete the Challenge. You may need your phone's flashlight to solve some clues. Each clue will have an optional hint that shows up no later than 3 minutes in.
                     </LoginText>
                     <Form.Group as={Col} controlId="formGridGroupName">
                         <Form.Control isInvalid={duplicateGroup} type="text" placeholder="Enter group name" onChange={e => setGroupName(e.target.value)} onKeyPress={(e) => { if (duplicateGroup) { setDuplicateGroup(false); } if (e.charCode === 13) { checkGroupName() } }} />

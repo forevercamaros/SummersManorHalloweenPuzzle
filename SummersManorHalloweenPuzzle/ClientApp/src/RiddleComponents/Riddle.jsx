@@ -10,6 +10,7 @@ import FormControl from 'react-bootstrap/FormControl'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import { Transition } from 'react-transition-group';
+import riddleData from '../data/riddle-data';
 
 const FadeContainer = styled.div`
   transition: opacity  ${props => props.duration}ms ease-in-out;
@@ -46,9 +47,12 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
 
     const handleCloseClue = () => setShowClue(false);
     const handleShowClue = () => {
-        audioElement.current.audioEl.current.pause();
+        if (RiddleData.type === "audio") {
+            audioElement.current.audioEl.current.pause();
+        }        
         setClueRevealed(true);
         setShowClue(true);
+        onAddTime(-30);
     };
 
     const [showBonus, setShowBonus] = useState(false);
@@ -67,7 +71,11 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     useEffect(() => {
         if (answerElement.current) {
             answerElement.current.focus();
-        }      
+        }
+        const timer = setTimeout(() => {
+            setShowClueOption(true);
+        }, 180000);
+        return () => clearTimeout(timer);
     }, []);
 
     function AddAudio({ type, audioFile }) {

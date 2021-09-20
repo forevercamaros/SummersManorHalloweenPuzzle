@@ -62,7 +62,7 @@ function formatTimeString(seconds, minutesOnly) {
 
 export default function Home() {
     const fadeDuration = 1000;
-    const timerDuration = 600;
+    const timerDuration = 2400;
     const [showLogin, setShowLogin] = useState(true);
     const [showTimer, setShowTimer] = useState(false);
     const [showRiddle, setShowRiddle] = useState(false);

@@ -20,6 +20,8 @@ export default function FinalPuzzle({ onComplete }) {
     const [solved, setSolved] = useState(false);
     const [showSolved, setShowSolved] = useState(false);
     const handleCloseSolved = () => setShowSolved(false);
+    const [showInstructions, setShowInstructions] = useState(true);
+    const handleCloseInstructions = () => setShowInstructions(false);
 
     useEffect(() => {
         const _data = localStorage.getItem('data');
@@ -223,6 +225,17 @@ export default function FinalPuzzle({ onComplete }) {
                     )}
                 </Droppable>
             </DragDropContext>
+            <Modal show={showInstructions} onHide={handleCloseInstructions} className="special_modal">
+                <Modal.Header closeButton>
+                    Final Challenge
+                </Modal.Header>
+                <Modal.Body>Reassemble this decomposed poem to reach the end. Drag and drop the lines of poetry to create stanzas of two boxes each in the correct order. Once that is complete, put the stanzas in the correct order. </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseInstructions}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
             <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
                 <Modal.Header closeButton>
                     <img src={ghostImage} className="img-fluid" />
