@@ -48,7 +48,7 @@
         },
     },
     // Facilitate reordering of the columns
-    columnOrder: ['stanza-1', 'stanza-2', 'stanza-3', 'stanza-4', 'stanza-5', 'stanza-6', 'stanza-7'],
+    columnOrder: ['stanza-3', 'stanza-2', 'stanza-1', 'stanza-4'],
 };
 
 export default initialData;
