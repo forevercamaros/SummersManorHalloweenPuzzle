@@ -32,20 +32,21 @@ namespace SummersManorHalloweenPuzzle.Controllers
             using(SqlCommand cmd = new SqlCommand("SELECT GroupName FROM GroupCompletedTimes WHERE (GroupName = @GroupName)",con))
             using(SqlDataAdapter da = new SqlDataAdapter(cmd))
             {
-                cmd.Parameters.Add(new SqlParameter("GroupName",groupName));
-                var tbl = new DataTable();
-                da.Fill(tbl);
-                if (tbl.Rows.Count == 0)
-                {
-                    using (SqlCommand cmd2 = new SqlCommand("InsertGroup",con))
-                    {
-                        con.Open();
-                        cmd2.CommandType=CommandType.StoredProcedure;
-                        cmd2.Parameters.Add(new SqlParameter("GroupName",groupName));
-                        cmd2.ExecuteNonQuery();
-                    }
-                }
-                return new GroupExistsModel() { GroupExists = tbl.Rows.Count > 0, };
+                // cmd.Parameters.Add(new SqlParameter("GroupName",groupName));
+                // var tbl = new DataTable();
+                // da.Fill(tbl);
+                // if (tbl.Rows.Count == 0)
+                // {
+                //     using (SqlCommand cmd2 = new SqlCommand("InsertGroup",con))
+                //     {
+                //         con.Open();
+                //         cmd2.CommandType=CommandType.StoredProcedure;
+                //         cmd2.Parameters.Add(new SqlParameter("GroupName",groupName));
+                //         cmd2.ExecuteNonQuery();
+                //     }
+                // }
+                //return new GroupExistsModel() { GroupExists = tbl.Rows.Count > 0, };
+                return new GroupExistsModel() { GroupExists = false, };
             }
         }
 
@@ -55,7 +56,12 @@ namespace SummersManorHalloweenPuzzle.Controllers
         {
             using (var connection = new SqlConnection(Configuration["ConnectionString"]))
             {
-                return connection.Query<GroupResults>("SELECT ROW_NUMBER() OVER(ORDER BY RemainingTime DESC) AS Position, GroupName, RemainingTime FROM GroupCompletedTimes").ToArray();
+                GroupResults[] testGroupResults = new GroupResults[]
+                {
+                    new GroupResults(){Position = 0,RemainingTime = 0,GroupName = "Test"}                                         
+                };
+                return testGroupResults;
+                //return connection.Query<GroupResults>("SELECT ROW_NUMBER() OVER(ORDER BY RemainingTime DESC) AS Position, GroupName, RemainingTime FROM GroupCompletedTimes").ToArray();
             }
         }
 
@@ -63,14 +69,14 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [Route("UpdateRemainingTime")]
         public void UpdateRemainingTime([FromBody] UpdateGroupRemainingTime groupRemainingTime)
         {
-            using (SqlConnection con = new SqlConnection(Configuration["ConnectionString"]))
-            using (SqlCommand cmd = new SqlCommand("UPDATE GroupCompletedTimes SET RemainingTime = @RemainingTime WHERE (GroupName = @GroupName)", con))
-            {
-                con.Open();
-                cmd.Parameters.Add(new SqlParameter("GroupName", groupRemainingTime.groupName));
-                cmd.Parameters.Add(new SqlParameter("RemainingTime", groupRemainingTime.remainingTime));
-                cmd.ExecuteNonQuery();
-            }
+            // using (SqlConnection con = new SqlConnection(Configuration["ConnectionString"]))
+            // using (SqlCommand cmd = new SqlCommand("UPDATE GroupCompletedTimes SET RemainingTime = @RemainingTime WHERE (GroupName = @GroupName)", con))
+            // {
+            //     con.Open();
+            //     cmd.Parameters.Add(new SqlParameter("GroupName", groupRemainingTime.groupName));
+            //     cmd.Parameters.Add(new SqlParameter("RemainingTime", groupRemainingTime.remainingTime));
+            //     cmd.ExecuteNonQuery();
+            // }
         }
     }
 
