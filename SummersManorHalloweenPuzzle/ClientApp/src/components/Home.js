@@ -90,7 +90,7 @@ export default function Home() {
     var _remainingTime = 0;
     var _finalTime = 0;
 
-    const onFinalPuzzleCompleted = () => {
+    const onFinalPuzzleCompleted = (autoViewResults) => {
         _finalTime = _remainingTime;
         setFinalPuzzleCompleted(true);
         localStorage.setItem("finalPuzzleCompleted", true);
@@ -103,6 +103,10 @@ export default function Home() {
                 console.error('There has been a problem with your fetch operation:', error);
         });
         setShowExitPrompt(false);
+        if (autoViewResults)
+        {
+            handleViewResults();
+        }
     }
 
     const initBeforeUnLoad = (showExitPrompt) => {
@@ -128,6 +132,18 @@ export default function Home() {
     });
 
     useEffect(() => {
+        const _lastUsedDate = localStorage.getItem('lastUsedDate');        
+        if (_lastUsedDate) {
+            var minutes = Math.abs(Date.now() - _lastUsedDate) / 60000;
+            if (minutes > 1)
+            {
+                localStorage.clear();
+            }
+        }else{
+            localStorage.clear();
+        }
+        localStorage.setItem('lastUsedDate', Date.now());
+
         const _showLogin = localStorage.getItem('showLogin');
         if (_showLogin) {
             setShowLogin(_showLogin === "true" ? true:false);

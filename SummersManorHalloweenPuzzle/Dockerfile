@@ -5,7 +5,7 @@ RUN apt-get update
 RUN apt-get install -y curl
 WORKDIR /app
 EXPOSE 80
-EXPOSE 443
+#EXPOSE 443
 
 RUN apt-get update
 RUN apt-get install -y curl
