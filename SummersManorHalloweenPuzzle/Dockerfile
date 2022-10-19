@@ -1,35 +1,27 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
-RUN apt-get update
-RUN apt-get install -y curl
 WORKDIR /app
 EXPOSE 80
-#EXPOSE 443
-
 RUN apt-get update
 RUN apt-get install -y curl
 RUN apt-get install -y libpng-dev libjpeg-dev curl libxi6 build-essential libgl1-mesa-glx
 RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
 RUN apt-get install -y nodejs
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM base AS build
+RUN apt-get install -y wget curl
+RUN wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+RUN dpkg -i packages-microsoft-prod.deb
+RUN rm packages-microsoft-prod.deb
 RUN apt-get update
-RUN apt-get install -y curl
-RUN apt-get install -y libpng-dev libjpeg-dev curl libxi6 build-essential libgl1-mesa-glx
-RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
-RUN apt-get install -y nodejs
+RUN apt install -y dotnet-sdk-6.0
 WORKDIR /src
 COPY ["SummersManorHalloweenPuzzle.csproj", "SummersManorHalloweenPuzzle/"]
-RUN dotnet restore "SummersManorHalloweenPuzzle/SummersManorHalloweenPuzzle.csproj"
 COPY . SummersManorHalloweenPuzzle/
-WORKDIR "/src/SummersManorHalloweenPuzzle"
-RUN dotnet build "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/publish /p:UseAppHost=false
+WORKDIR /src/SummersManorHalloweenPuzzle
+COPY . .
+RUN dotnet publish "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "SummersManorHalloweenPuzzle.dll"]

@@ -25,21 +25,30 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [HttpGet]
         [Route("GroupExists")]
         public GroupExistsModel GroupExists(string groupName)
-        {
-            using (MySqlConnection con = new MySqlConnection(Configuration["ConnectionString"]))
-            {               
-                var parameters = new { GroupName = groupName }; 
-                var groups = con.Query<Group>("SELECT GroupName FROM SummersManor.Group WHERE GroupName = @GroupName;",parameters);                
-                if (groups.Count() == 0)
-                {
-                    using (MySqlCommand cmd = new MySqlCommand("INSERT INTO SummersManor.Group (GroupName) VALUES (@GroupName)",con))
+        {            
+            try
+            {                                
+                _logger.LogInformation($"Seeing if group {groupName} exists");
+                using (MySqlConnection con = new MySqlConnection(Environment.GetEnvironmentVariable("ConnectionString")))
+                {      
+                    _logger.LogInformation($"Checking if group {groupName} exists");
+                    var parameters = new { GroupName = groupName }; 
+                    var groups = con.Query<Group>("SELECT GroupName FROM SummersManor.Group WHERE GroupName = @GroupName;",parameters);                
+                    if (groups.Count() == 0)
                     {
-                        con.Open();
-                        cmd.Parameters.AddWithValue("GroupName", groupName);
-                        cmd.ExecuteNonQuery();                
+                        using (MySqlCommand cmd = new MySqlCommand("INSERT INTO SummersManor.Group (GroupName) VALUES (@GroupName)",con))
+                        {
+                            con.Open();
+                            cmd.Parameters.AddWithValue("GroupName", groupName);
+                            cmd.ExecuteNonQuery();                
+                        }
                     }
+                    return new GroupExistsModel() { GroupExists = groups.Count() > 0, };
                 }
-                return new GroupExistsModel() { GroupExists = groups.Count() > 0, };
+            
+            }catch(Exception e){
+                _logger.LogError(e,"Error In GroupExists Method");
+                return new GroupExistsModel(){GroupExists = true};
             }
         }
 
@@ -47,7 +56,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [Route("GroupResults")]
         public GroupResults[] GroupResults()
         {
-            using (var connection = new MySqlConnection(Configuration["ConnectionString"]))
+            using (var connection = new MySqlConnection(Environment.GetEnvironmentVariable("ConnectionString")))
             {                
                 return connection.Query<GroupResults>("SELECT ROW_NUMBER() OVER(ORDER BY RemainingTime DESC) AS Position, GroupName, RemainingTime FROM SummersManor.Group").ToArray();
             }
@@ -57,7 +66,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [Route("UpdateRemainingTime")]
         public void UpdateRemainingTime([FromBody] UpdateGroupRemainingTime groupRemainingTime)
         {
-            using (MySqlConnection con = new MySqlConnection(Configuration["ConnectionString"]))
+            using (MySqlConnection con = new MySqlConnection(Environment.GetEnvironmentVariable("ConnectionString")))
             using (MySqlCommand cmd = new MySqlCommand("UPDATE SummersManor.Group SET RemainingTime = @RemainingTime WHERE (GroupName = @GroupName)",con))
             {
                 con.Open();
