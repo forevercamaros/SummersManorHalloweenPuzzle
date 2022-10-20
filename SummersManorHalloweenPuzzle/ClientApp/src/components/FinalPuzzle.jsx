@@ -6,7 +6,6 @@ import styled from 'styled-components';
 import Card from 'react-bootstrap/Card';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import ghostImage from '../images/ghostbackground.jpg';
 
 const Container = styled.div``;
 
@@ -18,16 +17,13 @@ const AuthorSticky = styled.div`
 export default function FinalPuzzle({ onComplete }) {
     const [data, setData] = useState(initialData);    
     const [solved, setSolved] = useState(false);
-    const [showSolved, setShowSolved] = useState(false);
-    const handleCloseSolved = () => setShowSolved(false);
     const [showInstructions, setShowInstructions] = useState(true);
     const handleCloseInstructions = () => setShowInstructions(false);
 
     useEffect(() => {
         if (Object.keys(data).length === 0){
-            setShowSolved(true);
             setShowInstructions(false);
-            onComplete(true);
+            onComplete();
         }else{
             const _data = localStorage.getItem('data');
             if (_data) {
@@ -37,11 +33,6 @@ export default function FinalPuzzle({ onComplete }) {
             const _solved = localStorage.getItem('solved');
             if (_solved) {
                 setSolved(_solved === "true" ? true : false);
-            }
-    
-            const _showSolved = localStorage.getItem('showSolved');
-            if (_showSolved) {
-                setShowSolved(_showSolved === "true" ? true : false);
             }
         }
         
@@ -101,10 +92,8 @@ export default function FinalPuzzle({ onComplete }) {
                                 };
                                 if (newData.columnOrder.length === i2 + 1) {
                                     setSolved(true);
-                                    localStorage.setItem("solved", true);
-                                    setShowSolved(true);
-                                    localStorage.setItem("showSolved", true);
-                                    onComplete(false);
+                                    localStorage.setItem("solved", true);                                    
+                                    onComplete();
                                 }
                             } else {
                                 break;
@@ -243,18 +232,7 @@ export default function FinalPuzzle({ onComplete }) {
                         Close
                     </Button>
                 </Modal.Footer>
-            </Modal>
-            <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
-                <Modal.Header closeButton>
-                    <img src={ghostImage} className="img-fluid" />
-                </Modal.Header>
-                <Modal.Body>You Have Succeeded.</Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseSolved}>
-                        Close
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            </Modal>            
         </>  
     )
 }
