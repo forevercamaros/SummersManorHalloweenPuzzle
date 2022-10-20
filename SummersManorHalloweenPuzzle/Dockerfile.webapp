@@ -19,7 +19,7 @@ COPY ["SummersManorHalloweenPuzzle.csproj", "SummersManorHalloweenPuzzle/"]
 COPY . SummersManorHalloweenPuzzle/
 WORKDIR /src/SummersManorHalloweenPuzzle
 COPY . .
-RUN dotnet publish "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/publish
+RUN dotnet publish "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/publish /p:UseAppHost=true
 
 FROM base AS final
 WORKDIR /app

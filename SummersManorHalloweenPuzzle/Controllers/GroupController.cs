@@ -29,7 +29,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
             try
             {                                
                 _logger.LogInformation($"Seeing if group {groupName} exists");
-                using (MySqlConnection con = new MySqlConnection(Environment.GetEnvironmentVariable("ConnectionString")))
+                using (MySqlConnection con = new MySqlConnection(Environment.GetEnvironmentVariable("CONNECTIONSTRING")))
                 {      
                     _logger.LogInformation($"Checking if group {groupName} exists");
                     var parameters = new { GroupName = groupName }; 
@@ -56,7 +56,8 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [Route("GroupResults")]
         public GroupResults[] GroupResults()
         {
-            using (var connection = new MySqlConnection(Environment.GetEnvironmentVariable("ConnectionString")))
+            _logger.LogInformation($"Getting Group Results");
+            using (var connection = new MySqlConnection(Environment.GetEnvironmentVariable("CONNECTIONSTRING")))
             {                
                 return connection.Query<GroupResults>("SELECT ROW_NUMBER() OVER(ORDER BY RemainingTime DESC) AS Position, GroupName, RemainingTime FROM SummersManor.Group").ToArray();
             }
@@ -66,7 +67,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [Route("UpdateRemainingTime")]
         public void UpdateRemainingTime([FromBody] UpdateGroupRemainingTime groupRemainingTime)
         {
-            using (MySqlConnection con = new MySqlConnection(Environment.GetEnvironmentVariable("ConnectionString")))
+            using (MySqlConnection con = new MySqlConnection(Environment.GetEnvironmentVariable("CONNECTIONSTRING")))
             using (MySqlCommand cmd = new MySqlCommand("UPDATE SummersManor.Group SET RemainingTime = @RemainingTime WHERE (GroupName = @GroupName)",con))
             {
                 con.Open();
