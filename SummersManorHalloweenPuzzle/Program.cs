@@ -13,10 +13,20 @@ namespace SummersManorHalloweenPuzzle
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();            
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
+#if DEBUG
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseKestrel(configure =>{
+                        configure.Listen(System.Net.IPAddress.Loopback, 5000);                        
+                    });
+                });                
+#else
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
@@ -28,6 +38,7 @@ namespace SummersManorHalloweenPuzzle
                             listenOptions.UseHttps("certificate_fullchain.pfx", "Rpibbb013.");
                         });
                     });
-                });                
+                }); 
+#endif               
     }
 }
