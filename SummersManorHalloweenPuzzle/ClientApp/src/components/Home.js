@@ -136,7 +136,6 @@ export default function Home() {
     });
 
     useEffect(() => {
-        localStorage.setItem("showLogin", false);
         const _showSolved = localStorage.getItem('showSolved');
         if (_showSolved) {
             setShowSolved(_showSolved === "true" ? true : false);
