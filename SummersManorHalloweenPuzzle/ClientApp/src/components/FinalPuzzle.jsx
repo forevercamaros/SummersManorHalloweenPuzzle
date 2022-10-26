@@ -6,7 +6,6 @@ import styled from 'styled-components';
 import Card from 'react-bootstrap/Card';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import ghostImage from '../images/ghostbackground.jpg';
 
 const Container = styled.div``;
 
@@ -16,28 +15,27 @@ const AuthorSticky = styled.div`
 `;
 
 export default function FinalPuzzle({ onComplete }) {
-    const [data, setData] = useState(initialData);
+    const [data, setData] = useState(initialData);    
     const [solved, setSolved] = useState(false);
-    const [showSolved, setShowSolved] = useState(false);
-    const handleCloseSolved = () => setShowSolved(false);
     const [showInstructions, setShowInstructions] = useState(true);
     const handleCloseInstructions = () => setShowInstructions(false);
 
     useEffect(() => {
-        const _data = localStorage.getItem('data');
-        if (_data) {
-            setData(JSON.parse(_data));
+        if (Object.keys(data).length === 0){
+            setShowInstructions(false);
+            onComplete();
+        }else{
+            const _data = localStorage.getItem('data');
+            if (_data) {
+                setData(JSON.parse(_data));
+            }
+    
+            const _solved = localStorage.getItem('solved');
+            if (_solved) {
+                setSolved(_solved === "true" ? true : false);
+            }
         }
-
-        const _solved = localStorage.getItem('solved');
-        if (_solved) {
-            setSolved(_solved === "true" ? true : false);
-        }
-
-        const _showSolved = localStorage.getItem('showSolved');
-        if (_showSolved) {
-            setShowSolved(_showSolved === "true" ? true : false);
-        }
+        
         
     }, []);
 
@@ -94,9 +92,7 @@ export default function FinalPuzzle({ onComplete }) {
                                 };
                                 if (newData.columnOrder.length === i2 + 1) {
                                     setSolved(true);
-                                    localStorage.setItem("solved", true);
-                                    setShowSolved(true);
-                                    localStorage.setItem("showSolved", true);
+                                    localStorage.setItem("solved", true);                                    
                                     onComplete();
                                 }
                             } else {
@@ -208,6 +204,7 @@ export default function FinalPuzzle({ onComplete }) {
     return (
         <>
             <ShowAuthor isSolved={solved}/>
+            {Object.keys(data).length !== 0 && 
             <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable droppableId="all-columns" type="column">
                     {(provided) => (
@@ -224,7 +221,7 @@ export default function FinalPuzzle({ onComplete }) {
                         </Container>
                     )}
                 </Droppable>
-            </DragDropContext>
+            </DragDropContext>}            
             <Modal show={showInstructions} onHide={handleCloseInstructions} className="special_modal">
                 <Modal.Header closeButton>
                     Final Challenge
@@ -235,18 +232,7 @@ export default function FinalPuzzle({ onComplete }) {
                         Close
                     </Button>
                 </Modal.Footer>
-            </Modal>
-            <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
-                <Modal.Header closeButton>
-                    <img src={ghostImage} className="img-fluid" />
-                </Modal.Header>
-                <Modal.Body>You Have Succeeded.</Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseSolved}>
-                        Close
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            </Modal>            
         </>  
     )
 }

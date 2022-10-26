@@ -11,6 +11,7 @@ import Button from 'react-bootstrap/Button';
 import backgroundmusic from '../audio/darren-curtis-i-am-not-what-i-thought.mp3';
 import ReactAudioPlayer from 'react-audio-player';
 import BootstrapTable from 'react-bootstrap-table-next';
+import ghostImage from '../images/ghostbackground.jpg';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -80,17 +81,23 @@ export default function Home() {
     const [viewResults, setViewResults] = useState(false);
     const [groupResults, setGroupResults] = useState(null);
     const handleCloseOutOfTime = () => setShowOutOfTime(false);
-
+    const [showSolved, setShowSolved] = useState(false);
     
 
 
     const audioElement = useRef(null);
     
+    const handleCloseSolved = () => 
+    {
+        setShowSolved(false);
+        handleViewResults();
+    }
 
     var _remainingTime = 0;
     var _finalTime = 0;
 
     const onFinalPuzzleCompleted = () => {
+        localStorage.setItem("showSolved", true);
         _finalTime = _remainingTime;
         setFinalPuzzleCompleted(true);
         localStorage.setItem("finalPuzzleCompleted", true);
@@ -103,6 +110,7 @@ export default function Home() {
                 console.error('There has been a problem with your fetch operation:', error);
         });
         setShowExitPrompt(false);
+        setShowSolved(true);        
     }
 
     const initBeforeUnLoad = (showExitPrompt) => {
@@ -128,6 +136,23 @@ export default function Home() {
     });
 
     useEffect(() => {
+        localStorage.setItem("showLogin", false);
+        const _showSolved = localStorage.getItem('showSolved');
+        if (_showSolved) {
+            setShowSolved(_showSolved === "true" ? true : false);
+        }
+        const _lastUsedDate = localStorage.getItem('lastUsedDate');        
+        if (_lastUsedDate) {
+            var minutes = Math.abs(Date.now() - _lastUsedDate) / 60000;
+            if (minutes > 30)
+            {
+                localStorage.clear();
+            }
+        }else{
+            localStorage.clear();
+        }
+        localStorage.setItem('lastUsedDate', Date.now());
+
         const _showLogin = localStorage.getItem('showLogin');
         if (_showLogin) {
             setShowLogin(_showLogin === "true" ? true:false);
@@ -303,6 +328,17 @@ export default function Home() {
                 <Modal.Body>Press close to continue the challenge beyond your allotted time.</Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseOutOfTime}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+            <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
+                <Modal.Header closeButton>
+                    <img src={ghostImage} className="img-fluid" />
+                </Modal.Header>
+                <Modal.Body>You Have Succeeded.</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseSolved}>
                         Close
                     </Button>
                 </Modal.Footer>
