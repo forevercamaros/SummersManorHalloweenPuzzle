@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
+import HalloweenTheme from '../audio/dontcheat2.mp3'
 import ChopinsFuneralMarch from '../audio/donttrytocheat.mp3'
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -83,6 +84,9 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
         switch (audioFile) {
             case "ChopinsFuneralMarch":
                 _audioFile = ChopinsFuneralMarch;
+                break;
+            case "HalloweenTheme":
+                _audioFile = HalloweenTheme;
                 break;
             default:
                 //Do nothing

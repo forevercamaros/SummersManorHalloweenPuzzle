@@ -3,85 +3,109 @@
         'riddle1': 
         {
             type: 'text', 
-            riddle: 'Find the white lady who tends a flock of metal birds. Examining this sad figure will give you her name...but only if you manage to see her in a different light.', 
-            answer: 'Genevieve', 
+            riddle: 'A fleshless family is spending some quality time together. A fragile creature has caught their attention. Can you spot it?', 
+            answer: 'Butterfly', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Find a special device attached to the lady and use it to find her name.' 
+            clue: 'Your answer is in the hands of the child.' 
         },
         'riddle2': 
         { 
             type: 'text', 
-            riddle: 'Amongst the bookshelves you will find a unique radio just waiting to...entertain. Turn on the radio to hear the chilling tale of "Dracula". You will need to find out the identity of the children of the night to continue on your way. ', 
-            answer: 'Wolves', 
+            riddle: 'Pass the time in the family room with some classic spooky stories. Dial to the tale by Poe and discover what month this creepy tale is set in.', 
+            answer: 'December', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Turn the radio off, then on again to restart the radio show..' 
+            clue: 'Quoth the Raven...' 
         },
         'riddle3': 
         { 
             type: 'audio', 
-            riddle: 'Nothing adds to the spooky atmosphere quite like an eerie song. Name this famous somber tune to continue your search.', 
-            audioFile: 'ChopinsFuneralMarch', 
-            bonusText: 'Provide the last name of the composer for two minutes added to your time.', 
-            bonusAnswer: 'Chopin', 
+            riddle: 'An eerie theme can make a horror film even more memorable. Name the movie that featured this terrifying tune.', 
+            audioFile: 'HalloweenTheme', 
+            bonusText: 'PProvide the last name of the lead actress in this film for an extra 2 minutes.', 
+            bonusAnswer: 'Curtis', 
             clueText: 'At a loss? Click here for a clue, but you will no longer be eligible for a time bonus on this clue and will be penalized 30 seconds', 
-            clue: 'Find the instrument featured in this song for the answer to the clue.', 
-            answer: 'Funeral March' 
+            clue: 'What holiday do we celebrate today?', 
+            answer: 'Halloween' 
         },
         'riddle4': 
         { 
             type: 'text', 
-            riddle: 'A witch is at work: will her spell result in good...or evil? Look deep into her cauldron to find the missing word needed to complete the witch\'s curse.', 
-            answer: 'Eyeball', 
+            riddle: 'This old crone has perfected her latest spell and the birds are ready to attack. Find the word in her incantation that doesn\'t "mirror".', 
+            answer: 'Issue', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'There\'s something creepy floating in the cauldron...' 
+            clue: 'Most of these words become something new when you look at them backwards...' 
         },
         'riddle5': 
         { 
             type: 'text', 
-            riddle: 'A gathering of fearsome ghosts guard the drive to our manor home. One of the ghosts holds an object that will illuminate the answer to this clue.', 
-            answer: 'Candelabra', 
+            riddle: 'Venture down this foreboding drive to gather your next clue. You\'ll need to assemble it correctly to get the word you need.', 
+            answer: 'Slaughter', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'The master of the house holds the item you seek.' 
+            clue: 'Don\'t forget to ask the pumpkinhead man for a letter, too.' 
         },
         'riddle6': 
         { 
             type: 'text', 
-            riddle: 'Up and down and around the children go, with or without their skin. Visit the clubhouse where a forever-young tyke holds the key to your next clue. Find it, and the solution will take shape.', 
-            answer: 'Heart', 
+            riddle: 'Basement sweet basement -- or so says our resident ghost. Find her cozy room for the answer you seek.', 
+            answer: 'Help', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Look at the shape of the key in the hand of the skeleton.' 
+            clue: 'Find the hidden room downstairs and examine the door.' 
         },
         'riddle7': 
         { 
             type: 'text', 
-            riddle: 'Go to Master Gracey\'s final resting place.He has sent a code from beyond the grave for you to decipher if you are to continue. L1L10, L4L4, L8L3, L5L1, L3L5, L7L5', 
-            answer: 'Corpse', 
+            riddle: 'A tiny evil horde has taken over the playset. Find their little ruler and discover her true face. Only then will you get the answer you seek.', 
+            answer: 'Kathy', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Line __ Letter __' 
+            clue: 'The crowned doll has a secret you can only see in a special light.' 
         },
         'riddle8': 
         { 
             type: 'text', 
-            riddle: 'A lonely girl swings all alone, looking for a forever friend. Will you be her playmate? You\'ll need to give her a friendly push to find the answer to this clue.', 
-            answer: 'Anna', 
+            riddle: 'Go to the boneyard and solve the following equation: (# RIP x O on Fred) - (# crosses x A on Gracey)', 
+            answer: 'Five', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Search the wagon for the girl\'s name.' 
+            clue: 'Examine the tombstones and do the math.' 
         },
         'riddle9': 
         { 
             type: 'text', 
-            riddle: 'Braaaaains...braaaaains! You\'ll have to keep your wits (and brains) about you to figure out this clue. Find the name of our zombie\'s beloved pet to move on.', 
-            answer: 'Pal', 
+            riddle: 'Approach this swinging girl with caution -- she may not be what she seems. She wears a treasure whose form will be the answer you seek.', 
+            answer: 'Heart', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Look at the zombie cat\'s collar.' 
+            clue: 'Check around the girl\'s neck for you clue.' 
         },
         'riddle10': 
         { 
             type: 'text', 
-            riddle: 'A jack-o-lantern come to life lurks in the front yard. His luminaries light up the night and reveal a hidden message.', 
-            answer: 'Gruesome', 
+            riddle: 'This fellow just wanted to be one with nature. Well, he got his wish. How many creatures have come to visit? The total will solve this clue.', 
+            answer: 'Ten', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'You will need to view the backs of the pumpkins to get your answer.' 
+            clue: 'Count up the leggy friends to get your answer' 
+        },
+        'riddle11': 
+        { 
+            type: 'text', 
+            riddle: 'This angry spector grabs all the attention with his fiery show. Another ghoul is materializing right behind you. Can you find his hiding spot?', 
+            answer: 'Tree', 
+            clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
+            clue: 'Look up and behind you to find the ghost\'s hiding place.' 
+        },
+        'riddle12': 
+        { 
+            type: 'text', 
+            riddle: 'Our backyard menagerie may have been a bit neglected. Find the avian scavenger for your next clue.', 
+            answer: 'Hector', 
+            clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
+            clue: 'The vulture bears the name you need.' 
+        },
+        'riddle13': 
+        { 
+            type: 'text', 
+            riddle: 'This mini instrument in a mini house will give you the answer you seek. Name the last word of the tune: FFEAF-EEFFEAF-E-F-E-F-EEFFR', 
+            answer: 'Down', 
+            clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
+            clue: 'Not musically inclined? Hold the scared little boy\'s hands and he\'ll sing you the answer.' 
         },
     }
 };
