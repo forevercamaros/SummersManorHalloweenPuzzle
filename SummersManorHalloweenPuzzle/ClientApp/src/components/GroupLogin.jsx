@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import houseImage from '../images/haunted-house.jpg';
+import backgroundImage from '../images/witch.jpg';
 
 const LoginText = styled.div`
   margin: 8px;
@@ -16,7 +16,7 @@ const LoginText = styled.div`
   color: white;
 `;
 
-const HouseImageDiv = styled.div`
+const BackgroundImageDiv = styled.div`
   margin: 8px;  
 `;
 
@@ -67,9 +67,9 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
             </Row>
             <Row>
                 <Col>
-                    <HouseImageDiv>
-                        <img src={houseImage} className="img-fluid" />
-                    </HouseImageDiv>
+                    <BackgroundImageDiv>
+                        <img src={backgroundImage} className="img-fluid" />
+                    </BackgroundImageDiv>
                 </Col>
             </Row>
         </Container>        
