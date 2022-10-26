@@ -143,7 +143,7 @@ export default function Home() {
         const _lastUsedDate = localStorage.getItem('lastUsedDate');        
         if (_lastUsedDate) {
             var minutes = Math.abs(Date.now() - _lastUsedDate) / 60000;
-            if (minutes > 30)
+            if (minutes > timerDuration)
             {
                 localStorage.clear();
             }

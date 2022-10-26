@@ -33,7 +33,7 @@
             riddle: 'This old crone has perfected her latest spell and the birds are ready to attack. Find the word in her incantation that doesn\'t "mirror".', 
             answer: 'Issue', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Most of these words become something new when you look at them backwards...' 
+            clue: 'Most of these words become something new when you look at them backwards...one does not' 
         },
         'riddle5': 
         { 
@@ -78,7 +78,7 @@
         'riddle10': 
         { 
             type: 'text', 
-            riddle: 'This fellow just wanted to be one with nature. Well, he got his wish. How many creatures have come to visit? The total will solve this clue.', 
+            riddle: 'This couple just wanted to be one with nature. Well, he got his wish. How many creatures have come to visit? The total will solve this clue.', 
             answer: 'Ten', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
             clue: 'Count up the leggy friends to get your answer' 
