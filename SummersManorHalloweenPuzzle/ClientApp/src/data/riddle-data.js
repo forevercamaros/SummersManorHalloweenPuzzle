@@ -79,7 +79,7 @@
         { 
             type: 'text', 
             riddle: 'This couple just wanted to be one with nature. Well, he got his wish. How many creatures have come to visit? The total will solve this clue.', 
-            answer: 'Nine', 
+            answer: 'Ten', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
             clue: 'Count up the leggy friends to get your answer' 
         },
