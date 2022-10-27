@@ -11,7 +11,7 @@ import Button from 'react-bootstrap/Button';
 import backgroundmusic from '../audio/darren-curtis-i-am-not-what-i-thought.mp3';
 import ReactAudioPlayer from 'react-audio-player';
 import BootstrapTable from 'react-bootstrap-table-next';
-import ghostImage from '../images/ghostbackground.jpg';
+import vistoryImage from '../images/witch.jpg';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -333,7 +333,7 @@ export default function Home() {
             </Modal>
             <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
                 <Modal.Header closeButton>
-                    <img src={ghostImage} className="img-fluid" />
+                    <img src={vistoryImage} className="img-fluid" />
                 </Modal.Header>
                 <Modal.Body>You Have Succeeded.</Modal.Body>
                 <Modal.Footer>

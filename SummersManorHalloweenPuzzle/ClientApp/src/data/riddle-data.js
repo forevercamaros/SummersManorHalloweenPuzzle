@@ -21,7 +21,7 @@
             type: 'audio', 
             riddle: 'An eerie theme can make a horror film even more memorable. Name the movie that featured this terrifying tune.', 
             audioFile: 'HalloweenTheme', 
-            bonusText: 'PProvide the last name of the lead actress in this film for an extra 2 minutes.', 
+            bonusText: 'Provide the last name of the lead actress in this film for an extra 2 minutes.', 
             bonusAnswer: 'Curtis', 
             clueText: 'At a loss? Click here for a clue, but you will no longer be eligible for a time bonus on this clue and will be penalized 30 seconds', 
             clue: 'What holiday do we celebrate today?', 
@@ -79,7 +79,7 @@
         { 
             type: 'text', 
             riddle: 'This couple just wanted to be one with nature. Well, he got his wish. How many creatures have come to visit? The total will solve this clue.', 
-            answer: 'Ten', 
+            answer: 'Nine', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
             clue: 'Count up the leggy friends to get your answer' 
         },
