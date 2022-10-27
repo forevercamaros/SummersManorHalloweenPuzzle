@@ -19,7 +19,7 @@ variables:
 steps:
 - task: Docker@2
   inputs:
-    containerRegistry: 'DockerHub'
+    containerRegistry: 'DockerHub2'
     repository: 'forevercamaros/summershalloween'
     command: 'buildAndPush'
     Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile.webapp'
