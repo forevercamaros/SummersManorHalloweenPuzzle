@@ -22,7 +22,7 @@ steps:
     containerRegistry: 'DockerHub'
     repository: 'forevercamaros/summershalloween'
     command: 'buildAndPush'
-    Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile'
+    Dockerfile: '$(system.defaultworkingdirectory)$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/SummersManorHalloweenPuzzle/Dockerfile'
     tags: '$(Build.BuildNumber)'
 - task: NodeTool@0
   inputs:
