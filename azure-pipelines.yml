@@ -17,6 +17,13 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+- task: Docker@2
+  inputs:
+    containerRegistry: 'DockerHub'
+    repository: 'forevercamaros/summershalloween'
+    command: 'buildAndPush'
+    Dockerfile: '**/Dockerfile'
+    tags: '$(Build.BuildNumber)'
 - task: NodeTool@0
   inputs:
     versionSpec: '10.x'
