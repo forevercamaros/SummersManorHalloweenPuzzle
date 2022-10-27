@@ -9,7 +9,7 @@ trigger:
 name: 1.0.$(Rev:r)
 
 pool:
-  vmImage: windows-latest
+  vmImage: ubuntu-latest
 
 variables:
   solution: '**/*.sln'
@@ -19,7 +19,7 @@ variables:
 steps:
 - task: Docker@2
   inputs:
-    containerRegistry: 'DockerHub'
+    containerRegistry: 'DockerHub2'
     repository: 'forevercamaros/summershalloween'
     command: 'buildAndPush'
     Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile.webapp'
