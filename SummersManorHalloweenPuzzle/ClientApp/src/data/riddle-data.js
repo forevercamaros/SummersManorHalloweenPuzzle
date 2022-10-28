@@ -102,7 +102,7 @@
         'riddle13': 
         { 
             type: 'text', 
-            riddle: 'This mini instrument in a mini house will give you the answer you seek. Name the last word of the tune: FFEAF-EEFFEAF-E-F-E-F-EEFFR', 
+            riddle: 'This mini instrument in a mini house will give you the answer you seek. Name the last word of the tune: TTOBT-OOTTOBT-O-T-O-T-OOTTC', 
             answer: 'Down', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
             clue: 'Not musically inclined? Hold the scared little boy\'s hands and he\'ll sing you the answer.' 
