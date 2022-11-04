@@ -1,0 +1,3 @@
+FROM mysql:8.0.31-debian AS base
+WORKDIR /
+COPY ["InitializeMySql.sql", "docker-entrypoint-initdb.d/"]

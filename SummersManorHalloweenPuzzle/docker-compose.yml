@@ -9,7 +9,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: charlie
       MONGO_INITDB_ROOT_PASSWORD: Rpibbb013
   WebApp:
-    image: forevercamaros/summershalloween:1.0.78
+    image: forevercamaros/summershalloween:1.0.80
     container_name: WebApp
     restart: always
     ports:
