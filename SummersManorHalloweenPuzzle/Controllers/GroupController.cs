@@ -6,6 +6,9 @@ using System;
 using System.Linq;
 using MySql.Data.MySqlClient;
 using SummersManorHalloweenPuzzle.Models;
+using MongoDB.Driver;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace SummersManorHalloweenPuzzle.Controllers
 {   
@@ -29,22 +32,20 @@ namespace SummersManorHalloweenPuzzle.Controllers
             try
             {                                
                 _logger.LogInformation($"Seeing if group {groupName} exists");
-                using (MySqlConnection con = new MySqlConnection(Environment.GetEnvironmentVariable("CONNECTIONSTRING")))
-                {      
-                    _logger.LogInformation($"Checking if group {groupName} exists");
-                    var parameters = new { GroupName = groupName }; 
-                    var groups = con.Query<Group>("SELECT GroupName FROM SummersManor.Group WHERE GroupName = @GroupName;",parameters);                
-                    if (groups.Count() == 0)
+                var settings = MongoClientSettings.FromConnectionString("mongodb://webapp:Rpibbb013@mongo:27017/SummersManor?authSource=admin");
+                settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+                var client = new MongoClient(settings);
+                var database = client.GetDatabase("SummersManor");
+                var collection = database.GetCollection<BsonDocument>("Groups");
+                var groupExists = collection.Find(Builders<BsonDocument>.Filter.Eq("GroupName", groupName)).CountDocuments() != 0;
+                if (!groupExists)
+                {
+                    collection.InsertOne(new BsonDocument
                     {
-                        using (MySqlCommand cmd = new MySqlCommand("INSERT INTO SummersManor.Group (GroupName) VALUES (@GroupName)",con))
-                        {
-                            con.Open();
-                            cmd.Parameters.AddWithValue("GroupName", groupName);
-                            cmd.ExecuteNonQuery();                
-                        }
-                    }
-                    return new GroupExistsModel() { GroupExists = groups.Count() > 0, };
+                        { "GroupName", groupName }
+                    });
                 }
+                return new GroupExistsModel() { GroupExists = groupExists, };                
             
             }catch(Exception e){
                 _logger.LogError(e,"Error In GroupExists Method");
@@ -57,31 +58,41 @@ namespace SummersManorHalloweenPuzzle.Controllers
         public GroupResults[] GroupResults()
         {
             _logger.LogInformation($"Getting Group Results");
-            using (var connection = new MySqlConnection(Environment.GetEnvironmentVariable("CONNECTIONSTRING")))
-            {                
-                return connection.Query<GroupResults>("SELECT ROW_NUMBER() OVER(ORDER BY RemainingTime DESC) AS Position, GroupName, RemainingTime FROM SummersManor.Group").ToArray();
+            var settings = MongoClientSettings.FromConnectionString("mongodb://webapp:Rpibbb013@mongo:27017/SummersManor?authSource=admin");
+            settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+            var client = new MongoClient(settings);
+            var database = client.GetDatabase("SummersManor");
+            var collection = database.GetCollection<GroupResults>("Groups");
+            var sort = Builders<GroupResults>.Sort.Descending("RemainingTime");
+            var groups = collection.Find(new BsonDocument()).Sort(sort).ToList();
+            for(var i = 0; i<groups.Count(); i++)
+            {
+                groups[i].Position=i+1;
             }
+            return groups.ToArray();
         }
 
         [HttpPost]
         [Route("UpdateRemainingTime")]
         public void UpdateRemainingTime([FromBody] UpdateGroupRemainingTime groupRemainingTime)
         {
-            using (MySqlConnection con = new MySqlConnection(Environment.GetEnvironmentVariable("CONNECTIONSTRING")))
-            using (MySqlCommand cmd = new MySqlCommand("UPDATE SummersManor.Group SET RemainingTime = @RemainingTime WHERE (GroupName = @GroupName)",con))
-            {
-                con.Open();
-                cmd.Parameters.AddWithValue("GroupName", groupRemainingTime.groupName);
-                cmd.Parameters.AddWithValue("RemainingTime", groupRemainingTime.remainingTime);
-                cmd.ExecuteNonQuery();                
-            }
+            var settings = MongoClientSettings.FromConnectionString("mongodb://webapp:Rpibbb013@mongo:27017/SummersManor?authSource=admin");
+            settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+            var client = new MongoClient(settings);
+            var database = client.GetDatabase("SummersManor");
+            var collection = database.GetCollection<BsonDocument>("Groups");
+            var filter = Builders<BsonDocument>.Filter.Eq("GroupName", groupRemainingTime.groupName);
+            var update = Builders<BsonDocument>.Update.Set("RemainingTime", groupRemainingTime.remainingTime);
+            collection.UpdateOne(filter,update);
         }
     }
 
     public class GroupResults
     {
+        public ObjectId _id { get; set; }
         public int Position { get; set; }
         public string GroupName {  get; set; }
+
         public int RemainingTime {  get; set; }
 
         public string FormattedRemainingTime 

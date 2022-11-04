@@ -1,25 +1,17 @@
 version: '3'
+name: SummersManorHalloween
 services:
-  MySql:
-    image: 'forevercamaros/summershalloweenmysql:latest'
-    build:
-      context: .
-      dockerfile: Dockerfile.mysql
+  mongo:
+    image: mongo
+    container_name: MongoDb
+    restart: always
     environment:
-     - MYSQL_ROOT_PASSWORD=Rpibbb013.
-     - MYSQL_DATABASE=SummersManor
-     - MYSQL_USER=WebAppUser
-     - MYSQL_PASSWORD=Rpibbb013.
-    ports:
-     - "3306:3306"
-     - "33060:33060"
+      MONGO_INITDB_ROOT_USERNAME: charlie
+      MONGO_INITDB_ROOT_PASSWORD: Rpibbb013
   WebApp:
-    image: forevercamaros/summershalloween:latest
-    build:
-      context: .
-      dockerfile: Dockerfile.webapp
-    environment:
-     - CONNECTIONSTRING=Server=mysql;Database=SummersManor;User Id=WebAppUser;Password=Rpibbb013.;
+    image: forevercamaros/summershalloween:1.0.78
+    container_name: WebApp
+    restart: always
     ports:
      - "80:80"
      - "443:443"
