@@ -15,7 +15,6 @@ RUN dpkg -i packages-microsoft-prod.deb
 RUN rm packages-microsoft-prod.deb
 RUN apt-get update
 RUN apt install -y dotnet-sdk-6.0
-RUN export NODE_OPTIONS=--openssl-legacy-provider
 WORKDIR /src
 COPY ["SummersManorHalloweenPuzzle.csproj", "SummersManorHalloweenPuzzle/"]
 COPY . SummersManorHalloweenPuzzle/
