@@ -6,10 +6,12 @@ services:
     container_name: MongoDb
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: charlie
+      MONGO_INITDB_ROOT_USERNAME: webapp
       MONGO_INITDB_ROOT_PASSWORD: Rpibbb013
+    ports:
+    - "27017:27017"
   WebApp:
-    image: forevercamaros/summershalloween:1.0.80
+    image: forevercamaros/summershalloween:${APPVERSION}
     container_name: WebApp
     restart: always
     ports:
