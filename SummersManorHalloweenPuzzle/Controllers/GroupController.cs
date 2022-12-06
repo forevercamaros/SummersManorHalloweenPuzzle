@@ -19,10 +19,15 @@ namespace SummersManorHalloweenPuzzle.Controllers
         private readonly IConfiguration Configuration;
         private readonly ILogger<GroupController> _logger;
 
+        private string _MongoDBUserName = string.Empty, _MongoDBPassword = string.Empty, _MongoDBServer = string.Empty;
+
         public GroupController(ILogger<GroupController> logger, IConfiguration configuration)
         {
             Configuration = configuration;
             _logger=logger;
+            _MongoDBUserName = Environment.GetEnvironmentVariable("MONGO_INITDB_ROOT_USERNAME");
+            _MongoDBPassword = Environment.GetEnvironmentVariable("MONGO_INITDB_ROOT_PASSWORD");
+            _MongoDBServer = Environment.GetEnvironmentVariable("MONGO_SERVER");
         }
 
         [HttpGet]
@@ -32,7 +37,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
             try
             {                                
                 _logger.LogInformation($"Seeing if group {groupName} exists");
-                var settings = MongoClientSettings.FromConnectionString("mongodb://webapp:Rpibbb013@mongo:27017/SummersManor?authSource=admin");
+                var settings = MongoClientSettings.FromConnectionString($"mongodb://{_MongoDBUserName}:{_MongoDBPassword}@{_MongoDBServer}:27017/SummersManor?authSource=admin");
                 settings.ServerApi = new ServerApi(ServerApiVersion.V1);
                 var client = new MongoClient(settings);
                 var database = client.GetDatabase("SummersManor");
@@ -58,7 +63,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
         public GroupResults[] GroupResults()
         {
             _logger.LogInformation($"Getting Group Results");
-            var settings = MongoClientSettings.FromConnectionString("mongodb://webapp:Rpibbb013@mongo:27017/SummersManor?authSource=admin");
+            var settings = MongoClientSettings.FromConnectionString($"mongodb://{_MongoDBUserName}:{_MongoDBPassword}@{_MongoDBServer}:27017/SummersManor?authSource=admin");
             settings.ServerApi = new ServerApi(ServerApiVersion.V1);
             var client = new MongoClient(settings);
             var database = client.GetDatabase("SummersManor");
@@ -76,7 +81,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [Route("UpdateRemainingTime")]
         public void UpdateRemainingTime([FromBody] UpdateGroupRemainingTime groupRemainingTime)
         {
-            var settings = MongoClientSettings.FromConnectionString("mongodb://webapp:Rpibbb013@mongo:27017/SummersManor?authSource=admin");
+            var settings = MongoClientSettings.FromConnectionString($"mongodb://{_MongoDBUserName}:{_MongoDBPassword}@{_MongoDBServer}:27017/SummersManor?authSource=admin");
             settings.ServerApi = new ServerApi(ServerApiVersion.V1);
             var client = new MongoClient(settings);
             var database = client.GetDatabase("SummersManor");
