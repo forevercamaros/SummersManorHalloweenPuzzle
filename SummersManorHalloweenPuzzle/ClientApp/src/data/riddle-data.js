@@ -3,109 +3,109 @@
         'riddle1': 
         {
             type: 'text', 
-            riddle: 'A fleshless family is spending some quality time together. A fragile creature has caught their attention. Can you spot it?', 
-            answer: 'Butterfly', 
+            riddle: 'Trick-or-treat, smell my feet, can you guess my favorite sweet?', 
+            answer: 'Snickers', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Your answer is in the hands of the child.' 
+            clue: ' Get a little closer…there\'s something in his bag.' 
         },
         'riddle2': 
         { 
-            type: 'text', 
-            riddle: 'Pass the time in the family room with some classic spooky stories. Dial to the tale by Poe and discover what month this creepy tale is set in.', 
-            answer: 'December', 
+            type: 'audio', 
+            riddle: 'An eerie theme can make a scary film even more memorable. Name the movie this song is from.', 
+            audioFile: 'ExorcistTheme', 
+            bonusText: 'Provide the last name of the actress who starred in this film for an extra 60 seconds.', 
+            bonusAnswer: 'Blair', 
+            answer: 'The Exorcist', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Quoth the Raven...' 
+            clue: 'This movie\’s arguably most famous scene involves a 360 degree rotating head.' 
         },
         'riddle3': 
         { 
-            type: 'audio', 
-            riddle: 'An eerie theme can make a horror film even more memorable. Name the movie that featured this terrifying tune.', 
-            audioFile: 'HalloweenTheme', 
-            bonusText: 'Provide the last name of the lead actress in this film for an extra 2 minutes.', 
-            bonusAnswer: 'Curtis', 
+            type: 'text', 
+            riddle: 'Our lonely little swinging girl has finally made a few friends! These little buddies have a lot to say, but you’ll need to get the male moniker for your answer.', 
             clueText: 'At a loss? Click here for a clue, but you will no longer be eligible for a time bonus on this clue and will be penalized 30 seconds', 
-            clue: 'What holiday do we celebrate today?', 
-            answer: 'Halloween' 
+            clue: 'The little beheaded girl has the name you need.', 
+            answer: 'Simon' 
         },
         'riddle4': 
         { 
             type: 'text', 
-            riddle: 'This old crone has perfected her latest spell and the birds are ready to attack. Find the word in her incantation that doesn\'t "mirror".', 
-            answer: 'Issue', 
+            riddle: 'Visit our bone collection to solve this clue: (# Dog claws - # cat tailbones) x (# wings + # humans skeletons)', 
+            answer: '39', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Most of these words become something new when you look at them backwards...one does not' 
+            clue: 'Do the math!' 
         },
         'riddle5': 
         { 
             type: 'text', 
-            riddle: 'Venture down this foreboding drive to gather your next clue. You\'ll need to assemble it correctly to get the word you need.', 
-            answer: 'Slaughter', 
+            riddle: 'Arachnids have taken over part of our yard. Their latest victim brought an enchanted item with him for protection…it didn’t work. Name the repeating pattern for your next clue.', 
+            answer: 'Skulls', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Don\'t forget to ask the pumpkinhead man for a letter, too.' 
+            clue: 'Find the necklace and examine what it’s made up of.' 
         },
         'riddle6': 
         { 
             type: 'text', 
-            riddle: 'Basement sweet basement -- or so says our resident ghost. Find her cozy room for the answer you seek.', 
-            answer: 'Help', 
+            riddle: 'Jack-o-lanterns light up the night and decorate this childrens\’ refuge from the haunts. Look closer, and you’ll see a secret message.', 
+            answer: 'Disturbed', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Find the hidden room downstairs and examine the door.' 
+            clue: 'You may need to do a little climbing to get all the letters you seek.' 
         },
         'riddle7': 
         { 
             type: 'text', 
-            riddle: 'A tiny evil horde has taken over the playset. Find their little ruler and discover her true face. Only then will you get the answer you seek.', 
-            answer: 'Kathy', 
+            riddle: 'Find a most unusual coffee table book; it has some very special features. How long do the coven ancestors live for?', 
+            answer: 'Eternity', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'The crowned doll has a secret you can only see in a special light.' 
+            clue: 'Listen closely to the incantation.' 
         },
         'riddle8': 
         { 
             type: 'text', 
-            riddle: 'Go to the boneyard and solve the following equation: (# RIP x O on Fred) - (# crosses x A on Gracey)', 
-            answer: 'Five', 
+            riddle: 'Find the white lady who tends a flock of metal birds. Examining this sad figure will give you her name…but only if you see her in a different light.', 
+            answer: 'Genevieve', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Examine the tombstones and do the math.' 
+            clue: 'Find a special device attached to the lady and use it to find her name.' 
         },
-        'riddle9': 
+        'riddle09': 
         { 
             type: 'text', 
-            riddle: 'Approach this swinging girl with caution -- she may not be what she seems. She wears a treasure whose form will be the answer you seek.', 
-            answer: 'Heart', 
+            riddle: 'You\’ll have to keep your wits (and braaaaains) about you to find the name  of this groundbreaking fellow\’s pet.', 
+            answer: 'Pal', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Check around the girl\'s neck for you clue.' 
+            clue: 'Look at the zombie cat\’s collar.' 
         },
         'riddle10': 
         { 
             type: 'text', 
-            riddle: 'This couple just wanted to be one with nature. Well, he got his wish. How many creatures have come to visit? The total will solve this clue.', 
-            answer: 'Ten', 
+            riddle: 'This old crone has a penchant for riddles – and spells. Can you solve the riddle she’s currently working on?', 
+            answer: 'Trees', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Count up the leggy friends to get your answer' 
+            clue: 'The witch is surrounded by them.' 
         },
         'riddle11': 
         { 
             type: 'text', 
-            riddle: 'This angry spector grabs all the attention with his fiery show. Another ghoul is materializing right behind you. Can you find his hiding spot?', 
-            answer: 'Tree', 
+            riddle: 'The sunroom hosts an array of foreboding flora. Find the odd one’s name and you will proceed.', 
+            answer: 'Ned', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Look up and behind you to find the ghost\'s hiding place.' 
+            clue: 'Only one plant has an odd number of blooms. Look closer to find its name.' 
         },
         'riddle12': 
         { 
             type: 'text', 
-            riddle: 'Our backyard menagerie may have been a bit neglected. Find the avian scavenger for your next clue.', 
-            answer: 'Hector', 
+            riddle: 'The possessed pumpkin with the grasping fingers holds the key to your fate. Find the right one to save your soul.', 
+            answer: 'Heart', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'The vulture bears the name you need.' 
+            clue: 'Search the pumpkinhead’s key ring to find the unique key.' 
         },
         'riddle13': 
         { 
             type: 'text', 
-            riddle: 'This mini instrument in a mini house will give you the answer you seek. Name the last word of the tune: TTOBT-OOTTOBT-O-T-O-T-OOTTC', 
-            answer: 'Down', 
+            riddle: 'Unscramble the name of our graveyard gargoyle with the following letters:\nMaster Gracey: Li-2, Le-3: Li-5, Le-4\nThe Mourner: Li-1, Le-2: Li-1, Le-10\nFred: Li-4, Le-7: Li-2, Le-3', 
+            answer: 'Tobias', 
             clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.', 
-            clue: 'Not musically inclined? Hold the scared little boy\'s hands and he\'ll sing you the answer.' 
+            clue: ' Find the corresponding lines and letters and reveal a boy’s name.' 
         },
     }
 };
