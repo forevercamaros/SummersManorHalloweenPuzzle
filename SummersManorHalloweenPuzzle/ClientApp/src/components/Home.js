@@ -11,7 +11,7 @@ import Button from 'react-bootstrap/Button';
 import backgroundmusic from '../audio/darren-curtis-i-am-not-what-i-thought.mp3';
 import ReactAudioPlayer from 'react-audio-player';
 import BootstrapTable from 'react-bootstrap-table-next';
-import vistoryImage from '../images/witch.jpg';
+import vistoryImage from '../images/ghost_bride.jpg';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
