@@ -1,5 +1,5 @@
 version: '3'
-name: SummersManorHalloween
+name: summersmanorhalloween
 services:
   mongo:
     image: mongo
@@ -11,7 +11,7 @@ services:
     ports:
     - "27017:27017"
   WebApp:
-    image: forevercamaros/summershalloween:${APPVERSION}
+    image: forevercamaros/summershalloween:1.0.97
     container_name: WebApp
     restart: always
     ports:
