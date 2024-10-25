@@ -11,9 +11,13 @@ services:
     ports:
     - "27017:27017"
   WebApp:
-    image: forevercamaros/summershalloween:1.0.97
+    image: forevercamaros/summershalloween:<APP_VERSION>
     container_name: WebApp
     restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: webapp
+      MONGO_INITDB_ROOT_PASSWORD: Rpibbb013
+      MONGO_SERVER: mongo
     ports:
      - "80:80"
      - "443:443"
