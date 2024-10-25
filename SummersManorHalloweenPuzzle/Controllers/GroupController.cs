@@ -35,9 +35,11 @@ namespace SummersManorHalloweenPuzzle.Controllers
         public GroupExistsModel GroupExists(string groupName)
         {            
             try
-            {                                
+            {
+                var mongoDbConString = $"mongodb://{_MongoDBUserName}:{_MongoDBPassword}@{_MongoDBServer}:27017/SummersManor?authSource=admin";
                 _logger.LogInformation($"Seeing if group {groupName} exists");
-                var settings = MongoClientSettings.FromConnectionString($"mongodb://{_MongoDBUserName}:{_MongoDBPassword}@{_MongoDBServer}:27017/SummersManor?authSource=admin");
+                _logger.LogInformation($"Mongo DB Connection string {mongoDbConString}");
+                var settings = MongoClientSettings.FromConnectionString(mongoDbConString);
                 settings.ServerApi = new ServerApi(ServerApiVersion.V1);
                 var client = new MongoClient(settings);
                 var database = client.GetDatabase("SummersManor");
