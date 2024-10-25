@@ -4,6 +4,7 @@ import ReactAudioPlayer from 'react-audio-player'
 import HalloweenTheme from '../audio/dontcheat2.mp3'
 import ChopinsFuneralMarch from '../audio/donttrytocheat.mp3'
 import ExorcistTheme from '../audio/donttrytocheat3.mp3'
+import PsychoTheme from '../audio/donttrytocheat4.mp3'
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -91,6 +92,9 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
                 break;
             case "ExorcistTheme":
                 _audioFile = ExorcistTheme;
+                break;
+            case "PsychoTheme":
+                _audioFile = PsychoTheme;
                 break;
             default:
                 //Do nothing

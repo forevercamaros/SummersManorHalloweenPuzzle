@@ -2,7 +2,8 @@
     riddles: {
         'riddle1': 
         {
-            type: 'text', 
+            type: 'audio', 
+            audioFile: 'PsychoTheme',
             riddle: 'An eerie theme can make a scary movie even more memorable. Name the film this song is from.',
             answer: 'Psycho', 
             bonusText: 'Provide the last name of the actress who starred in this film for an extra 60 seconds',
