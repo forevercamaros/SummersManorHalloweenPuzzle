@@ -14,7 +14,7 @@
         'riddle2': 
         { 
             type: 'text', 
-            riddle: 'This fiery predator guards our yard along with his emaciated keeper. Are you brave enough to get up close? You\'ll need the number of pointed gnasher to move on.', 
+            riddle: 'This fiery predator guards our yard along with his emaciated keeper. Are you brave enough to get up close? You\'ll need the number of pointed gnashers to move on.', 
             answer: '20', 
             clueText: 'Need a hint? Click here for a clue, but you will will be penalized 30 seconds.', 
             clue: 'Hope this guy doesn\’t have a case of dragon breath.' 
@@ -39,7 +39,7 @@
         { 
             type: 'text', 
             riddle: 'Go to Leota\'s final resting place. She has sent a code from beyond the grave for you to decipher if you are to continue. L1L5, L3L6, L3L2, L3L1, L3L9, L4L3, L1L2, L1L4', 
-            answer: 'Corpse', 
+            answer: 'Sinister', 
             clueText: 'Need a clue? Click here for a clue, but you will will be penalized 30 seconds.', 
             clue: 'Line, letter on Leota\'s tombstone.' 
         },
