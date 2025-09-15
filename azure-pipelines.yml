@@ -25,7 +25,7 @@ steps:
     command: 'buildAndPush'
     Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile.webapp'
     tags: |
-      '$(Build.BuildNumber)'
+      $(Build.BuildNumber)
       latest
 - task: CopyFiles@2
   inputs:
