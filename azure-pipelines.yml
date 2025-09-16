@@ -70,8 +70,8 @@ stages:
             
             while [ $attempt -le $max_attempts ]; do
                 echo "Attempt $attempt of $max_attempts for $image"
-                
-                if timeout 1800 docker push "$image"; then
+                echo "docker push \"$image\""
+                if docker push "$image"; then
                     echo "Successfully pushed $image"
                     return 0
                 else
