@@ -58,8 +58,6 @@ stages:
         tags: |
           $(Build.BuildNumber)
           latest
-      retryCountOnTaskFailure: 3
-      timeoutInMinutes: 15
     - task: CopyFiles@2
       inputs:
         SourceFolder: '$(Build.SourcesDirectory)'
