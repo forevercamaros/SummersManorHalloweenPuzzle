@@ -1,28 +1,41 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim-amd64 AS base
-WORKDIR /app
-EXPOSE 80
-EXPOSE 443
-RUN apt-get update
-RUN apt-get install -y curl
-RUN apt-get install -y libpng-dev libjpeg-dev curl libxi6 build-essential libgl1-mesa-glx
-RUN curl -sL https://deb.nodesource.com/setup_lts.x | bash -
-RUN apt-get install -y nodejs
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim AS build
 
-FROM base AS build
-RUN apt-get install -y wget curl
-RUN wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-RUN dpkg -i packages-microsoft-prod.deb
-RUN rm packages-microsoft-prod.deb
-RUN apt-get update
-RUN apt install -y dotnet-sdk-6.0
+# Install dependencies in fewer layers
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    && wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && rm packages-microsoft-prod.deb \
+    && apt-get update \
+    && curl -sL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /src
 COPY ["SummersManorHalloweenPuzzle.csproj", "SummersManorHalloweenPuzzle/"]
 COPY . SummersManorHalloweenPuzzle/
 WORKDIR /src/SummersManorHalloweenPuzzle
 COPY . .
-RUN dotnet publish "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/publish /p:UseAppHost=true
+RUN dotnet publish "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/publish
 
-FROM base AS final
+# Runtime stage - use minimal runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim AS final
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    libpng16-16 \
+    libjpeg62-turbo \
+    libxi6 \
+    libgl1-mesa-glx \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
+EXPOSE 80
+EXPOSE 443
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "SummersManorHalloweenPuzzle.dll"]
