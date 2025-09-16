@@ -17,14 +17,6 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
-    - task: Bash@3
-      displayName: 'Test Harbor connectivity'
-      inputs:
-        targetType: 'inline'
-        script: |
-          ping -c 4 harbor.summershome.duckdns.org
-              nslookup harbor.summershome.duckdns.org
-              curl -I https://harbor.summershome.duckdns.org
     - task: Docker@2
       displayName: Build Docker image
       inputs:
@@ -49,15 +41,68 @@ stages:
       inputs:
         command: 'login'
         containerRegistry: 'Harbor Container Registry'
-    - task: Docker@2
-      displayName: Push image to Harbor
-      inputs:
-        command: 'push'
-        containerRegistry: 'Harbor Container Registry'
-        repository: 'summershalloween/summershalloween'
-        tags: |
-          $(Build.BuildNumber)
-          latest
+    
+    # Test Harbor connectivity
+    - script: |
+        ping -c 4 harbor.summershome.duckdns.org
+        nslookup harbor.summershome.duckdns.org
+        curl -I https://harbor.summershome.duckdns.org
+      displayName: 'Test Harbor connectivity'
+    
+    # Configure Docker for better timeout handling
+    - script: |
+        echo '{"max-concurrent-uploads": 1, "max-concurrent-downloads": 1, "registry-mirrors": []}' | sudo tee /etc/docker/daemon.json
+        sudo systemctl reload docker
+        sleep 5
+      displayName: 'Configure Docker daemon'
+    
+    # Push using script with custom retry logic
+    - script: |
+        #!/bin/bash
+        set -e
+        
+        # Function to push with retry logic
+        push_with_retry() {
+            local image=$1
+            local max_attempts=1
+            local attempt=1
+            local wait_time=30
+            
+            while [ $attempt -le $max_attempts ]; do
+                echo "Attempt $attempt of $max_attempts for $image"
+                
+                if timeout 1800 docker push "$image"; then
+                    echo "Successfully pushed $image"
+                    return 0
+                else
+                    echo "Push attempt $attempt failed for $image"
+                    if [ $attempt -lt $max_attempts ]; then
+                        echo "Waiting $wait_time seconds before retry..."
+                        sleep $wait_time
+                        # Exponential backoff
+                        wait_time=$((wait_time * 2))
+                    fi
+                fi
+                attempt=$((attempt + 1))
+            done
+            
+            echo "Failed to push $image after $max_attempts attempts"
+            return 1
+        }
+        
+        # Push versioned image
+        echo "Pushing versioned image..."
+        push_with_retry "harbor.summershome.duckdns.org/summershalloween/summershalloween:$(Build.BuildNumber)"
+        
+        # Push latest image
+        echo "Pushing latest image..."
+        push_with_retry "harbor.summershome.duckdns.org/summershalloween/summershalloween:latest"
+        
+        echo "All images pushed successfully!"
+        
+      displayName: 'Push images to Harbor with retry logic'
+      timeoutInMinutes: 60
+      
     - task: CopyFiles@2
       inputs:
         SourceFolder: '$(Build.SourcesDirectory)'
