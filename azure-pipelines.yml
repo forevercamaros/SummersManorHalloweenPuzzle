@@ -21,7 +21,7 @@ stages:
       displayName: Build Docker image
       inputs:
         command: 'build'
-        repository: 'summershalloween/summershalloween'
+        repository: 'harbor.summershome.duckdns.org/summershalloween/summershalloween'
         Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile.webapp'
         tags: |
           $(Build.BuildNumber)
@@ -37,8 +37,7 @@ stages:
       displayName: Push image to Harbor
       inputs:
         command: 'push'
-        repository: 'summershalloween/summershalloween'
-        containerRegistry: 'Harbor Container Registry'
+        repository: 'harbor.summershome.duckdns.org/summershalloween/summershalloween'
         tags: |
           $(Build.BuildNumber)
           latest
