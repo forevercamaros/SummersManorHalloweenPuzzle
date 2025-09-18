@@ -2,6 +2,10 @@
   "name": "summersmanorhalloweenpuzzle",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18.17.1",
+    "npm": ">=9.6.0"
+  },
   "dependencies": {
     "@soywod/pin-field": "^0.1.9",
     "bootstrap": "^4.1.3",

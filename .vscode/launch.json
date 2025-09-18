@@ -11,7 +11,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/SummersManorHalloweenPuzzle/bin/Debug/net60/SummersManorHalloweenPuzzle.dll",
+            "program": "${workspaceFolder}/SummersManorHalloweenPuzzle/bin/Debug/net9.0/SummersManorHalloweenPuzzle.dll",
             "args": [],
             "cwd": "${workspaceFolder}/SummersManorHalloweenPuzzle",
             "stopAtEntry": false,

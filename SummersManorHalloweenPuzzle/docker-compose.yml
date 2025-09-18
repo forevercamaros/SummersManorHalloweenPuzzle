@@ -20,4 +20,3 @@ services:
       MONGO_SERVER: mongo
     ports:
      - "80:80"
-     - "443:443"

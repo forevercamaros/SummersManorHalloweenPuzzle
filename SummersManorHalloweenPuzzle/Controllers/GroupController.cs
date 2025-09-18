@@ -1,14 +1,10 @@
-﻿using Dapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
-using MySql.Data.MySqlClient;
-using SummersManorHalloweenPuzzle.Models;
 using MongoDB.Driver;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace SummersManorHalloweenPuzzle.Controllers
 {   

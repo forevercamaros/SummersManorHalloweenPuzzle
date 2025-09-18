@@ -1,15 +1,15 @@
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-bullseye-slim AS build
 
 # Install dependencies in fewer layers
 RUN apt-get update && apt-get install -y \
     wget \
     curl \
-    && wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+    && wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
     && dpkg -i packages-microsoft-prod.deb \
     && rm packages-microsoft-prod.deb \
     && apt-get update \
-    && curl -sL https://deb.nodesource.com/setup_lts.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -22,7 +22,7 @@ COPY . .
 RUN dotnet publish "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/publish
 
 # Runtime stage - use minimal runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-bullseye-slim AS final
 
 # Install only runtime dependencies
 RUN apt-get update && apt-get install -y \
