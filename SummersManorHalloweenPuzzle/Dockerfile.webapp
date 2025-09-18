@@ -1,5 +1,5 @@
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0-bullseye-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 # Install dependencies in fewer layers
 RUN apt-get update && apt-get install -y \
@@ -22,7 +22,7 @@ COPY . .
 RUN dotnet publish "SummersManorHalloweenPuzzle.csproj" -c Release -o /app/publish
 
 # Runtime stage - use minimal runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-bullseye-slim AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 
 # Install only runtime dependencies
 RUN apt-get update && apt-get install -y \
