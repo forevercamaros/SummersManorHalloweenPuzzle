@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import Riddle from '../RiddleComponents/Riddle';
 import riddleData from '../data/riddle-data';
 import styled from 'styled-components';
-import FinalPuzzle from './FinalPuzzle';
 import { Transition } from 'react-transition-group';
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
 import GroupLogin from './GroupLogin';
@@ -10,7 +9,6 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import backgroundmusic from '../audio/darren-curtis-i-am-not-what-i-thought.mp3';
 import ReactAudioPlayer from 'react-audio-player';
-import BootstrapTable from 'react-bootstrap-table-next';
 import victoryImage from '../images/haunted-house.jpg';
 
 var riddleKeys = Object.keys(riddleData.riddles);
@@ -68,7 +66,6 @@ export default function Home() {
     const [showTimer, setShowTimer] = useState(false);
     const [showRiddle, setShowRiddle] = useState(false);
     const [showRiddleSolved, setShowRiddleSolved] = useState(false);
-    const [showFinalPuzzle, setShowFinalPuzzle] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(startIndex);
     const [riddle, setRiddle] = useState(riddleData.riddles[riddleKeys[startIndex]]);
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
@@ -77,11 +74,11 @@ export default function Home() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [showExitPrompt, setShowExitPrompt] = useState(true);
     const [showOutOfTime, setShowOutOfTime] = useState(false);
-    const [finalPuzzleCompleted, setFinalPuzzleCompleted] = useState(false);
     const [viewResults, setViewResults] = useState(false);
     const [groupResults, setGroupResults] = useState(null);
     const handleCloseOutOfTime = () => setShowOutOfTime(false);
     const [showSolved, setShowSolved] = useState(false);
+    const [gameCompleted, setGameCompleted] = useState(false);
     
 
 
@@ -94,24 +91,7 @@ export default function Home() {
     }
 
     var _remainingTime = 0;
-    var _finalTime = 0;
-
-    const onFinalPuzzleCompleted = () => {
-        localStorage.setItem("showSolved", true);
-        _finalTime = _remainingTime;
-        setFinalPuzzleCompleted(true);
-        localStorage.setItem("finalPuzzleCompleted", true);
-        const data = { groupName: groupName, remainingTime: _remainingTime };
-        fetch('UpdateRemainingTime', {
-            method: 'POST',
-            body: JSON.stringify(data),
-            headers: { 'Content-Type': 'application/json' },
-        }).catch(error => {
-                console.error('There has been a problem with your fetch operation:', error);
-        });
-        setShowExitPrompt(false);
-        setShowSolved(true);        
-    }
+    var _finalTime = 0;    
 
     const initBeforeUnLoad = (showExitPrompt) => {
         window.onbeforeunload = (event) => {
@@ -136,9 +116,9 @@ export default function Home() {
     });
 
     useEffect(() => {
-        const _showSolved = localStorage.getItem('showSolved');
-        if (_showSolved) {
-            setShowSolved(_showSolved === "true" ? true : false);
+        const _gameCompleted = localStorage.getItem('gameCompleted');
+        if (_gameCompleted) {
+            setGameCompleted(_gameCompleted === "true" ? true : false);
         }
         const _lastUsedDate = localStorage.getItem('lastUsedDate');        
         if (_lastUsedDate) {
@@ -154,7 +134,7 @@ export default function Home() {
 
         const _showLogin = localStorage.getItem('showLogin');
         if (_showLogin) {
-            setShowLogin(_showLogin === "true" ? true:false);
+            setShowLogin(_showLogin === "true" ? true : false);
         }
 
         const _showTimer = localStorage.getItem('showTimer');
@@ -170,11 +150,6 @@ export default function Home() {
         const _showRiddleSolved = localStorage.getItem('showRiddleSolved');
         if (_showRiddleSolved) {
             setShowRiddleSolved(_showRiddleSolved === "true" ? true : false);
-        }
-
-        const _showFinalPuzzle = localStorage.getItem('showFinalPuzzle');
-        if (_showFinalPuzzle) {
-            setShowFinalPuzzle(_showFinalPuzzle === "true" ? true : false);
         }
 
         const _currentIndex = localStorage.getItem('currentIndex');
@@ -202,12 +177,7 @@ export default function Home() {
         const _showOutOfTime = localStorage.getItem('showOutOfTime');
         if (_showOutOfTime) {
             setShowOutOfTime(_showOutOfTime === "true" ? true : false);
-        }
-
-        const _finalPuzzleCompleted = localStorage.getItem('finalPuzzleCompleted');
-        if (_finalPuzzleCompleted) {
-            setFinalPuzzleCompleted(_finalPuzzleCompleted === "true" ? true : false);
-        }
+        }       
         
     }, []);
 
@@ -251,8 +221,22 @@ export default function Home() {
             index = 0;
         }
         if (index === startIndex) {
-            setShowFinalPuzzle(true);
-            localStorage.setItem("showFinalPuzzle", true);
+            localStorage.setItem("showSolved", true);
+            localStorage.setItem("gameCompleted", true);
+            localStorage.setItem("showRiddle", false)
+            _finalTime = _remainingTime;
+            const data = { groupName: groupName, remainingTime: _remainingTime };
+            fetch('UpdateRemainingTime', {
+                method: 'POST',
+                body: JSON.stringify(data),
+                headers: { 'Content-Type': 'application/json' },
+            }).catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+            setShowExitPrompt(false);
+            setShowSolved(true);    
+            setShowRiddle(false);
+            setGameCompleted(true);
         } else {
             setCurrentIndex(index);
             localStorage.setItem("currentIndex", index);
@@ -304,6 +288,38 @@ export default function Home() {
         }        
     };
 
+    // Helper to render the results table
+    function ResultsTable({ data, columns, rowStyle, groupName }) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            return <div>No results available.</div>;
+        }
+        return (
+            <table className="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        {columns.map(col => (
+                            <th key={col.dataField}>{col.text}</th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.map((row, idx) => {
+                        const style = rowStyle ? rowStyle(row, idx) : {};
+                        return (
+                            <tr key={row.position ?? idx} style={style}>
+                                {columns.map(col => (
+                                    <td key={col.dataField}>
+                                        {row[col.dataField]}
+                                    </td>
+                                ))}
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        );
+    }
+
     
     return (
         <>
@@ -312,7 +328,12 @@ export default function Home() {
                     <Modal.Title>Results</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <BootstrapTable keyField='position' data={groupResults} columns={resultsColumns} rowStyle={rowStyle} />
+                    <ResultsTable
+                        data={groupResults}
+                        columns={resultsColumns}
+                        rowStyle={rowStyle}
+                        groupName={groupName}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setViewResults(false)}>
@@ -349,7 +370,7 @@ export default function Home() {
                             <div className="container">
                                 <div className="row">
                                     <div className="col">
-                                        {finalPuzzleCompleted
+                                        {gameCompleted
                                             ? <Button size="lg" variant="secondary" onClick={handleViewResults}>
                                                 View Results
                                             </Button>
@@ -388,10 +409,8 @@ export default function Home() {
             <Transition in={showLogin} timeout={fadeDuration} onExited={() => {
                 setShowTimer(true);
                 localStorage.setItem("showTimer", showTimer);
-                if (!showFinalPuzzle) {
-                    setShowRiddle(true);
-                    localStorage.setItem("showRiddle", true);
-                }                
+                setShowRiddle(true);
+                localStorage.setItem("showRiddle", true);
             }} mountOnEnter={true} unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
@@ -399,7 +418,7 @@ export default function Home() {
                     </FadeContainer>
                 )}                
             </Transition>
-            <Transition in={showRiddle} timeout={fadeDuration} onExited={nextRiddle} mountOnEnter={true} unmountOnExit={true} onEntered={() => {
+            <Transition in={showRiddle && !gameCompleted} timeout={fadeDuration} onExited={nextRiddle} mountOnEnter={true} unmountOnExit={true} onEntered={() => {
                 if (riddle.type === 'audio') {
                     audioElement.current.audioEl.current.pause();
                 }
@@ -412,21 +431,14 @@ export default function Home() {
             </Transition>
             <Transition in={showRiddleSolved} timeout={fadeDuration}
                 onEntered={() => { setShowRiddleSolved(false); localStorage.setItem("showRiddleSolved", false); audioElement.current.audioEl.current.play(); }}
-                onExited={() => { if (!showFinalPuzzle) { setShowRiddle(true); localStorage.setItem("showRiddle", true); } }}
+                onExited={() => { setShowRiddle(true); localStorage.setItem("showRiddle", true); } }
                 unmountOnExit={true}>
                 {state => (
                     <FadeContainer state={state} duration={fadeDuration}>
                         Riddle Solved. Loading new riddle...
                     </FadeContainer>
                 )}
-            </Transition>            
-            <Transition in={showFinalPuzzle} timeout={fadeDuration} mountOnEnter={true}>
-                {state => (
-                    <FinalFadeContainer state={state} duration={fadeDuration}>
-                        <FinalPuzzle onComplete={ onFinalPuzzleCompleted } />
-                    </FinalFadeContainer>
-                )}
-            </Transition>
+            </Transition>                        
             <BottomPadding />
             <ReactAudioPlayer
                 ref={audioElement}
