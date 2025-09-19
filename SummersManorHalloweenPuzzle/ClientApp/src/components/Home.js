@@ -10,6 +10,7 @@ import Button from 'react-bootstrap/Button';
 import backgroundmusic from '../audio/darren-curtis-i-am-not-what-i-thought.mp3';
 import ReactAudioPlayer from 'react-audio-player';
 import victoryImage from '../images/haunted-house.jpg';
+import scaryGhostBackground from '../images/ScaryGhost.png';
 
 var riddleKeys = Object.keys(riddleData.riddles);
 var startIndex = Math.floor(Math.random() * riddleKeys.length);
@@ -24,11 +25,6 @@ const FadeContainer = styled.div`
   color: white;
 `;
 
-const FinalFadeContainer = styled.div`
-  transition: opacity  ${props => props.duration}ms ease-in-out;
-  opacity: ${props => (props.state === 'entering' || props.state === 'entered' ? '1' : '0')};
-`;
-
 const BottomTimer = styled.div`
   position: fixed !important;
   bottom: 0 !important;
@@ -41,8 +37,60 @@ const GroupNameDiv = styled.div`
   padding: 10%;
 `;
 
+const SpookyWrapper = styled.div`
+  height: 100vh;
+  background-image: url(${scaryGhostBackground});
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  background-size: contain;
+  position: relative;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  z-index: 1;
+  overflow: hidden;
+`;
+
+const SpookyTitle = styled.h1`
+  font-family: 'Creepster', cursive;
+  color: #ff6b1a;
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 12px #8b0000, 0 0 24px #ff6b1a;
+  animation: flicker 1.1s infinite;
+  letter-spacing: 2px;
+`;
+
+const FlickerStyle = styled.div`
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    10% { opacity: 0.7; }
+    20% { opacity: 0.9; }
+    30% { opacity: 0.5; }
+    40% { opacity: 0.8; }
+    50% { opacity: 0.6; }
+    60% { opacity: 0.85; }
+    70% { opacity: 0.7; }
+    80% { opacity: 0.95; }
+    90% { opacity: 0.8; }
+  }
+  animation: flicker 1.3s infinite;
+`;
+
+const MistSVG = styled.div`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 180px;
+  z-index: 0;
+  opacity: 0.22;
+  pointer-events: none;
+`;
+
 function formatTimeString(seconds, minutesOnly) {
-    var sec_num = parseInt(seconds, 10); // don't forget the second param
+    var sec_num = parseInt(seconds, 10);
     var hours = Math.floor(sec_num / 3600);
     var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
     var seconds = sec_num - (hours * 3600) - (minutes * 60);
@@ -55,9 +103,7 @@ function formatTimeString(seconds, minutesOnly) {
     } else {
         return hours + ':' + minutes + ':' + seconds;
     }
-    
 }
-
 
 export default function Home() {
     const fadeDuration = 1000;
@@ -80,7 +126,10 @@ export default function Home() {
     const [showSolved, setShowSolved] = useState(false);
     const [gameCompleted, setGameCompleted] = useState(false);
     
-
+    const timerNodeRef = useRef(null);
+    const loginNodeRef = useRef(null);
+    const riddleNodeRef = useRef(null);
+    const solvedNodeRef = useRef(null);
 
     const audioElement = useRef(null);
     
@@ -322,50 +371,80 @@ export default function Home() {
 
     
     return (
-        <>
-            <Modal show={viewResults} onHide={() => setViewResults(false)} className="special_modal">
-                <Modal.Header closeButton>
-                    <Modal.Title>Results</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <ResultsTable
-                        data={groupResults}
-                        columns={resultsColumns}
-                        rowStyle={rowStyle}
-                        groupName={groupName}
-                    />
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setViewResults(false)}>
-                        Close
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-            <Modal show={showOutOfTime} onHide={handleCloseOutOfTime} className="special_modal">
-                <Modal.Header closeButton>
-                    <Modal.Title>Your Time Has Expired</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>Press close to continue the challenge beyond your allotted time.</Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseOutOfTime}>
-                        Close
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-            <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
-                <Modal.Header closeButton>
-                    <img src={victoryImage} className="img-fluid" />
-                </Modal.Header>
-                <Modal.Body>You Have Succeeded.</Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseSolved}>
-                        Close
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-            <Transition in={showTimer} timeout={fadeDuration} mountOnEnter={true}>
-                {state => (
-                    <FadeContainer state={state} duration={fadeDuration}>                        
+      <SpookyWrapper>
+        <MistSVG>
+          <svg viewBox="0 0 1200 180" fill="none">
+            <path d="M0,120 Q300,180 600,120 Q900,60 1200,120 L1200,180 L0,180 Z" fill="#dedede" opacity="0.3"/>
+          </svg>
+        </MistSVG>
+        <SpookyTitle>
+          Summers Manor Halloween Puzzle
+        </SpookyTitle>
+        <FlickerStyle>
+          <div style={{
+            textAlign: 'center',
+            color: '#dedede',
+            marginBottom: '2rem',
+            fontSize: '1.3rem',
+            textShadow: '0 0 12px #8b0000, 0 0 24px #ff6b1a',
+            animation: 'flicker 1.3s infinite'
+          }}>
+            Welcome, brave soul! Solve riddles, unlock secrets, and survive the night.<br />
+            <span style={{
+              color: '#8b0000',
+              fontWeight: 'bold',
+              animation: 'flicker 1.1s infinite'
+            }}>Are you ready to play?</span>
+          </div>
+        </FlickerStyle>
+        <Modal show={viewResults} onHide={() => setViewResults(false)} className="special_modal">
+            <Modal.Header closeButton>
+                <Modal.Title>Results</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <ResultsTable
+                    data={groupResults}
+                    columns={resultsColumns}
+                    rowStyle={rowStyle}
+                    groupName={groupName}
+                />
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={() => setViewResults(false)}>
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
+        <Modal show={showOutOfTime} onHide={handleCloseOutOfTime} className="special_modal">
+            <Modal.Header closeButton>
+                <Modal.Title>Your Time Has Expired</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>Press close to continue the challenge beyond your allotted time.</Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleCloseOutOfTime}>
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
+        <Modal show={showSolved} onHide={handleCloseSolved} className="special_modal">
+            <Modal.Header closeButton>
+                <img src={victoryImage} className="img-fluid" />
+            </Modal.Header>
+            <Modal.Body>You Have Succeeded.</Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleCloseSolved}>
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
+        <Transition
+  in={showTimer}
+  timeout={fadeDuration}
+  mountOnEnter={true}
+  nodeRef={timerNodeRef}
+>
+  {state => (
+    <FadeContainer ref={timerNodeRef} state={state} duration={fadeDuration}>                        
                         <BottomTimer>
                             <div className="container">
                                 <div className="row">
@@ -404,41 +483,60 @@ export default function Home() {
                             </div>
                         </BottomTimer>
                     </FadeContainer>
-                )}                
-            </Transition>
-            <Transition in={showLogin} timeout={fadeDuration} onExited={() => {
-                setShowTimer(true);
-                localStorage.setItem("showTimer", showTimer);
-                setShowRiddle(true);
-                localStorage.setItem("showRiddle", true);
-            }} mountOnEnter={true} unmountOnExit={true}>
-                {state => (
-                    <FadeContainer state={state} duration={fadeDuration}>
-                        <GroupLogin riddleCount={riddleKeys.length} countDownTime={formatTimeString(timerDuration, true)} onClick={onSetGroupName} />
-                    </FadeContainer>
-                )}                
-            </Transition>
-            <Transition in={showRiddle && !gameCompleted} timeout={fadeDuration} onExited={nextRiddle} mountOnEnter={true} unmountOnExit={true} onEntered={() => {
-                if (riddle.type === 'audio') {
-                    audioElement.current.audioEl.current.pause();
-                }
-            }}>
-                {state => (
-                    <FadeContainer state={state} duration={fadeDuration}>
-                        <Riddle RiddleData={riddle} onSolved={onSolved} onAddTime={addTime} />
-                    </FadeContainer>
-                )}
-            </Transition>
-            <Transition in={showRiddleSolved} timeout={fadeDuration}
-                onEntered={() => { setShowRiddleSolved(false); localStorage.setItem("showRiddleSolved", false); audioElement.current.audioEl.current.play(); }}
-                onExited={() => { setShowRiddle(true); localStorage.setItem("showRiddle", true); } }
-                unmountOnExit={true}>
-                {state => (
-                    <FadeContainer state={state} duration={fadeDuration}>
-                        Riddle Solved. Loading new riddle...
-                    </FadeContainer>
-                )}
-            </Transition>                        
+  )}
+</Transition>
+            <Transition
+  in={showLogin}
+  timeout={fadeDuration}
+  onExited={() => {
+    setShowTimer(true);
+    localStorage.setItem("showTimer", showTimer);
+    setShowRiddle(true);
+    localStorage.setItem("showRiddle", true);
+  }}
+  mountOnEnter={true}
+  unmountOnExit={true}
+  nodeRef={loginNodeRef}
+>
+  {state => (
+    <FadeContainer ref={loginNodeRef} state={state} duration={fadeDuration}>
+      <GroupLogin riddleCount={riddleKeys.length} countDownTime={formatTimeString(timerDuration, true)} onClick={onSetGroupName} />
+    </FadeContainer>
+  )}
+</Transition>
+            <Transition
+  in={showRiddle && !gameCompleted}
+  timeout={fadeDuration}
+  onExited={nextRiddle}
+  mountOnEnter={true}
+  unmountOnExit={true}
+  onEntered={() => {
+    if (riddle.type === 'audio') {
+      audioElement.current.audioEl.current.pause();
+    }
+  }}
+  nodeRef={riddleNodeRef}
+>
+  {state => (
+    <FadeContainer ref={riddleNodeRef} state={state} duration={fadeDuration}>
+      <Riddle RiddleData={riddle} onSolved={onSolved} onAddTime={addTime} />
+    </FadeContainer>
+  )}
+</Transition>
+            <Transition
+  in={showRiddleSolved}
+  timeout={fadeDuration}
+  onEntered={() => { setShowRiddleSolved(false); localStorage.setItem("showRiddleSolved", false); audioElement.current.audioEl.current.play(); }}
+  onExited={() => { setShowRiddle(true); localStorage.setItem("showRiddle", true); } }
+  unmountOnExit={true}
+  nodeRef={solvedNodeRef}
+>
+  {state => (
+    <FadeContainer ref={solvedNodeRef} state={state} duration={fadeDuration}>
+      Riddle Solved. Loading new riddle...
+    </FadeContainer>
+  )}
+</Transition>                        
             <BottomPadding />
             <ReactAudioPlayer
                 ref={audioElement}
@@ -446,6 +544,6 @@ export default function Home() {
                 onEnded={() => audioElement.current.audioEl.current.play()}
                 volume={0.1}
             />
-        </>
+        </SpookyWrapper>
     );    
 }
