@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import Home from './components/Home';
 import EditRiddleData from './components/EditRiddleData';
+import Settings from './components/Settings';
 
 import './custom.css';
 
@@ -12,6 +13,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/editriddledata" element={<EditRiddleData />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </Layout>
   );
