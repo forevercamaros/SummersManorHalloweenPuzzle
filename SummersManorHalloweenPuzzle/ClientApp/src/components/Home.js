@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Riddle from '../RiddleComponents/Riddle';
-import riddleData from '../data/riddle-data';
 import styled from 'styled-components';
 import { Transition } from 'react-transition-group';
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
@@ -11,9 +10,6 @@ import backgroundmusic from '../audio/darren-curtis-i-am-not-what-i-thought.mp3'
 import ReactAudioPlayer from 'react-audio-player';
 import victoryImage from '../images/haunted-house.jpg';
 import scaryGhostBackground from '../images/ScaryGhost.png';
-
-var riddleKeys = Object.keys(riddleData.riddles);
-var startIndex = Math.floor(Math.random() * riddleKeys.length);
 
 const BottomPadding = styled.div`  
   min-height: 100px;
@@ -112,9 +108,10 @@ export default function Home() {
     const [showTimer, setShowTimer] = useState(false);
     const [showRiddle, setShowRiddle] = useState(false);
     const [showRiddleSolved, setShowRiddleSolved] = useState(false);
-    const [currentIndex, setCurrentIndex] = useState(startIndex);
-    const [riddle, setRiddle] = useState(null); // Initialize as null
-    const [riddleDataFromDB, setRiddleDataFromDB] = useState(null); // Store fetched data
+    const [currentIndex, setCurrentIndex] = useState(0); // Initialize to 0
+    const [riddle, setRiddle] = useState(null);
+    const [riddleDataFromDB, setRiddleDataFromDB] = useState(null);
+    const [startIndex, setStartIndex] = useState(0); // Add as state variable
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
     const [timerKey, setTimerKey] = useState(0);
     const [groupName, setGroupName] = useState("");
@@ -243,28 +240,67 @@ export default function Home() {
             if (data.success && data.riddles) {
                 return { riddles: data.riddles };
             } else {
-                console.warn('Failed to load riddle data from MongoDB, using default');
-                return riddleData; // fallback to default
+                console.warn('Failed to load riddle data from MongoDB');
+                return { riddles: {} }; // Return empty instead of fallback
             }
         } catch (error) {
             console.error('Error fetching riddle data:', error);
-            return riddleData; // fallback to default
+            return { riddles: {} }; // Return empty instead of fallback
         }
     };
 
     useEffect(() => {
-        const loadRiddleData = async () => {
+        window.scrollTo(0, 0);
+        
+        const loadInitialData = async () => {
             const data = await fetchRiddleDataFromMongoDB();
+            setRiddleDataFromDB(data);
+            
             const keys = Object.keys(data.riddles);
-            setCurrentIndex(startIndex);
-            setRiddle(data.riddles[keys[startIndex]]);
-            // Store the fetched data globally so other functions can use it
-            window.riddleDataFromMongoDB = data;
+            if (keys.length > 0) {
+                const randomStart = Math.floor(Math.random() * keys.length);
+                setStartIndex(randomStart);
+                let initialRiddleIndex = randomStart;
+                
+                // Restore game state from localStorage
+                const _gameCompleted = localStorage.getItem('gameCompleted');
+                if (_gameCompleted) {
+                    setGameCompleted(_gameCompleted === "true" ? true : false);
+                    if (_gameCompleted === "true") {
+                        setShowSolved(true);
+                        setShowRiddle(false);
+                        return;
+                    }
+                }
+            
+                const _currentIndex = localStorage.getItem('currentIndex');
+                if (_currentIndex) {
+                    initialRiddleIndex = parseInt(_currentIndex);
+                }
+            
+                setCurrentIndex(initialRiddleIndex);
+                localStorage.setItem("currentIndex", initialRiddleIndex);
+                setRiddle(data.riddles[keys[initialRiddleIndex]]);
+                localStorage.setItem("riddle", JSON.stringify(data.riddles[keys[initialRiddleIndex]]));
+                
+                const _initialRemainingTime = localStorage.getItem('initialRemainingTime');
+                if (_initialRemainingTime) {            
+                    setInitialRemainingTime(parseInt(_initialRemainingTime));
+                    setTimerKey(timerKey + 1);            
+                } else {
+                    setInitialRemainingTime(timerDuration);
+                }
+                
+                setIsPlaying(true);
+            
+                const _groupName = localStorage.getItem('groupName');
+                if (_groupName) {
+                    setGroupName(_groupName);
+                }
+            }
         };
         
-        loadRiddleData();
-        
-        // ... rest of existing useEffect code
+        loadInitialData();
     }, []);
 
     function onSetGroupName(inGroupName) {
@@ -297,13 +333,16 @@ export default function Home() {
     }
 
     function nextRiddle() {
-        var index = currentIndex+1;        
-        const currentRiddleData = window.riddleDataFromMongoDB || riddleData;
-        const keys = Object.keys(currentRiddleData.riddles);
+        const currentRiddleData = riddleDataFromDB;
+        if (!currentRiddleData || !currentRiddleData.riddles) return;
         
-        if (index + 1 > keys.length) {
+        const keys = Object.keys(currentRiddleData.riddles);
+        var index = currentIndex + 1;        
+        
+        if (index >= keys.length) {
             index = 0;
         }
+        
         if (index === startIndex) {
             localStorage.setItem("showSolved", true);
             localStorage.setItem("gameCompleted", true);
@@ -535,7 +574,7 @@ export default function Home() {
 >
   {state => (
     <FadeContainer ref={loginNodeRef} state={state} duration={fadeDuration}>
-      <GroupLogin riddleCount={riddleKeys.length} countDownTime={formatTimeString(timerDuration, true)} onClick={onSetGroupName} />
+      <GroupLogin riddleCount={riddleDataFromDB ? Object.keys(riddleDataFromDB.riddles).length : 0} countDownTime={formatTimeString(timerDuration, true)} onClick={onSetGroupName} />
     </FadeContainer>
   )}
 </Transition>
