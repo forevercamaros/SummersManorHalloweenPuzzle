@@ -222,7 +222,7 @@ export default function Settings() {
 
             <StyledModal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>?? Confirm Data Reset</Modal.Title>
+                    <Modal.Title>&#x26A0;&#xFE0F; Confirm Data Reset</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <p>Are you sure you want to reset all game data?</p>
