@@ -1,10 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
-import HalloweenTheme from '../audio/dontcheat2.mp3'
-import ChopinsFuneralMarch from '../audio/donttrytocheat.mp3'
-import ExorcistTheme from '../audio/donttrytocheat3.mp3'
-import PsychoTheme from '../audio/donttrytocheat4.mp3'
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -13,7 +9,6 @@ import FormControl from 'react-bootstrap/FormControl'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import { Transition } from 'react-transition-group';
-import riddleData from '../data/riddle-data';
 
 const FadeContainer = styled.div`
   transition: opacity  ${props => props.duration}ms ease-in-out;
@@ -82,31 +77,17 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     }, []);
 
     function AddAudio({ type, audioFile }) {
-        var _audioFile;
-        switch (audioFile) {
-            case "ChopinsFuneralMarch":
-                _audioFile = ChopinsFuneralMarch;
-                break;
-            case "HalloweenTheme":
-                _audioFile = HalloweenTheme;
-                break;
-            case "ExorcistTheme":
-                _audioFile = ExorcistTheme;
-                break;
-            case "PsychoTheme":
-                _audioFile = PsychoTheme;
-                break;
-            default:
-                //Do nothing
-        }
-        if (type === "audio") {
+        if (type === "audio" && audioFile) {
+            // Dynamically import the audio file based on filename
+            const audioPath = require(`../audio/${audioFile}.mp3`);
+            
             return (
                 <>
                     <Row>
                         <Col>
                             <ReactAudioPlayer
                                 ref={audioElement}
-                                src={_audioFile}
+                                src={audioPath}
                                 controls
                                 onEnded={() => setShowClueOption(true)}
                                 onCanPlay={() => { if (!clueRevealed) { audioElement.current.audioEl.current.play(); }}}
@@ -171,12 +152,16 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     function TextChange(value) {
         if (value.currentTarget.value.toLowerCase() === RiddleData.answer.toLowerCase()) {
             setReadOnlyAnswer(true);
-            if (RiddleData.bonusText === "" || typeof RiddleData.bonusText === 'undefined' || clueRevealed === true) {
-                onSolved();
-            } else {
-                handleShowBonus();
-            }
             
+            // Only show bonus if there is bonus text AND clue hasn't been revealed
+            if (RiddleData.bonusText && 
+                RiddleData.bonusText.trim() !== "" && 
+                typeof RiddleData.bonusText !== 'undefined' && 
+                clueRevealed === false) {
+                handleShowBonus();
+            } else {
+                onSolved();
+            }
         }
     }
     function BonusTextChange(value) {
@@ -186,7 +171,6 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             handleCloseBonus();
         }
     }
-
 
     return (
         <Container fluid>

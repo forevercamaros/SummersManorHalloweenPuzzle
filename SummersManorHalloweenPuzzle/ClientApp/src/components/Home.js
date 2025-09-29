@@ -113,7 +113,8 @@ export default function Home() {
     const [showRiddle, setShowRiddle] = useState(false);
     const [showRiddleSolved, setShowRiddleSolved] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(startIndex);
-    const [riddle, setRiddle] = useState(riddleData.riddles[riddleKeys[startIndex]]);
+    const [riddle, setRiddle] = useState(null); // Initialize as null
+    const [riddleDataFromDB, setRiddleDataFromDB] = useState(null); // Store fetched data
     const [initialRemainingTime, setInitialRemainingTime] = useState(timerDuration);
     const [timerKey, setTimerKey] = useState(0);
     const [groupName, setGroupName] = useState("");
@@ -235,6 +236,37 @@ export default function Home() {
         initBeforeUnLoad(showExitPrompt);
     }, [showExitPrompt]);
     
+    const fetchRiddleDataFromMongoDB = async () => {
+        try {
+            const response = await fetch('/GetRiddleData');
+            const data = await response.json();
+            if (data.success && data.riddles) {
+                return { riddles: data.riddles };
+            } else {
+                console.warn('Failed to load riddle data from MongoDB, using default');
+                return riddleData; // fallback to default
+            }
+        } catch (error) {
+            console.error('Error fetching riddle data:', error);
+            return riddleData; // fallback to default
+        }
+    };
+
+    useEffect(() => {
+        const loadRiddleData = async () => {
+            const data = await fetchRiddleDataFromMongoDB();
+            const keys = Object.keys(data.riddles);
+            setCurrentIndex(startIndex);
+            setRiddle(data.riddles[keys[startIndex]]);
+            // Store the fetched data globally so other functions can use it
+            window.riddleDataFromMongoDB = data;
+        };
+        
+        loadRiddleData();
+        
+        // ... rest of existing useEffect code
+    }, []);
+
     function onSetGroupName(inGroupName) {
         setGroupName(inGroupName);
         localStorage.setItem("groupName", inGroupName);
@@ -266,7 +298,10 @@ export default function Home() {
 
     function nextRiddle() {
         var index = currentIndex+1;        
-        if (index + 1 > riddleKeys.length) {
+        const currentRiddleData = window.riddleDataFromMongoDB || riddleData;
+        const keys = Object.keys(currentRiddleData.riddles);
+        
+        if (index + 1 > keys.length) {
             index = 0;
         }
         if (index === startIndex) {
@@ -289,8 +324,8 @@ export default function Home() {
         } else {
             setCurrentIndex(index);
             localStorage.setItem("currentIndex", index);
-            setRiddle(riddleData.riddles[riddleKeys[index]]);
-            localStorage.setItem("riddle", JSON.stringify(riddleData.riddles[riddleKeys[index]]));
+            setRiddle(currentRiddleData.riddles[keys[index]]);
+            localStorage.setItem("riddle", JSON.stringify(currentRiddleData.riddles[keys[index]]));
             setShowRiddleSolved(true);
             localStorage.setItem("showRiddleSolved", true);
         }
