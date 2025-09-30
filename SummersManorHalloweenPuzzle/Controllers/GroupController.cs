@@ -88,6 +88,114 @@ namespace SummersManorHalloweenPuzzle.Controllers
             var update = Builders<BsonDocument>.Update.Set("RemainingTime", groupRemainingTime.remainingTime);
             collection.UpdateOne(filter,update);
         }
+
+        [HttpDelete]
+        [Route("DeleteGroup")]
+        public DeleteGroupResponse DeleteGroup(string groupName)
+        {
+            try
+            {
+                _logger.LogInformation($"Deleting group {groupName}");
+                
+                if (string.IsNullOrEmpty(_MongoDBUserName) || string.IsNullOrEmpty(_MongoDBPassword) || string.IsNullOrEmpty(_MongoDBServer))
+                {
+                    return new DeleteGroupResponse { Success = false, Error = "MongoDB connection parameters not configured" };
+                }
+
+                var mongoDbConString = $"mongodb://{_MongoDBUserName}:{_MongoDBPassword}@{_MongoDBServer}:27017/SummersManor?authSource=admin";
+                var settings = MongoClientSettings.FromConnectionString(mongoDbConString);
+                settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+                var client = new MongoClient(settings);
+                var database = client.GetDatabase("SummersManor");
+                var collection = database.GetCollection<BsonDocument>("Groups");
+                
+                var filter = Builders<BsonDocument>.Filter.Eq("GroupName", groupName);
+                var result = collection.DeleteOne(filter);
+                
+                return new DeleteGroupResponse 
+                { 
+                    Success = true, 
+                    DeletedCount = (int)result.DeletedCount,
+                    Message = result.DeletedCount > 0 ? $"Group '{groupName}' deleted successfully" : $"Group '{groupName}' not found"
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Error deleting group {groupName}");
+                return new DeleteGroupResponse { Success = false, Error = e.Message };
+            }
+        }
+
+        [HttpDelete]
+        [Route("ClearAllGroups")]
+        public ClearGroupsResponse ClearAllGroups()
+        {
+            try
+            {
+                _logger.LogInformation("Clearing all groups from database");
+                
+                if (string.IsNullOrEmpty(_MongoDBUserName) || string.IsNullOrEmpty(_MongoDBPassword) || string.IsNullOrEmpty(_MongoDBServer))
+                {
+                    return new ClearGroupsResponse { Success = false, Error = "MongoDB connection parameters not configured" };
+                }
+
+                var mongoDbConString = $"mongodb://{_MongoDBUserName}:{_MongoDBPassword}@{_MongoDBServer}:27017/SummersManor?authSource=admin";
+                var settings = MongoClientSettings.FromConnectionString(mongoDbConString);
+                settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+                var client = new MongoClient(settings);
+                var database = client.GetDatabase("SummersManor");
+                var collection = database.GetCollection<BsonDocument>("Groups");
+                
+                var result = collection.DeleteMany(new BsonDocument());
+                
+                return new ClearGroupsResponse 
+                { 
+                    Success = true, 
+                    DeletedCount = (int)result.DeletedCount,
+                    Message = $"Successfully cleared {result.DeletedCount} groups from database"
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error clearing all groups");
+                return new ClearGroupsResponse { Success = false, Error = e.Message };
+            }
+        }
+
+        [HttpGet]
+        [Route("GetGroupCount")]
+        public GroupCountResponse GetGroupCount()
+        {
+            try
+            {
+                _logger.LogInformation("Getting group count");
+                
+                if (string.IsNullOrEmpty(_MongoDBUserName) || string.IsNullOrEmpty(_MongoDBPassword) || string.IsNullOrEmpty(_MongoDBServer))
+                {
+                    return new GroupCountResponse { Success = false, Error = "MongoDB connection parameters not configured" };
+                }
+
+                var mongoDbConString = $"mongodb://{_MongoDBUserName}:{_MongoDBPassword}@{_MongoDBServer}:27017/SummersManor?authSource=admin";
+                var settings = MongoClientSettings.FromConnectionString(mongoDbConString);
+                settings.ServerApi = new ServerApi(ServerApiVersion.V1);
+                var client = new MongoClient(settings);
+                var database = client.GetDatabase("SummersManor");
+                var collection = database.GetCollection<BsonDocument>("Groups");
+                
+                var count = collection.CountDocuments(new BsonDocument());
+                
+                return new GroupCountResponse 
+                { 
+                    Success = true, 
+                    Count = (int)count
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting group count");
+                return new GroupCountResponse { Success = false, Error = e.Message };
+            }
+        }
     }
 
     public class GroupResults
@@ -121,5 +229,28 @@ namespace SummersManorHalloweenPuzzle.Controllers
     public class GroupExistsModel
     {
         public bool GroupExists { get; set; }
+    }
+
+    public class DeleteGroupResponse
+    {
+        public bool Success { get; set; }
+        public int DeletedCount { get; set; }
+        public string Message { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class ClearGroupsResponse
+    {
+        public bool Success { get; set; }
+        public int DeletedCount { get; set; }
+        public string Message { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class GroupCountResponse
+    {
+        public bool Success { get; set; }
+        public int Count { get; set; }
+        public string Error { get; set; }
     }
 }

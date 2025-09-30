@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
 import Container from 'react-bootstrap/Container';
@@ -36,6 +37,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     const answerElement = useRef(null);
     const bonusElement = useRef(null);
     const audioElement = useRef(null);
+    const navigate = useNavigate();
 
     const [readOnlyAnswer, setReadOnlyAnswer] = useState(false);
     const [readOnlyBonus, setReadOnlyBonus] = useState(false);
@@ -150,7 +152,18 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     }
 
     function TextChange(value) {
-        if (value.currentTarget.value.toLowerCase() === RiddleData.answer.toLowerCase()) {
+        const inputValue = value.currentTarget.value;
+        
+        // Check if user typed "settings" to navigate to settings page
+        if (inputValue.toLowerCase().trim() === "settings") {
+            // Small delay to allow user to see what they typed
+            setTimeout(() => {
+                navigate('/settings');
+            }, 500);
+            return;
+        }
+
+        if (inputValue.toLowerCase() === RiddleData.answer.toLowerCase()) {
             setReadOnlyAnswer(true);
             
             // Only show bonus if there is bonus text AND clue hasn't been revealed
@@ -164,8 +177,19 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             }
         }
     }
+
     function BonusTextChange(value) {
-        if (value.currentTarget.value.toLowerCase() === RiddleData.bonusAnswer.toLowerCase()) {
+        const inputValue = value.currentTarget.value;
+        
+        // Check if user typed "settings" in bonus field
+        if (inputValue.toLowerCase().trim() === "settings") {
+            setTimeout(() => {
+                navigate('/settings');
+            }, 500);
+            return;
+        }
+
+        if (inputValue.toLowerCase() === RiddleData.bonusAnswer.toLowerCase()) {
             onAddTime(120);
             setReadOnlyBonus(true);
             handleCloseBonus();

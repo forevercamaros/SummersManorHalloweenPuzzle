@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Alert, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
@@ -110,23 +110,78 @@ const SettingsItem = styled.div`
 export default function Settings() {
     const [alert, setAlert] = useState({ show: false, type: '', message: '' });
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showClearGroupsModal, setShowClearGroupsModal] = useState(false);
+    const [groupCount, setGroupCount] = useState(0);
+    const [isLoadingGroupCount, setIsLoadingGroupCount] = useState(true);
 
     const showAlert = (type, message) => {
         setAlert({ show: true, type, message });
-        setTimeout(() => setAlert({ show: false, type: '', message: '' }), 3000);
+        setTimeout(() => setAlert({ show: false, type: '', message: '' }), 5000);
     };
+
+    const fetchGroupCount = async () => {
+        try {
+            setIsLoadingGroupCount(true);
+            const response = await fetch('/GetGroupCount');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.success) {
+                setGroupCount(data.count);
+            } else {
+                console.error('Failed to get group count:', data.error);
+                setGroupCount(0);
+            }
+        } catch (error) {
+            console.error('Error fetching group count:', error);
+            setGroupCount(0);
+        } finally {
+            setIsLoadingGroupCount(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchGroupCount();
+    }, []);
 
     const handleResetLocalStorage = () => {
         setShowConfirmModal(true);
     };
 
-    const confirmResetLocalStorage = () => {
+    const confirmResetLocalStorage = async () => {
         try {
+            // Get the current group name from localStorage before clearing
+            const currentGroupName = localStorage.getItem('groupName');
+            
             // Clear all localStorage data
             localStorage.clear();
             
             // Also clear sessionStorage if needed
             sessionStorage.clear();
+            
+            // Delete the group from MongoDB if it exists
+            if (currentGroupName) {
+                try {
+                    const response = await fetch(`/DeleteGroup?groupName=${encodeURIComponent(currentGroupName)}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log('Group deleted from database:', result.message);
+                            // Refresh group count
+                            await fetchGroupCount();
+                        } else {
+                            console.warn('Failed to delete group from database:', result.error);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error deleting group from database:', error);
+                    // Don't show error to user - local storage clearing is more important
+                }
+            }
             
             setShowConfirmModal(false);
             showAlert('success', 'All local storage data has been cleared successfully!');
@@ -139,6 +194,37 @@ export default function Settings() {
             console.error('Error clearing local storage:', error);
             showAlert('danger', 'Failed to clear local storage data.');
             setShowConfirmModal(false);
+        }
+    };
+
+    const handleClearAllGroups = () => {
+        setShowClearGroupsModal(true);
+    };
+
+    const confirmClearAllGroups = async () => {
+        try {
+            const response = await fetch('/ClearAllGroups', {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', result.message);
+                // Refresh group count
+                await fetchGroupCount();
+            } else {
+                showAlert('danger', `Failed to clear groups: ${result.error}`);
+            }
+        } catch (error) {
+            console.error('Error clearing all groups:', error);
+            showAlert('danger', 'Failed to clear groups from database.');
+        } finally {
+            setShowClearGroupsModal(false);
         }
     };
 
@@ -175,7 +261,7 @@ export default function Settings() {
                                 <p>Manage and modify the riddles used in the Halloween puzzle game.</p>
                                 <StyledLink to="/editriddledata">
                                     <Button variant="warning" size="lg">
-                                        &#x1F383; Edit Riddle Data
+                                        Edit Riddle Data
                                     </Button>
                                 </StyledLink>
                             </SettingsItem>
@@ -184,7 +270,7 @@ export default function Settings() {
                                 <h5>Reset Game Data</h5>
                                 <p>
                                     Clear all game progress, settings, and cached data from your browser. 
-                                    This will reset your game to its initial state.
+                                    This will also remove your group from the database.
                                 </p>
                                 <p className="text-warning">
                                     <strong>Current Storage:</strong> {storageInfo.count} items 
@@ -202,7 +288,35 @@ export default function Settings() {
                                     onClick={handleResetLocalStorage}
                                     disabled={storageInfo.count === 0}
                                 >
-                                    &#x1F5D1;&#xFE0F; Reset All Data
+                                    Reset All Data
+                                </DangerButton>
+                            </SettingsItem>
+
+                            <SettingsItem>
+                                <h5>Clear All Groups from Database</h5>
+                                <p>
+                                    Remove all group records from the MongoDB database. This will clear all 
+                                    game results and group data permanently.
+                                </p>
+                                <p className="text-info">
+                                    <strong>Groups in Database:</strong> {isLoadingGroupCount ? 'Loading...' : `${groupCount} groups`}
+                                </p>
+                                <div className="mb-3">
+                                    <Button 
+                                        variant="info" 
+                                        size="sm" 
+                                        onClick={fetchGroupCount}
+                                        disabled={isLoadingGroupCount}
+                                    >
+                                        {isLoadingGroupCount ? 'Refreshing...' : 'Refresh Count'}
+                                    </Button>
+                                </div>
+                                <DangerButton 
+                                    size="lg" 
+                                    onClick={handleClearAllGroups}
+                                    disabled={groupCount === 0 || isLoadingGroupCount}
+                                >
+                                    Clear All Groups
                                 </DangerButton>
                             </SettingsItem>
 
@@ -211,7 +325,7 @@ export default function Settings() {
                                 <p>Return to the Halloween puzzle game.</p>
                                 <StyledLink to="/">
                                     <Button variant="secondary" size="lg">
-                                        &#x1F3E0; Back to Home
+                                        Back to Home
                                     </Button>
                                 </StyledLink>
                             </SettingsItem>
@@ -222,7 +336,7 @@ export default function Settings() {
 
             <StyledModal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>&#x26A0;&#xFE0F; Confirm Data Reset</Modal.Title>
+                    <Modal.Title>WARNING: Confirm Data Reset</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <p>Are you sure you want to reset all game data?</p>
@@ -234,6 +348,7 @@ export default function Settings() {
                         <li>Reset your group name and timer</li>
                         <li>Remove all saved riddle states</li>
                         <li>Clear all cached game data</li>
+                        <li><strong>Delete your group from the database</strong></li>
                     </ul>
                     <p className="text-danger">
                         <strong>This action cannot be undone!</strong>
@@ -245,6 +360,35 @@ export default function Settings() {
                     </Button>
                     <DangerButton onClick={confirmResetLocalStorage}>
                         Yes, Reset All Data
+                    </DangerButton>
+                </Modal.Footer>
+            </StyledModal>
+
+            <StyledModal show={showClearGroupsModal} onHide={() => setShowClearGroupsModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>DANGER: Clear All Groups</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Are you sure you want to clear ALL groups from the database?</p>
+                    <p className="text-warning">
+                        <strong>This action will:</strong>
+                    </p>
+                    <ul className="text-warning">
+                        <li>Delete all {groupCount} groups from the database</li>
+                        <li>Remove all game results and leaderboards</li>
+                        <li>Clear all group progress permanently</li>
+                        <li>Reset the entire competition data</li>
+                    </ul>
+                    <p className="text-danger">
+                        <strong>This action cannot be undone and affects all users!</strong>
+                    </p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowClearGroupsModal(false)}>
+                        Cancel
+                    </Button>
+                    <DangerButton onClick={confirmClearAllGroups}>
+                        Yes, Clear All Groups
                     </DangerButton>
                 </Modal.Footer>
             </StyledModal>
