@@ -267,7 +267,7 @@ export default function Settings() {
                             </SettingsItem>
 
                             <SettingsItem>
-                                <h5>Reset Game Data</h5>
+                                <h5>Reset Group Data</h5>
                                 <p>
                                     Clear all game progress, settings, and cached data from your browser. 
                                     This will also remove your group from the database.
