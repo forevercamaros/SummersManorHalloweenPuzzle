@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Riddle from '../RiddleComponents/Riddle';
+import ResultsTable from './ResultsTable';
 import styled from 'styled-components';
 import { Transition } from 'react-transition-group';
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
@@ -72,6 +73,30 @@ const FlickerStyle = styled.div`
     90% { opacity: 0.8; }
   }
   animation: flicker 1.3s infinite;
+`;
+
+const StyledModal = styled(Modal)`
+  .modal-content {
+    background: linear-gradient(135deg, #0a0a0a 80%, #8b0000 100%);
+    border: 1px solid #ff6b1a;
+    color: white;
+  }
+  
+  .modal-header {
+    border-bottom: 1px solid #ff6b1a;
+    
+    .modal-title {
+      color: #ff6b1a;
+    }
+    
+    .btn-close {
+      filter: invert(1);
+    }
+  }
+  
+  .modal-footer {
+    border-top: 1px solid #ff6b1a;
+  }
 `;
 
 const MistSVG = styled.div`
@@ -225,7 +250,7 @@ export default function Home() {
         if (_showOutOfTime) {
             setShowOutOfTime(_showOutOfTime === "true" ? true : false);
         }       
-        
+
     }, []);
 
     // Re-Initialize the onbeforeunload event listener
@@ -338,11 +363,13 @@ export default function Home() {
         
         const keys = Object.keys(currentRiddleData.riddles);
         var index = currentIndex + 1;        
-        
+    
         if (index >= keys.length) {
             index = 0;
         }
         
+        // Check if we've completed all riddles BEFORE the increment
+        // We've completed all riddles when the next riddle would be the starting riddle
         if (index === startIndex) {
             localStorage.setItem("showSolved", true);
             localStorage.setItem("gameCompleted", true);
@@ -404,46 +431,6 @@ export default function Home() {
         text: 'Time Remaining'
         }];
 
-    const rowStyle = (row, rowIndex) => {
-        console.log(row);
-        if (row.groupName === groupName) {
-            return { backgroundColor: 'black', color: 'white' }
-        }        
-    };
-
-    // Helper to render the results table
-    function ResultsTable({ data, columns, rowStyle, groupName }) {
-        if (!data || !Array.isArray(data) || data.length === 0) {
-            return <div>No results available.</div>;
-        }
-        return (
-            <table className="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        {columns.map(col => (
-                            <th key={col.dataField}>{col.text}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.map((row, idx) => {
-                        const style = rowStyle ? rowStyle(row, idx) : {};
-                        return (
-                            <tr key={row.position ?? idx} style={style}>
-                                {columns.map(col => (
-                                    <td key={col.dataField}>
-                                        {row[col.dataField]}
-                                    </td>
-                                ))}
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        );
-    }
-
-    
     return (
       <SpookyWrapper>
         <MistSVG>
@@ -471,7 +458,7 @@ export default function Home() {
             }}>Are you ready to play?</span>
           </div>
         </FlickerStyle>
-        <Modal show={viewResults} onHide={() => setViewResults(false)} className="special_modal">
+        <StyledModal show={viewResults} onHide={() => setViewResults(false)} className="special_modal">
             <Modal.Header closeButton>
                 <Modal.Title>Results</Modal.Title>
             </Modal.Header>
@@ -479,7 +466,6 @@ export default function Home() {
                 <ResultsTable
                     data={groupResults}
                     columns={resultsColumns}
-                    rowStyle={rowStyle}
                     groupName={groupName}
                 />
             </Modal.Body>
@@ -488,7 +474,7 @@ export default function Home() {
                     Close
                 </Button>
             </Modal.Footer>
-        </Modal>
+        </StyledModal>
         <Modal show={showOutOfTime} onHide={handleCloseOutOfTime} className="special_modal">
             <Modal.Header closeButton>
                 <Modal.Title>Your Time Has Expired</Modal.Title>

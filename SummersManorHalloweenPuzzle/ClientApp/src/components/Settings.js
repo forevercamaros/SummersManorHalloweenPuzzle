@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Alert, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import ResultsTable from './ResultsTable';
 import styled from 'styled-components';
 
 const StyledContainer = styled(Container)`
@@ -113,6 +114,9 @@ export default function Settings() {
     const [showClearGroupsModal, setShowClearGroupsModal] = useState(false);
     const [groupCount, setGroupCount] = useState(0);
     const [isLoadingGroupCount, setIsLoadingGroupCount] = useState(true);
+    const [viewResults, setViewResults] = useState(false);
+    const [groupResults, setGroupResults] = useState(null);
+    const [groupName, setGroupName] = useState("");
 
     const showAlert = (type, message) => {
         setAlert({ show: true, type, message });
@@ -141,9 +145,66 @@ export default function Settings() {
         }
     };
 
+    const handleViewResults = () => {
+        fetch('GroupResults')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(returnJson => {
+                setGroupResults(returnJson);
+                setViewResults(true);
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+    };
+
+    const fetchResults = () => {
+        if (viewResults) {
+            fetch('GroupResults')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(returnJson => {
+                    setGroupResults(returnJson);
+                })
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
+        }
+    };
+
     useEffect(() => {
         fetchGroupCount();
+        
+        // Get group name from localStorage
+        const _groupName = localStorage.getItem('groupName');
+        if (_groupName) {
+            setGroupName(_groupName);
+        }
     }, []);
+
+    useEffect(() => {
+        let interval;
+        if (viewResults) {
+            // Fetch results immediately when modal opens
+            fetchResults();
+            // Set up interval to update every second
+            interval = setInterval(fetchResults, 1000);
+        }
+        
+        return () => {
+            if (interval) {
+                clearInterval(interval);
+            }
+        };
+    }, [viewResults]);
 
     const handleResetLocalStorage = () => {
         setShowConfirmModal(true);
@@ -239,6 +300,17 @@ export default function Settings() {
 
     const storageInfo = getLocalStorageInfo();
 
+    const resultsColumns = [{
+        dataField: 'position',
+        text: 'Position'
+    }, {
+        dataField: 'groupName',
+        text: 'Group Name'
+    }, {
+        dataField: 'formattedRemainingTime',
+        text: 'Time Remaining'
+    }];
+
     return (
         <StyledContainer fluid>
             <SpookyTitle>Settings</SpookyTitle>
@@ -256,6 +328,14 @@ export default function Settings() {
                             <h4 className="mb-0">Application Settings</h4>
                         </Card.Header>
                         <Card.Body>
+                            <SettingsItem>
+                                <h5>View Results</h5>
+                                <p>View the current leaderboard and game results. Updates automatically every second.</p>
+                                <Button variant="success" size="lg" onClick={handleViewResults}>
+                                    View Results
+                                </Button>
+                            </SettingsItem>
+
                             <SettingsItem>
                                 <h5>Edit Riddle Data</h5>
                                 <p>Manage and modify the riddles used in the Halloween puzzle game.</p>
@@ -308,7 +388,7 @@ export default function Settings() {
                                         onClick={fetchGroupCount}
                                         disabled={isLoadingGroupCount}
                                     >
-                                        {isLoadingGroupCount ? 'Refreshing...' : 'Refresh Count'}
+                        {isLoadingGroupCount ? 'Refreshing...' : 'Refresh Count'}
                                     </Button>
                                 </div>
                                 <DangerButton 
@@ -333,6 +413,24 @@ export default function Settings() {
                     </StyledCard>
                 </Col>
             </Row>
+
+            <StyledModal show={viewResults} onHide={() => setViewResults(false)} className="special_modal">
+                <Modal.Header closeButton>
+                    <Modal.Title>Results</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <ResultsTable
+                        data={groupResults}
+                        columns={resultsColumns}
+                        groupName={groupName}
+                    />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setViewResults(false)}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </StyledModal>
 
             <StyledModal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
                 <Modal.Header closeButton>
