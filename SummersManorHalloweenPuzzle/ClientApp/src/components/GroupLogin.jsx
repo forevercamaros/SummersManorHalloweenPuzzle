@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
@@ -21,17 +21,51 @@ const spookyFlicker = keyframes`
 `;
 
 const MobileContainer = styled(Container)`
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for modern browsers */
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 1rem;
   
   @media (max-width: 768px) {
     padding: 0.5rem;
+    min-height: calc(100vh - env(keyboard-inset-height, 0px)); /* Account for mobile keyboard */
+    min-height: calc(100dvh - env(keyboard-inset-height, 0px));
+    position: relative;
+  }
+`;
+
+const ContentWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  
+  @media (max-width: 768px) {
     justify-content: flex-start;
     padding-top: 2rem;
+  }
+`;
+
+const FormWrapper = styled.div`
+  width: 100%;
+  position: sticky;
+  bottom: 0;
+  background: transparent;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  
+  @media (max-width: 768px) {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 1rem;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0.95) 100%);
+    backdrop-filter: blur(10px);
   }
 `;
 
@@ -44,7 +78,7 @@ const LoginText = styled.div`
   color: #dedede;
   background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.3) 100%);
   padding: 1rem;
-  font-family: 'Creepster', cursive;
+  font-family: 'Creepster', cursive, 'Times New Roman', serif !important;
   text-shadow: 0 0 8px #8b0000, 0 0 16px #ff6b1a;
   animation: ${spookyFlicker} 3s infinite;
   letter-spacing: 1px;
@@ -54,18 +88,18 @@ const LoginText = styled.div`
     inset 0 0 20px rgba(139, 0, 0, 0.2);
   
   font-size: 1.2rem !important;
-  font-size: 1.2rem !important;
   
   @media (max-width: 768px) {
-    font-size: 1rem;
+    font-size: 1.1rem !important;
     padding: 0.75rem;
     margin: 4px 0;
     line-height: 1.2;
   }
   
   @media (max-width: 480px) {
-    font-size: 0.95rem;
+    font-size: 1rem !important;
     padding: 0.5rem;
+    letter-spacing: 0.5px;
   }
 `;
 
@@ -174,7 +208,36 @@ const SpookyFeedback = styled(Form.Control.Feedback)`
 export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
     const [groupName, setGroupName] = useState("");
     const [duplicateGroup, setDuplicateGroup] = useState(0);
+    const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
     const navigate = useNavigate();
+
+    // Handle viewport height changes for mobile keyboard
+    useEffect(() => {
+        const handleResize = () => {
+            // Use the smaller of window.innerHeight and visualViewport.height
+            const height = window.visualViewport 
+                ? Math.min(window.innerHeight, window.visualViewport.height)
+                : window.innerHeight;
+            setViewportHeight(height);
+        };
+
+        // Listen to both resize and visual viewport changes
+        window.addEventListener('resize', handleResize);
+        
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
+        }
+
+        // Initial setup
+        handleResize();
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleResize);
+            }
+        };
+    }, []);
 
     const checkGroupName = () => {
         // Check if user typed "settings" to navigate to settings page
@@ -218,40 +281,51 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
     };
 
     return (
-        <MobileContainer fluid>
-            <Row className="w-100">
-                <Col xs={12}>
-                    <LoginText>
-                        Welcome to the House of Summers Challenge. You will be presented with a series of {riddleCount} riddles that you must solve. You will have {countDownTime} minutes to complete the Challenge. You may need your phone's flashlight to solve some clues. Each clue will have an optional hint that will show up after no more than 3 minutes.
-                    </LoginText>
-                </Col>
-            </Row>
-            <Row className="w-100">
-                <Col xs={12}>
-                    <FormSection>
-                        <Form.Group controlId="formGridGroupName">
-                            <SpookyFormControl
-                                isInvalid={duplicateGroup} 
-                                type="text" 
-                                placeholder="Enter group name" 
-                                value={groupName}
-                                onChange={handleInputChange} 
-                                onKeyPress={handleKeyPress} 
-                            />
-                            <SpookyFeedback type="invalid">
-                                Duplicate Group Name. Please Choose Another.
-                            </SpookyFeedback>
-                        </Form.Group>
-                    </FormSection>
-                </Col>
-            </Row>
-            <Row className="w-100">
-                <Col xs={12}>
-                    <SpookyButton variant="secondary" type="submit" onClick={e => checkGroupName()}>
-                        Submit
-                    </SpookyButton>
-                </Col>
-            </Row>
+        <MobileContainer 
+            fluid 
+            style={{ 
+                height: window.innerWidth <= 768 ? `${viewportHeight}px` : '100vh',
+                maxHeight: window.innerWidth <= 768 ? `${viewportHeight}px` : '100vh'
+            }}
+        >
+            <ContentWrapper>
+                <Row className="w-100">
+                    <Col xs={12}>
+                        <LoginText>
+                            Welcome to the House of Summers Challenge. You will be presented with a series of {riddleCount} riddles that you must solve. You will have {countDownTime} minutes to complete the Challenge. You may need your phone's flashlight to solve some clues. Each clue will have an optional hint that will show up after no more than 3 minutes.
+                        </LoginText>
+                    </Col>
+                </Row>
+            </ContentWrapper>
+            
+            <FormWrapper>
+                <Row className="w-100">
+                    <Col xs={12}>
+                        <FormSection>
+                            <Form.Group controlId="formGridGroupName">
+                                <SpookyFormControl
+                                    isInvalid={duplicateGroup} 
+                                    type="text" 
+                                    placeholder="Enter group name" 
+                                    value={groupName}
+                                    onChange={handleInputChange} 
+                                    onKeyPress={handleKeyPress} 
+                                />
+                                <SpookyFeedback type="invalid">
+                                    Duplicate Group Name. Please Choose Another.
+                                </SpookyFeedback>
+                            </Form.Group>
+                        </FormSection>
+                    </Col>
+                </Row>
+                <Row className="w-100">
+                    <Col xs={12}>
+                        <SpookyButton variant="secondary" type="submit" onClick={e => checkGroupName()}>
+                            Submit
+                        </SpookyButton>
+                    </Col>
+                </Row>
+            </FormWrapper>
         </MobileContainer>        
     );
 }
