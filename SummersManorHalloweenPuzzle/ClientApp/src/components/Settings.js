@@ -108,6 +108,12 @@ const SettingsItem = styled.div`
   }
 `;
 
+const StoredDataText = styled.small`
+  color: #bbb;
+  font-size: 0.85rem;
+  font-style: italic;
+`;
+
 export default function Settings() {
     const [alert, setAlert] = useState({ show: false, type: '', message: '' });
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -358,9 +364,9 @@ export default function Settings() {
                                 </p>
                                 {storageInfo.count > 0 && (
                                     <div className="mb-3">
-                                        <small className="text-muted">
+                                        <StoredDataText>
                                             Stored data: {storageInfo.keys.join(', ')}
-                                        </small>
+                                        </StoredDataText>
                                     </div>
                                 )}
                                 <DangerButton 
