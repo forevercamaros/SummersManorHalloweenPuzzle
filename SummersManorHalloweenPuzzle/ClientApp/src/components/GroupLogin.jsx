@@ -25,36 +25,29 @@ const MobileContainer = styled(Container)`
   min-height: 100svh; /* Small viewport height for mobile */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center; /* Changed from space-between to center */
   align-items: center;
   padding: 1rem;
   
   @media (max-width: 768px) {
     padding: 0.5rem;
     min-height: 100svh; /* Use small viewport height which excludes keyboard */
+    justify-content: flex-start; /* Start from top on mobile */
+    padding-top: 2rem;
   }
 `;
 
 const ContentWrapper = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   width: 100%;
-  overflow: visible; /* Ensure content isn't clipped */
+  margin-bottom: 2rem; /* Add space between content and form */
   
   @media (max-width: 768px) {
-    justify-content: flex-start;
-    padding-top: 2rem;
-    padding-bottom: 1rem; /* Add bottom padding to prevent clipping */
-    overflow-y: auto;
+    margin-bottom: 1.5rem;
   }
 `;
 
 const FormWrapper = styled.div`
   width: 100%;
-  flex-shrink: 0;
-  padding: 1rem 0;
   
   @media (max-width: 768px) {
     background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0.95) 100%);
@@ -87,14 +80,10 @@ const LoginText = styled.div`
   
   font-size: 1.2rem !important;
   
-  /* Ensure the box isn't clipped */
-  position: relative;
-  z-index: 1;
-  
   @media (max-width: 768px) {
     font-size: 1.1rem !important;
     padding: 0.75rem;
-    margin: 8px 0; /* Increased margin to give more space */
+    margin: 4px 0;
     line-height: 1.2;
   }
   
@@ -102,7 +91,6 @@ const LoginText = styled.div`
     font-size: 1rem !important;
     padding: 0.5rem;
     letter-spacing: 0.5px;
-    margin: 12px 0; /* Even more margin on small screens */
   }
 `;
 
