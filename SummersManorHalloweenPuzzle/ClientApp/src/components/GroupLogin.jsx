@@ -6,7 +6,6 @@ import styled, { keyframes } from 'styled-components';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import backgroundImage from '../images/haunted-house.jpg';
 
 const spookyFlicker = keyframes`
   0%, 100% { opacity: 1; }
@@ -21,24 +20,61 @@ const spookyFlicker = keyframes`
   90% { opacity: 0.8; }
 `;
 
+const MobileContainer = styled(Container)`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+    justify-content: flex-start;
+    padding-top: 2rem;
+  }
+`;
+
 const LoginText = styled.div`
-  margin: 8px;
+  margin: 8px 0;
   border: 2px solid #ff6b1a;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   color: #dedede;
   background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.3) 100%);
-  padding: 20px;
+  padding: 1rem;
   font-family: 'Creepster', cursive;
-  font-size: 1.1rem;
   text-shadow: 0 0 8px #8b0000, 0 0 16px #ff6b1a;
   animation: ${spookyFlicker} 3s infinite;
   letter-spacing: 1px;
-  line-height: 1.4;
+  line-height: 1.3;
   box-shadow: 
     0 0 20px rgba(255, 107, 26, 0.3),
     inset 0 0 20px rgba(139, 0, 0, 0.2);
+  
+  font-size: 0.9rem;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8rem;
+    padding: 0.75rem;
+    margin: 4px 0;
+    line-height: 1.2;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
+    padding: 0.5rem;
+  }
+`;
+
+const FormSection = styled.div`
+  width: 100%;
+  margin: 1rem 0;
+  
+  @media (max-width: 768px) {
+    margin: 0.5rem 0;
+  }
 `;
 
 const SpookyFormControl = styled(Form.Control)`
@@ -46,9 +82,20 @@ const SpookyFormControl = styled(Form.Control)`
   border: 2px solid #ff6b1a !important;
   color: #ff6b1a !important;
   font-family: 'Creepster', cursive !important;
-  font-size: 1.2rem !important;
+  font-size: 1.1rem !important;
   text-shadow: 0 0 8px #8b0000 !important;
   letter-spacing: 2px !important;
+  padding: 0.75rem !important;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem !important;
+    padding: 0.6rem !important;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 0.9rem !important;
+    padding: 0.5rem !important;
+  }
   
   &::placeholder {
     color: rgba(255, 107, 26, 0.6) !important;
@@ -75,12 +122,23 @@ const SpookyButton = styled(Button)`
   border: 2px solid #ff6b1a !important;
   color: #dedede !important;
   font-family: 'Creepster', cursive !important;
-  font-size: 1.3rem !important;
+  font-size: 1.2rem !important;
   text-shadow: 0 0 8px #8b0000 !important;
   letter-spacing: 2px !important;
   padding: 12px 24px !important;
   text-transform: uppercase !important;
   transition: all 0.3s ease !important;
+  width: 100% !important;
+  
+  @media (max-width: 768px) {
+    font-size: 1.1rem !important;
+    padding: 10px 20px !important;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1rem !important;
+    padding: 8px 16px !important;
+  }
   
   &:hover {
     background: linear-gradient(135deg, #ff6b1a 0%, #8b0000 100%) !important;
@@ -99,21 +157,17 @@ const SpookyButton = styled(Button)`
   }
 `;
 
-const BackgroundImageDiv = styled.div`
-  margin: 8px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 2px solid #ff6b1a;
-  box-shadow: 0 0 20px rgba(255, 107, 26, 0.3);
-`;
-
 const SpookyFeedback = styled(Form.Control.Feedback)`
   font-family: 'Creepster', cursive !important;
-  font-size: 1rem !important;
+  font-size: 0.9rem !important;
   color: #dc3545 !important;
   text-shadow: 0 0 8px #dc3545 !important;
   letter-spacing: 1px !important;
   animation: ${spookyFlicker} 1s infinite !important;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8rem !important;
+  }
 `;
 
 export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
@@ -163,41 +217,40 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
     };
 
     return (
-        <Container fluid>
-            <Row>
-                <Col>
+        <MobileContainer fluid>
+            <Row className="w-100">
+                <Col xs={12}>
                     <LoginText>
                         Welcome to the House of Summers Challenge. You will be presented with a series of {riddleCount} riddles that you must solve. You will have {countDownTime} minutes to complete the Challenge. You may need your phone's flashlight to solve some clues. Each clue will have an optional hint that will show up after no more than 3 minutes.
                     </LoginText>
-                    <Form.Group as={Col} controlId="formGridGroupName">
-                        <SpookyFormControl
-                            isInvalid={duplicateGroup} 
-                            type="text" 
-                            placeholder="Enter group name" 
-                            value={groupName}
-                            onChange={handleInputChange} 
-                            onKeyPress={handleKeyPress} 
-                        />
-                        <SpookyFeedback type="invalid">
-                            Duplicate Group Name. Please Choose Another.
-                        </SpookyFeedback>
-                    </Form.Group>
                 </Col>
             </Row>
-            <Row>
-                <Col>
+            <Row className="w-100">
+                <Col xs={12}>
+                    <FormSection>
+                        <Form.Group controlId="formGridGroupName">
+                            <SpookyFormControl
+                                isInvalid={duplicateGroup} 
+                                type="text" 
+                                placeholder="Enter group name" 
+                                value={groupName}
+                                onChange={handleInputChange} 
+                                onKeyPress={handleKeyPress} 
+                            />
+                            <SpookyFeedback type="invalid">
+                                Duplicate Group Name. Please Choose Another.
+                            </SpookyFeedback>
+                        </Form.Group>
+                    </FormSection>
+                </Col>
+            </Row>
+            <Row className="w-100">
+                <Col xs={12}>
                     <SpookyButton variant="secondary" type="submit" onClick={e => checkGroupName()}>
                         Submit
                     </SpookyButton>
                 </Col>
             </Row>
-            <Row>
-                <Col>
-                    <BackgroundImageDiv>
-                        <img src={backgroundImage} className="img-fluid" />
-                    </BackgroundImageDiv>
-                </Col>
-            </Row>
-        </Container>        
+        </MobileContainer>        
     );
 }

@@ -126,16 +126,16 @@ const SpookyCountdown = ({ onComplete }) => {
         setCount(count - 1);
         setShowMessage(true);
         
-        // Hide message after 3 seconds to match the slower pace
-        setTimeout(() => setShowMessage(false), 3000);
-      }, 4000); // Changed from 1000ms to 4000ms (4 seconds)
+        // Hide message after 2.5 seconds to match the faster pace
+        setTimeout(() => setShowMessage(false), 2500);
+      }, 3000); // Changed from 4000ms to 3000ms (3 seconds)
 
       return () => clearTimeout(timer);
     } else {
-      // Countdown complete, start the riddles - increased delay to 3 seconds
+      // Countdown complete, start the riddles - decreased delay to 2.5 seconds
       setTimeout(() => {
         onComplete();
-      }, 3000);
+      }, 2500);
     }
   }, [count, onComplete]);
 
