@@ -84,13 +84,9 @@ const CountdownText = styled.div`
 
 const SpookyMessage = styled.div`
   font-family: 'Creepster', cursive;
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   color: #8b0000;
   font-weight: bold;
-  text-shadow: 
-    0 0 8px #ff6b1a,
-    0 0 16px #ff6b1a,
-    2px 2px 4px rgba(255, 107, 26, 0.6);
   animation: ${spookyFlicker} 1.5s infinite;
   height: 2rem;
   display: flex;
@@ -102,7 +98,7 @@ const SpookyMessage = styled.div`
   text-transform: uppercase;
   
   @media (max-width: 768px) {
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     height: 1.5rem;
   }
 `;

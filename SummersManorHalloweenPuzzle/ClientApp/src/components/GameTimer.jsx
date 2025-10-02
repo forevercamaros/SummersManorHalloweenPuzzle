@@ -1,5 +1,5 @@
-import React from 'react';
-import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import React, { useState, useEffect } from 'react';
+import { ProgressBar } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import styled, { keyframes } from 'styled-components';
 import { formatTimeString } from '../utils/timeUtils';
@@ -15,6 +15,21 @@ const spookyFlicker = keyframes`
   70% { opacity: 0.8; }
   80% { opacity: 0.95; }
   90% { opacity: 0.85; }
+`;
+
+const evilPulse = keyframes`
+  0% { 
+    box-shadow: 0 0 10px #8b0000, 0 0 20px #ff6b1a, 0 0 30px #8b0000;
+    filter: brightness(1);
+  }
+  50% { 
+    box-shadow: 0 0 20px #8b0000, 0 0 40px #ff6b1a, 0 0 60px #8b0000;
+    filter: brightness(1.2);
+  }
+  100% { 
+    box-shadow: 0 0 10px #8b0000, 0 0 20px #ff6b1a, 0 0 30px #8b0000;
+    filter: brightness(1);
+  }
 `;
 
 const TransparentBottomTimer = styled.div`
@@ -41,9 +56,12 @@ const CenteredContainer = styled.div`
 
 const TimerColumn = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 80px;
+  min-width: 200px;
+  flex: 1;
 `;
 
 const GroupNameColumn = styled.div`
@@ -52,6 +70,7 @@ const GroupNameColumn = styled.div`
   justify-content: center;
   height: 80px;
   min-width: 200px;
+  flex: 1;
 `;
 
 const SpookyGroupNameDiv = styled.div`
@@ -87,18 +106,75 @@ const SpookyGroupNameDiv = styled.div`
 const SpookyTimerText = styled.div`
   font-family: 'Creepster', cursive;
   color: #ff6b1a;
-  font-size: 0.8rem;
+  font-size: 1rem;
   text-shadow: 
     0 0 8px #8b0000, 
     0 0 16px #ff6b1a;
   letter-spacing: 0.5px;
   text-align: center;
   font-weight: bold;
-  line-height: 1;
+  margin-bottom: 8px;
   
   @media (max-width: 768px) {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     letter-spacing: 0px;
+  }
+`;
+
+const SpookyProgressWrapper = styled.div`
+  width: 100%;
+  max-width: 300px;
+  position: relative;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid #ff6b1a;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  animation: ${props => props.isLowTime ? evilPulse : 'none'} 1s infinite;
+  
+  @media (max-width: 768px) {
+    max-width: 250px;
+  }
+`;
+
+const StyledProgressBar = styled(ProgressBar)`
+  height: 20px;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  border-radius: 0;
+  
+  .progress-bar {
+    background: ${props => {
+      if (props.percentage > 70) return 'linear-gradient(90deg, #00ff00 0%, #32ff32 100%)';
+      if (props.percentage > 30) return 'linear-gradient(90deg, #ffff00 0%, #ffcc00 100%)';
+      return 'linear-gradient(90deg, #ff0000 0%, #cc0000 100%)';
+    }};
+    box-shadow: 
+      inset 0 2px 4px rgba(255, 255, 255, 0.3),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+      0 0 10px ${props => {
+        if (props.percentage > 70) return '#00ff00';
+        if (props.percentage > 30) return '#ffff00';
+        return '#ff0000';
+      }};
+    border-radius: 0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      animation: shine 2s infinite;
+    }
+  }
+  
+  @keyframes shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
   }
 `;
 
@@ -137,43 +213,67 @@ export default function GameTimer({
     onTimeUpdate,
     onViewResults
 }) {
-    const renderTime = ({ remainingTime }) => {
-        onTimeUpdate(remainingTime);
-        if (remainingTime === 0) {
-            return <SpookyTimerText>Time's Up!</SpookyTimerText>;
+    const [remainingTime, setRemainingTime] = useState(initialRemainingTime);
+    const [isRunning, setIsRunning] = useState(isPlaying);
+
+    // Calculate percentage for progress bar (inverted so it decreases)
+    const percentage = (remainingTime / timerDuration) * 100;
+    const isLowTime = percentage < 20;
+
+    useEffect(() => {
+        setRemainingTime(initialRemainingTime);
+        setIsRunning(isPlaying);
+    }, [initialRemainingTime, isPlaying, timerKey]);
+
+    useEffect(() => {
+        let interval = null;
+        
+        if (isRunning && remainingTime > 0) {
+            interval = setInterval(() => {
+                setRemainingTime(prevTime => {
+                    const newTime = prevTime - 1;
+                    onTimeUpdate(newTime);
+                    
+                    if (newTime <= 0) {
+                        setIsRunning(false);
+                        onComplete();
+                        return 0;
+                    }
+                    
+                    return newTime;
+                });
+            }, 1000);
         }
 
-        return (
-            <SpookyTimerText>
-                {formatTimeString(remainingTime, false)}
-            </SpookyTimerText>
-        );
-    };
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isRunning, remainingTime, onComplete, onTimeUpdate]);
 
     return (
         <TransparentBottomTimer>
             <CenteredContainer>
                 <TimerColumn>
-                    {gameCompleted
-                        ? <SpookyButton size="lg" variant="secondary" onClick={onViewResults}>
+                    {gameCompleted ? (
+                        <SpookyButton size="lg" variant="secondary" onClick={onViewResults}>
                             View Results
                         </SpookyButton>
-                        : <CountdownCircleTimer
-                            key={timerKey}
-                            strokeWidth={6}
-                            isPlaying={isPlaying}
-                            size={70}
-                            duration={timerDuration}
-                            initialRemainingTime={initialRemainingTime}
-                            colors={[
-                                ['#ff6b1a', 0.6],
-                                ['#8b0000', 0.4]
-                            ]}
-                            onComplete={onComplete}
-                        >
-                            {renderTime}
-                        </CountdownCircleTimer>
-                    }
+                    ) : (
+                        <>
+                            <SpookyTimerText>
+                                {remainingTime === 0 
+                                    ? "Time's Up!" 
+                                    : formatTimeString(remainingTime, false)
+                                }
+                            </SpookyTimerText>
+                            <SpookyProgressWrapper isLowTime={isLowTime}>
+                                <StyledProgressBar 
+                                    now={percentage} 
+                                    percentage={percentage}
+                                />
+                            </SpookyProgressWrapper>
+                        </>
+                    )}
                 </TimerColumn>
                 <GroupNameColumn>
                     <SpookyGroupNameDiv>
