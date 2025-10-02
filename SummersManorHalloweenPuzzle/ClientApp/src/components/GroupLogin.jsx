@@ -21,19 +21,29 @@ const spookyFlicker = keyframes`
 `;
 
 const MobileContainer = styled(Container)`
-  min-height: 100vh;
-  min-height: 100dvh; /* Dynamic viewport height for modern browsers */
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
+  width: 100%;
   padding: 1rem;
   
   @media (max-width: 768px) {
     padding: 0.5rem;
-    min-height: calc(100vh - env(keyboard-inset-height, 0px)); /* Account for mobile keyboard */
-    min-height: calc(100dvh - env(keyboard-inset-height, 0px));
-    position: relative;
+    height: 100%;
+    overflow-y: auto;
+  }
+`;
+
+const ViewportWrapper = styled.div`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  
+  @media (max-width: 768px) {
+    min-height: ${props => props.dynamicHeight}px;
+    height: ${props => props.dynamicHeight}px;
+    max-height: ${props => props.dynamicHeight}px;
+    overflow: hidden;
   }
 `;
 
@@ -43,29 +53,28 @@ const ContentWrapper = styled.div`
   flex-direction: column;
   justify-content: center;
   width: 100%;
+  overflow-y: auto;
   
   @media (max-width: 768px) {
     justify-content: flex-start;
-    padding-top: 2rem;
+    padding-top: 1rem;
+    flex: 0 1 auto;
+    max-height: 60%;
   }
 `;
 
 const FormWrapper = styled.div`
   width: 100%;
-  position: sticky;
-  bottom: 0;
+  flex-shrink: 0;
   background: transparent;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding: 1rem 0;
   
   @media (max-width: 768px) {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    padding: 1rem;
     background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 20%, rgba(0, 0, 0, 0.95) 100%);
     backdrop-filter: blur(10px);
+    padding: 1rem;
+    margin: 0 -0.5rem;
+    border-radius: 12px 12px 0 0;
   }
 `;
 
@@ -90,14 +99,14 @@ const LoginText = styled.div`
   font-size: 1.2rem !important;
   
   @media (max-width: 768px) {
-    font-size: 1.1rem !important;
+    font-size: 1rem !important;
     padding: 0.75rem;
     margin: 4px 0;
     line-height: 1.2;
   }
   
   @media (max-width: 480px) {
-    font-size: 1rem !important;
+    font-size: 0.9rem !important;
     padding: 0.5rem;
     letter-spacing: 0.5px;
   }
@@ -124,12 +133,12 @@ const SpookyFormControl = styled(Form.Control)`
   
   @media (max-width: 768px) {
     font-size: 1rem !important;
-    padding: 0.6rem !important;
+    padding: 0.8rem !important;
   }
   
   @media (max-width: 480px) {
     font-size: 0.9rem !important;
-    padding: 0.5rem !important;
+    padding: 0.7rem !important;
   }
   
   &::placeholder {
@@ -167,12 +176,12 @@ const SpookyButton = styled(Button)`
   
   @media (max-width: 768px) {
     font-size: 1.1rem !important;
-    padding: 10px 20px !important;
+    padding: 12px 20px !important;
   }
   
   @media (max-width: 480px) {
     font-size: 1rem !important;
-    padding: 8px 16px !important;
+    padding: 10px 16px !important;
   }
   
   &:hover {
@@ -213,28 +222,54 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
 
     // Handle viewport height changes for mobile keyboard
     useEffect(() => {
+        let timeoutId;
+        
         const handleResize = () => {
-            // Use the smaller of window.innerHeight and visualViewport.height
-            const height = window.visualViewport 
-                ? Math.min(window.innerHeight, window.visualViewport.height)
-                : window.innerHeight;
-            setViewportHeight(height);
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                const currentHeight = window.visualViewport 
+                    ? window.visualViewport.height 
+                    : window.innerHeight;
+                
+                setViewportHeight(currentHeight);
+            }, 100); // Debounce to avoid too many updates
         };
 
-        // Listen to both resize and visual viewport changes
+        const handleVisualViewportChange = () => {
+            if (window.visualViewport) {
+                setViewportHeight(window.visualViewport.height);
+            }
+        };
+
+        // Add event listeners
         window.addEventListener('resize', handleResize);
         
         if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', handleResize);
+            window.visualViewport.addEventListener('resize', handleVisualViewportChange);
         }
 
+        // iOS specific: Listen for orientationchange
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                const height = window.visualViewport 
+                    ? window.visualViewport.height 
+                    : window.innerHeight;
+                setViewportHeight(height);
+            }, 500);
+        });
+
         // Initial setup
-        handleResize();
+        const initialHeight = window.visualViewport 
+            ? window.visualViewport.height 
+            : window.innerHeight;
+        setViewportHeight(initialHeight);
 
         return () => {
+            clearTimeout(timeoutId);
             window.removeEventListener('resize', handleResize);
+            window.removeEventListener('orientationchange', handleResize);
             if (window.visualViewport) {
-                window.visualViewport.removeEventListener('resize', handleResize);
+                window.visualViewport.removeEventListener('resize', handleVisualViewportChange);
             }
         };
     }, []);
@@ -268,7 +303,6 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
     const handleInputChange = (e) => {
         const value = e.target.value;
         setGroupName(value);
-        // Removed automatic navigation - only update state
     };
 
     const handleKeyPress = (e) => {
@@ -280,52 +314,64 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
         }
     };
 
+    const handleInputFocus = () => {
+        // Scroll the input into view when focused (for mobile)
+        setTimeout(() => {
+            if (window.innerWidth <= 768) {
+                const input = document.getElementById('formGridGroupName');
+                if (input) {
+                    input.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                }
+            }
+        }, 300);
+    };
+
     return (
-        <MobileContainer 
-            fluid 
-            style={{ 
-                height: window.innerWidth <= 768 ? `${viewportHeight}px` : '100vh',
-                maxHeight: window.innerWidth <= 768 ? `${viewportHeight}px` : '100vh'
-            }}
-        >
-            <ContentWrapper>
-                <Row className="w-100">
-                    <Col xs={12}>
-                        <LoginText>
-                            Welcome to the House of Summers Challenge. You will be presented with a series of {riddleCount} riddles that you must solve. You will have {countDownTime} minutes to complete the Challenge. You may need your phone's flashlight to solve some clues. Each clue will have an optional hint that will show up after no more than 3 minutes.
-                        </LoginText>
-                    </Col>
-                </Row>
-            </ContentWrapper>
-            
-            <FormWrapper>
-                <Row className="w-100">
-                    <Col xs={12}>
-                        <FormSection>
-                            <Form.Group controlId="formGridGroupName">
-                                <SpookyFormControl
-                                    isInvalid={duplicateGroup} 
-                                    type="text" 
-                                    placeholder="Enter group name" 
-                                    value={groupName}
-                                    onChange={handleInputChange} 
-                                    onKeyPress={handleKeyPress} 
-                                />
-                                <SpookyFeedback type="invalid">
-                                    Duplicate Group Name. Please Choose Another.
-                                </SpookyFeedback>
-                            </Form.Group>
-                        </FormSection>
-                    </Col>
-                </Row>
-                <Row className="w-100">
-                    <Col xs={12}>
-                        <SpookyButton variant="secondary" type="submit" onClick={e => checkGroupName()}>
-                            Submit
-                        </SpookyButton>
-                    </Col>
-                </Row>
-            </FormWrapper>
+        <MobileContainer fluid>
+            <ViewportWrapper dynamicHeight={viewportHeight}>
+                <ContentWrapper>
+                    <Row className="w-100">
+                        <Col xs={12}>
+                            <LoginText>
+                                Welcome to the House of Summers Challenge. You will be presented with a series of {riddleCount} riddles that you must solve. You will have {countDownTime} minutes to complete the Challenge. You may need your phone's flashlight to solve some clues. Each clue will have an optional hint that will show up after no more than 3 minutes.
+                            </LoginText>
+                        </Col>
+                    </Row>
+                </ContentWrapper>
+                
+                <FormWrapper>
+                    <Row className="w-100">
+                        <Col xs={12}>
+                            <FormSection>
+                                <Form.Group controlId="formGridGroupName">
+                                    <SpookyFormControl
+                                        isInvalid={duplicateGroup} 
+                                        type="text" 
+                                        placeholder="Enter group name" 
+                                        value={groupName}
+                                        onChange={handleInputChange} 
+                                        onKeyPress={handleKeyPress}
+                                        onFocus={handleInputFocus}
+                                    />
+                                    <SpookyFeedback type="invalid">
+                                        Duplicate Group Name. Please Choose Another.
+                                    </SpookyFeedback>
+                                </Form.Group>
+                            </FormSection>
+                        </Col>
+                    </Row>
+                    <Row className="w-100">
+                        <Col xs={12}>
+                            <SpookyButton variant="secondary" type="submit" onClick={e => checkGroupName()}>
+                                Submit
+                            </SpookyButton>
+                        </Col>
+                    </Row>
+                </FormWrapper>
+            </ViewportWrapper>
         </MobileContainer>        
     );
 }
