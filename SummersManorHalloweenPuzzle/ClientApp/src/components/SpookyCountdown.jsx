@@ -23,6 +23,19 @@ const fadeInOut = keyframes`
   100% { opacity: 0; }
 `;
 
+const spookyFlicker = keyframes`
+  0%, 100% { opacity: 1; }
+  10% { opacity: 0.7; }
+  20% { opacity: 0.9; }
+  30% { opacity: 0.5; }
+  40% { opacity: 0.8; }
+  50% { opacity: 0.6; }
+  60% { opacity: 0.85; }
+  70% { opacity: 0.7; }
+  80% { opacity: 0.95; }
+  90% { opacity: 0.8; }
+`;
+
 const CountdownWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -39,45 +52,57 @@ const CountdownNumber = styled.div`
   animation: ${pulseGlow} 2s ease-in-out;
   user-select: none;
   margin-bottom: 2rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
   
   @media (max-width: 768px) {
     font-size: 6rem;
+    letter-spacing: 2px;
   }
 `;
 
 const CountdownText = styled.div`
   font-family: 'Creepster', cursive;
   font-size: 2rem;
-  color: #dedede;
-  text-shadow: 0 0 12px #8b0000, 0 0 24px #ff6b1a;
-  animation: ${fadeInOut} 3s ease-in-out;
+  color: #ff6b1a;
+  text-shadow: 
+    0 0 12px #8b0000, 
+    0 0 24px #ff6b1a, 
+    0 0 36px #8b0000,
+    2px 2px 4px rgba(139, 0, 0, 0.8);
+  animation: ${spookyFlicker} 1.3s infinite;
   margin-bottom: 1rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: bold;
   
   @media (max-width: 768px) {
     font-size: 1.5rem;
+    letter-spacing: 2px;
   }
 `;
 
 const SpookyMessage = styled.div`
-  font-size: 1.2rem;
+  font-family: 'Creepster', cursive;
+  font-size: 1.4rem;
   color: #8b0000;
   font-weight: bold;
-  text-shadow: 0 0 8px #ff6b1a;
-  animation: flicker 1.5s infinite;
-  height: 2rem; /* Fixed height to reserve space */
+  text-shadow: 
+    0 0 8px #ff6b1a,
+    0 0 16px #ff6b1a,
+    2px 2px 4px rgba(255, 107, 26, 0.6);
+  animation: ${spookyFlicker} 1.5s infinite;
+  height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: ${props => props.show ? 1 : 0};
   transition: opacity 0.3s ease-in-out;
-  
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-  }
+  letter-spacing: 1px;
+  text-transform: uppercase;
   
   @media (max-width: 768px) {
-    font-size: 1rem;
+    font-size: 1.1rem;
     height: 1.5rem;
   }
 `;
