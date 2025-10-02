@@ -53,7 +53,8 @@ const LoginText = styled.div`
     0 0 20px rgba(255, 107, 26, 0.3),
     inset 0 0 20px rgba(139, 0, 0, 0.2);
   
-  font-size: 1.1rem;
+  font-size: 1.2rem !important;
+  font-size: 1.2rem !important;
   
   @media (max-width: 768px) {
     font-size: 1rem;
