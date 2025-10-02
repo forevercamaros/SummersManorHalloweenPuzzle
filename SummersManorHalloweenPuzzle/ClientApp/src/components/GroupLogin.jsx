@@ -53,17 +53,17 @@ const LoginText = styled.div`
     0 0 20px rgba(255, 107, 26, 0.3),
     inset 0 0 20px rgba(139, 0, 0, 0.2);
   
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   
   @media (max-width: 768px) {
-    font-size: 0.8rem;
+    font-size: 1rem;
     padding: 0.75rem;
     margin: 4px 0;
     line-height: 1.2;
   }
   
   @media (max-width: 480px) {
-    font-size: 0.7rem;
+    font-size: 0.95rem;
     padding: 0.5rem;
   }
 `;
