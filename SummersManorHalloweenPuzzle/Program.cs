@@ -23,7 +23,7 @@ namespace SummersManorHalloweenPuzzle
                 {
                     webBuilder.UseStartup<Startup>();
                     webBuilder.UseKestrel(configure =>{
-                        configure.Listen(System.Net.IPAddress.Loopback, 5000);                        
+                        configure.Listen(System.Net.IPAddress.Any, 5000);
                     });
                 });                
 #else
