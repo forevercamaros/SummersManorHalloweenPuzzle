@@ -4,6 +4,7 @@ import { Transition } from 'react-transition-group';
 import GroupLogin from './GroupLogin';
 import GameTimer from './GameTimer';
 import AudioPlayer from './AudioPlayer';
+import SpookyCountdown from './SpookyCountdown';
 import ResultsModal from './modals/ResultsModal';
 import OutOfTimeModal from './modals/OutOfTimeModal';
 import GameCompletedModal from './modals/GameCompletedModal';
@@ -28,6 +29,7 @@ export default function Home() {
     
     const timerNodeRef = useRef(null);
     const loginNodeRef = useRef(null);
+    const countdownNodeRef = useRef(null);
     const riddleNodeRef = useRef(null);
     const solvedNodeRef = useRef(null);
     const audioElement = useRef(null);
@@ -49,6 +51,18 @@ export default function Home() {
 
     const handleSetGroupName = (inGroupName) => {
         gameLogic.onSetGroupName(inGroupName);
+        gameState.setShowCountdown(true);
+        localStorage.setItem("showCountdown", true);
+    };
+
+    const handleCountdownComplete = () => {
+        gameState.setShowCountdown(false);
+        localStorage.setItem("showCountdown", false);
+        gameState.setShowTimer(true);
+        localStorage.setItem("showTimer", true);
+        gameState.setShowRiddle(true);
+        localStorage.setItem("showRiddle", true);
+        
         if (gameState.riddle?.type !== 'audio') {
             audioElement.current.audioEl.current.play();
         }
@@ -131,10 +145,7 @@ export default function Home() {
                 in={gameState.showLogin}
                 timeout={fadeDuration}
                 onExited={() => {
-                    gameState.setShowTimer(true);
-                    localStorage.setItem("showTimer", true);
-                    gameState.setShowRiddle(true);
-                    localStorage.setItem("showRiddle", true);
+                    // Countdown will now handle the transition to timer and riddles
                 }}
                 mountOnEnter={true}
                 unmountOnExit={true}
@@ -147,6 +158,22 @@ export default function Home() {
                             countDownTime={formatTimeString(timerDuration, true)}
                             onClick={handleSetGroupName}
                         />
+                    </FadeContainer>
+                )}
+            </Transition>
+
+            {/* Spooky Countdown */}
+            <Transition
+                in={gameState.showCountdown}
+                timeout={fadeDuration}
+                onExited={handleCountdownComplete}
+                mountOnEnter={true}
+                unmountOnExit={true}
+                nodeRef={countdownNodeRef}
+            >
+                {state => (
+                    <FadeContainer ref={countdownNodeRef} state={state} duration={fadeDuration}>
+                        <SpookyCountdown onComplete={() => gameState.setShowCountdown(false)} />
                     </FadeContainer>
                 )}
             </Transition>

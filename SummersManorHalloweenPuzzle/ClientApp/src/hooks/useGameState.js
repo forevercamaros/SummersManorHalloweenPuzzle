@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export const useGameState = (timerDuration) => {
     const [showLogin, setShowLogin] = useState(true);
+    const [showCountdown, setShowCountdown] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
     const [showRiddle, setShowRiddle] = useState(false);
     const [showRiddleSolved, setShowRiddleSolved] = useState(false);
@@ -42,6 +43,11 @@ export const useGameState = (timerDuration) => {
             const _showLogin = localStorage.getItem('showLogin');
             if (_showLogin) {
                 setShowLogin(_showLogin === "true");
+            }
+
+            const _showCountdown = localStorage.getItem('showCountdown');
+            if (_showCountdown) {
+                setShowCountdown(_showCountdown === "true");
             }
 
             const _showTimer = localStorage.getItem('showTimer');
@@ -92,6 +98,7 @@ export const useGameState = (timerDuration) => {
 
     return {
         showLogin, setShowLogin,
+        showCountdown, setShowCountdown,
         showTimer, setShowTimer,
         showRiddle, setShowRiddle,
         showRiddleSolved, setShowRiddleSolved,
