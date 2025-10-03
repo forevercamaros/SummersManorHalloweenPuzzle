@@ -14,6 +14,8 @@ export const useGameLogic = (gameState, timerDuration) => {
     const remainingTimeRef = useRef(0);
     const lastUpdateTimeRef = useRef(0);
     const updateIntervalRef = useRef(null);
+    // Add a ref to track completed riddles
+    const completedRiddlesRef = useRef(new Set());
 
     const initBeforeUnLoad = useCallback((showExitPrompt) => {
         window.onbeforeunload = (event) => {
@@ -97,13 +99,21 @@ export const useGameLogic = (gameState, timerDuration) => {
             index = 0;
         }
 
-        if (index === startIndex) {
-            // Game completed - make final database update and stop continuous updates
+        // Mark current riddle as completed
+        completedRiddlesRef.current.add(currentIndex);
+
+        // Check if all riddles are completed
+        const totalRiddles = keys.length;
+        const completedCount = completedRiddlesRef.current.size;
+
+        if (completedCount >= totalRiddles) {
+            // Game completed - all riddles have been solved
             const finalTime = remainingTimeRef.current;
             
             localStorage.setItem("showSolved", true);
             localStorage.setItem("gameCompleted", true);
             localStorage.setItem("showRiddle", false);
+            localStorage.setItem("completedRiddles", JSON.stringify(Array.from(completedRiddlesRef.current)));
             
             // Final database update
             updateRemainingTimeInDB(finalTime);
@@ -123,7 +133,7 @@ export const useGameLogic = (gameState, timerDuration) => {
             setShowRiddleSolved(true);
             localStorage.setItem("showRiddleSolved", true);
         }
-    }, [riddleDataFromDB, currentIndex, startIndex, setShowExitPrompt, setShowSolved, setShowRiddle, setGameCompleted, setCurrentIndex, setRiddle, setShowRiddleSolved, updateRemainingTimeInDB, stopDatabaseUpdates]);
+    }, [riddleDataFromDB, currentIndex, setShowExitPrompt, setShowSolved, setShowRiddle, setGameCompleted, setCurrentIndex, setRiddle, setShowRiddleSolved, updateRemainingTimeInDB, stopDatabaseUpdates]);
 
     const addTime = useCallback((time) => {
         const newTime = remainingTimeRef.current + time;
@@ -206,6 +216,18 @@ export const useGameLogic = (gameState, timerDuration) => {
                 const randomStart = Math.floor(Math.random() * keys.length);
                 setStartIndex(randomStart);
                 let initialRiddleIndex = randomStart;
+                
+                // Load completed riddles from localStorage
+                const savedCompletedRiddles = localStorage.getItem('completedRiddles');
+                if (savedCompletedRiddles) {
+                    try {
+                        const completedArray = JSON.parse(savedCompletedRiddles);
+                        completedRiddlesRef.current = new Set(completedArray);
+                    } catch (e) {
+                        console.warn('Failed to parse completed riddles from localStorage');
+                        completedRiddlesRef.current = new Set();
+                    }
+                }
                 
                 const _gameCompleted = localStorage.getItem('gameCompleted');
                 if (_gameCompleted) {
