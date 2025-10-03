@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -11,26 +11,240 @@ import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import { Transition } from 'react-transition-group';
 
+const spookyFlicker = keyframes`
+  0%, 100% { opacity: 1; }
+  10% { opacity: 0.7; }
+  20% { opacity: 0.9; }
+  30% { opacity: 0.5; }
+  40% { opacity: 0.8; }
+  50% { opacity: 0.6; }
+  60% { opacity: 0.85; }
+  70% { opacity: 0.7; }
+  80% { opacity: 0.95; }
+  90% { opacity: 0.8; }
+`;
+
+const evilGlow = keyframes`
+  0% { 
+    box-shadow: 0 0 10px #8b0000, 0 0 20px #ff6b1a, 0 0 30px #8b0000;
+    filter: brightness(1);
+  }
+  50% { 
+    box-shadow: 0 0 20px #8b0000, 0 0 40px #ff6b1a, 0 0 60px #8b0000;
+    filter: brightness(1.2);
+  }
+  100% { 
+    box-shadow: 0 0 10px #8b0000, 0 0 20px #ff6b1a, 0 0 30px #8b0000;
+    filter: brightness(1);
+  }
+`;
+
 const FadeContainer = styled.div`
-  transition: opacity  ${props => props.duration}ms ease-in-out;
+  transition: opacity ${props => props.duration}ms ease-in-out;
   opacity: ${props => (props.state === 'entering' || props.state === 'entered' ? '1' : '0')};
-  color: white;
+  color: #dedede;
 `;
 
 const RiddleText = styled.div`
   margin: 8px;
-  border: 1px solid lightgrey;
-  border-radius: 2px;
+  border: 2px solid #ff6b1a;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  color: white;
+  color: #dedede;
+  background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.3) 100%);
+  padding: 1.5rem;
+  font-family: 'Crimson Text', serif;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  text-shadow: 0 0 8px rgba(255, 107, 26, 0.3);
+  box-shadow: 
+    0 0 20px rgba(255, 107, 26, 0.3),
+    inset 0 0 20px rgba(139, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
+  
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+    padding: 1rem;
+    margin: 6px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1rem;
+    padding: 0.75rem;
+    margin: 4px;
+  }
 `;
 
 const ClueDiv = styled.div`
-  margin: 8px;  
-  border-radius: 2px;
+  margin: 8px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+`;
+
+const SpookyInputGroup = styled(InputGroup)`
+  margin-bottom: 1rem;
+  
+  .input-group-text {
+    background: linear-gradient(135deg, #8b0000 0%, #ff6b1a 100%) !important;
+    border: 2px solid #ff6b1a !important;
+    color: #dedede !important;
+    font-family: 'Creepster', cursive !important;
+    font-size: 1rem !important;
+    text-shadow: 0 0 8px #8b0000 !important;
+    letter-spacing: 1px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    
+    @media (max-width: 768px) {
+      font-size: 0.9rem !important;
+    }
+  }
+`;
+
+const SpookyFormControl = styled(FormControl)`
+  background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.2) 100%) !important;
+  border: 2px solid #ff6b1a !important;
+  color: #ff6b1a !important;
+  font-family: 'Crimson Text', serif !important;
+  font-size: 1.1rem !important;
+  text-shadow: 0 0 4px rgba(255, 107, 26, 0.5) !important;
+  letter-spacing: 1px !important;
+  padding: 0.75rem !important;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem !important;
+    padding: 0.6rem !important;
+  }
+  
+  &::placeholder {
+    color: rgba(255, 107, 26, 0.6) !important;
+    font-family: 'Crimson Text', serif !important;
+  }
+  
+  &:focus {
+    background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.3) 100%) !important;
+    border-color: #ff6b1a !important;
+    box-shadow: 
+      0 0 0 0.2rem rgba(255, 107, 26, 0.25),
+      0 0 20px rgba(255, 107, 26, 0.5) !important;
+    color: #ff6b1a !important;
+  }
+  
+  &[readonly] {
+    background: linear-gradient(135deg, rgba(139, 0, 0, 0.8) 0%, rgba(255, 107, 26, 0.4) 100%) !important;
+    color: #dedede !important;
+    border-color: #2cba3f !important;
+    animation: ${evilGlow} 2s infinite;
+  }
+`;
+
+const SpookyButton = styled(Button)`
+  background: linear-gradient(135deg, #8b0000 0%, #ff6b1a 100%) !important;
+  border: 2px solid #ff6b1a !important;
+  color: #dedede !important;
+  font-family: 'Creepster', cursive !important;
+  font-size: 1rem !important;
+  text-shadow: 0 0 8px #8b0000 !important;
+  letter-spacing: 2px !important;
+  padding: 12px 24px !important;
+  text-transform: uppercase !important;
+  transition: all 0.3s ease !important;
+  animation: ${spookyFlicker} 3s infinite !important;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9rem !important;
+    padding: 10px 20px !important;
+    letter-spacing: 1px !important;
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, #ff6b1a 0%, #8b0000 100%) !important;
+    border-color: #ff6b1a !important;
+    color: #fff !important;
+    box-shadow: 
+      0 0 20px rgba(255, 107, 26, 0.5),
+      0 0 40px rgba(139, 0, 0, 0.3) !important;
+    transform: translateY(-2px) !important;
+  }
+  
+  &:focus {
+    box-shadow: 
+      0 0 0 0.2rem rgba(255, 107, 26, 0.25),
+      0 0 20px rgba(255, 107, 26, 0.5) !important;
+  }
+`;
+
+const SpookyModal = styled(Modal)`
+  .modal-content {
+    background: linear-gradient(135deg, #0a0a0a 80%, #8b0000 100%);
+    border: 2px solid #ff6b1a;
+    color: #dedede;
+    box-shadow: 
+      0 0 30px rgba(255, 107, 26, 0.5),
+      0 0 60px rgba(139, 0, 0, 0.3);
+  }
+  
+  .modal-header {
+    border-bottom: 2px solid #ff6b1a;
+    background: rgba(139, 0, 0, 0.3);
+    
+    .modal-title {
+      color: #ff6b1a;
+      font-family: 'Creepster', cursive;
+      text-shadow: 0 0 8px #8b0000;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      animation: ${spookyFlicker} 2s infinite;
+    }
+    
+    .btn-close {
+      filter: invert(1);
+      opacity: 0.8;
+      
+      &:hover {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+    }
+  }
+  
+  .modal-body {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    padding: 1.5rem;
+    background: rgba(10, 10, 10, 0.3);
+    text-shadow: 0 0 4px rgba(255, 107, 26, 0.3);
+  }
+  
+  .modal-footer {
+    border-top: 2px solid #ff6b1a;
+    background: rgba(139, 0, 0, 0.2);
+    padding: 1rem;
+  }
+`;
+
+const SpookyAudioWrapper = styled.div`
+  margin: 1rem 0;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.3) 100%);
+  border: 2px solid #ff6b1a;
+  border-radius: 8px;
+  box-shadow: 
+    0 0 20px rgba(255, 107, 26, 0.3),
+    inset 0 0 20px rgba(139, 0, 0, 0.2);
+  
+  audio {
+    width: 100%;
+    filter: sepia(1) hue-rotate(320deg) saturate(3);
+    
+    &::-webkit-media-controls-panel {
+      background-color: rgba(139, 0, 0, 0.8);
+    }
+  }
 `;
 
 export default function Riddle({ onSolved, RiddleData, onAddTime }) {    
@@ -84,9 +298,9 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             const audioPath = require(`../audio/${audioFile}.mp3`);
             
             return (
-                <>
-                    <Row>
-                        <Col>
+                <Row>
+                    <Col>
+                        <SpookyAudioWrapper>
                             <ReactAudioPlayer
                                 ref={audioElement}
                                 src={audioPath}
@@ -94,9 +308,9 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
                                 onEnded={() => setShowClueOption(true)}
                                 onCanPlay={() => { if (!clueRevealed) { audioElement.current.audioEl.current.play(); }}}
                             />
-                        </Col>                    
-                    </Row>
-                </>         
+                        </SpookyAudioWrapper>
+                    </Col>                    
+                </Row>         
             )
         } else {
             return ("");
@@ -108,21 +322,21 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             return (
                 <ClueDiv>
                     <RiddleText>{clueText}</RiddleText>
-                    <Button variant="secondary" onClick={handleShowClue}>
+                    <SpookyButton variant="secondary" onClick={handleShowClue}>
                         Reveal Clue
-                    </Button>
+                    </SpookyButton>
 
-                    <Modal show={showClue} onHide={handleCloseClue} className="special_modal">
+                    <SpookyModal show={showClue} onHide={handleCloseClue}>
                         <Modal.Header closeButton>
                             <Modal.Title>Your Clue</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>{clue}</Modal.Body>
                         <Modal.Footer>
-                            <Button variant="secondary" onClick={handleCloseClue}>
+                            <SpookyButton variant="secondary" onClick={handleCloseClue}>
                                 Close
-                            </Button>
+                            </SpookyButton>
                         </Modal.Footer>
-                    </Modal>
+                    </SpookyModal>
                 </ClueDiv>
             )
         } else {
@@ -133,18 +347,18 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     function AddBonus({ bonusText }) {
         if (bonusText !== "" && typeof bonusText !== 'undefined') {
             return (
-                <Modal show={showBonus} onHide={handleCloseBonus} onEntered={focusBonusInput} className="special_modal">
+                <SpookyModal show={showBonus} onHide={handleCloseBonus} onEntered={focusBonusInput}>
                     <Modal.Header closeButton>
                         <Modal.Title>Your Bonus</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>{bonusText}</Modal.Body>
                     <Modal.Footer>
-                        <InputGroup className="mb-3">
+                        <SpookyInputGroup className="mb-3">
                             <InputGroup.Text id="basic-addon1">Answer</InputGroup.Text>
-                            <FormControl ref={bonusElement} onChange={BonusTextChange} readOnly={readOnlyBonus}/>
-                        </InputGroup>
+                            <SpookyFormControl ref={bonusElement} onChange={BonusTextChange} readOnly={readOnlyBonus}/>
+                        </SpookyInputGroup>
                     </Modal.Footer>
-                </Modal>
+                </SpookyModal>
             )
         } else {
             return ("");
@@ -163,7 +377,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             return;
         }
 
-        if (inputValue.toLowerCase() === RiddleData.answer.toLowerCase()) {
+        if (inputValue.toLowerCase().trim() === RiddleData.answer.toLowerCase()) {
             setReadOnlyAnswer(true);
             
             // Only show bonus if there is bonus text AND clue hasn't been revealed
@@ -207,10 +421,10 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             <AddBonus bonusText={RiddleData.bonusText} bonusAnswer={RiddleData.bonusAnswer} />
             <Row>
                 <Col>
-                    <InputGroup className="mb-3">
+                    <SpookyInputGroup className="mb-3">
                         <InputGroup.Text id="basic-addon1">Answer</InputGroup.Text>
-                        <FormControl ref={answerElement} onChange={TextChange} readOnly={readOnlyAnswer}/>
-                    </InputGroup>
+                        <SpookyFormControl ref={answerElement} onChange={TextChange} readOnly={readOnlyAnswer}/>
+                    </SpookyInputGroup>
                 </Col>
             </Row>
             <Transition in={showClueOption} timeout={1000}>

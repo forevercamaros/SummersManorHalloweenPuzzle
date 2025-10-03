@@ -1,19 +1,23 @@
 import React from 'react';
 import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
+import { SpookyModal, SpookyButton } from '../styles/SpookyModalStyles';
 
 export default function OutOfTimeModal({ show, onHide }) {
     return (
-        <Modal show={show} onHide={onHide} className="special_modal">
+        <SpookyModal show={show} onHide={onHide} className="special_modal">
             <Modal.Header closeButton>
                 <Modal.Title>Your Time Has Expired</Modal.Title>
             </Modal.Header>
-            <Modal.Body>Press close to continue the challenge beyond your allotted time.</Modal.Body>
+            <Modal.Body>
+                The sands of time have run out, but your nightmare continues.
+                Press close to continue the challenge beyond your allotted time,
+                though beware - the spirits grow restless in the overtime hours...
+            </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={onHide}>
-                    Close
-                </Button>
+                <SpookyButton variant="secondary" onClick={onHide}>
+                    Continue Into Darkness
+                </SpookyButton>
             </Modal.Footer>
-        </Modal>
+        </SpookyModal>
     );
 }

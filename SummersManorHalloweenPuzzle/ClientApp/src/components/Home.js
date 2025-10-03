@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Riddle from '../RiddleComponents/Riddle';
 import { Transition } from 'react-transition-group';
 import GroupLogin from './GroupLogin';
@@ -22,7 +22,8 @@ import {
 
 export default function Home() {
     const fadeDuration = 1000;
-    const timerDuration = 2400;
+    const [timerDuration, setTimerDuration] = useState(2400); // Default fallback
+    const [isLoadingSettings, setIsLoadingSettings] = useState(true);
     
     const gameState = useGameState(timerDuration);
     const gameLogic = useGameLogic(gameState, timerDuration);
@@ -34,9 +35,33 @@ export default function Home() {
     const solvedNodeRef = useRef(null);
     const audioElement = useRef(null);
 
-    // Initialize window events
+    // Fetch game settings including timer duration
+    const fetchGameSettings = async () => {
+        try {
+            setIsLoadingSettings(true);
+            const response = await fetch('/GetGameSettings');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.success && data.settings && data.settings.timerDuration) {
+                setTimerDuration(data.settings.timerDuration);
+            } else {
+                console.warn('Failed to get game settings, using default timer duration:', data.error);
+                setTimerDuration(2400); // Default fallback
+            }
+        } catch (error) {
+            console.error('Error fetching game settings:', error);
+            setTimerDuration(2400); // Default fallback
+        } finally {
+            setIsLoadingSettings(false);
+        }
+    };
+
+    // Initialize window events and fetch settings
     useEffect(() => {
         window.scrollTo(0, 0);
+        fetchGameSettings();
         gameLogic.initBeforeUnLoad(gameState.showExitPrompt);
     }, []);
 
@@ -67,6 +92,25 @@ export default function Home() {
             audioElement.current.audioEl.current.play();
         }
     };
+
+    // Show loading state while fetching settings
+    if (isLoadingSettings) {
+        return (
+            <SpookyWrapper>
+                <SpookyTitle>
+                    Loading Game Settings...
+                </SpookyTitle>
+                <div style={{ 
+                    textAlign: 'center', 
+                    color: '#ff6b1a', 
+                    fontSize: '1.2rem',
+                    fontFamily: 'Crimson Text, serif'
+                }}>
+                    Preparing the manor for your arrival...
+                </div>
+            </SpookyWrapper>
+        );
+    }
 
     return (
         <SpookyWrapper>

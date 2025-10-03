@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Card, Alert, Modal, ProgressBar } from 'react-bootstrap';
 import styled from 'styled-components';
+import { SpookyModal, SpookyButton, DangerButton, SuccessButton } from './styles/SpookyModalStyles';
 
 const StyledContainer = styled(Container)`
   margin-top: 20px;
@@ -63,30 +64,6 @@ const SpookyTitle = styled.h1`
   text-align: center;
   margin-bottom: 2rem;
   text-shadow: 0 0 12px #8b0000, 0 0 24px #ff6b1a;
-`;
-
-const StyledModal = styled(Modal)`
-  .modal-content {
-    background: linear-gradient(135deg, #0a0a0a 80%, #8b0000 100%);
-    border: 1px solid #ff6b1a;
-    color: white;
-  }
-  
-  .modal-header {
-    border-bottom: 1px solid #ff6b1a;
-    
-    .modal-title {
-      color: #ff6b1a;
-    }
-    
-    .btn-close {
-      filter: invert(1);
-    }
-  }
-  
-  .modal-footer {
-    border-top: 1px solid #ff6b1a;
-  }
 `;
 
 const AudioFileSelector = styled.div`
@@ -356,17 +333,16 @@ export default function EditRiddleData() {
 
             <Row className="mb-3">
                 <Col>
-                    <Button variant="success" onClick={addNewRiddle}>
+                    <SuccessButton onClick={addNewRiddle}>
                         Add New Riddle
-                    </Button>
-                    <Button 
-                        variant="primary" 
+                    </SuccessButton>
+                    <SpookyButton 
                         className="ms-3" 
                         onClick={saveRiddleData}
                         disabled={saving}
                     >
                         {saving ? 'Saving...' : 'Save All Changes'}
-                    </Button>
+                    </SpookyButton>
                 </Col>
             </Row>
 
@@ -374,13 +350,12 @@ export default function EditRiddleData() {
                 <StyledCard key={riddleKey}>
                     <Card.Header className="d-flex justify-content-between align-items-center">
                         <span>{riddleKey}</span>
-                        <Button 
-                            variant="danger" 
+                        <DangerButton 
                             size="sm"
                             onClick={() => confirmDeleteRiddle(riddleKey)}
                         >
                             Delete
-                        </Button>
+                        </DangerButton>
                     </Card.Header>
                     <Card.Body>
                         <Row>
@@ -511,22 +486,23 @@ export default function EditRiddleData() {
                 </StyledCard>
             ))}
 
-            <StyledModal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+            <SpookyModal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
                 <Modal.Header closeButton>
                     <Modal.Title>Confirm Delete</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Are you sure you want to delete {riddleToDelete}? This action cannot be undone.
+                    Are you sure you want to banish <strong>{riddleToDelete}</strong> to the void? 
+                    This dark magic cannot be undone, and the riddle will be lost forever to the shadows.
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+                    <SpookyButton onClick={() => setShowDeleteModal(false)}>
                         Cancel
-                    </Button>
-                    <Button variant="danger" onClick={deleteRiddle}>
-                        Delete
-                    </Button>
+                    </SpookyButton>
+                    <DangerButton onClick={deleteRiddle}>
+                        Delete Forever
+                    </DangerButton>
                 </Modal.Footer>
-            </StyledModal>
+            </SpookyModal>
         </StyledContainer>
     );
 }
