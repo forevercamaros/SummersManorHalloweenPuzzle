@@ -35,6 +35,33 @@ export default function Home() {
     const solvedNodeRef = useRef(null);
     const audioElement = useRef(null);
 
+    // Function to safely attempt audio play without throwing errors
+    const tryPlayAudio = () => {
+        if (!audioElement.current?.audioEl?.current) return;
+        
+        const audioEl = audioElement.current.audioEl.current;
+        const playPromise = audioEl.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                // Audio autoplay was prevented - this is normal browser behavior
+                // Don't log error as it's expected behavior in many browsers
+                console.debug('Audio autoplay prevented by browser policy (this is normal)');
+            });
+        }
+    };
+
+    // Function to safely attempt audio pause without throwing errors
+    const tryPauseAudio = () => {
+        if (!audioElement.current?.audioEl?.current) return;
+        
+        try {
+            audioElement.current.audioEl.current.pause();
+        } catch (error) {
+            console.debug('Could not pause audio:', error);
+        }
+    };
+
     // Fetch game settings including timer duration
     const fetchGameSettings = async () => {
         try {
@@ -89,7 +116,7 @@ export default function Home() {
         localStorage.setItem("showRiddle", true);
         
         if (gameState.riddle?.type !== 'audio') {
-            audioElement.current.audioEl.current.play();
+            tryPlayAudio();
         }
     };
 
@@ -231,7 +258,7 @@ export default function Home() {
                 unmountOnExit={true}
                 onEntered={() => {
                     if (gameState.riddle?.type === 'audio') {
-                        audioElement.current.audioEl.current.pause();
+                        tryPauseAudio();
                     }
                 }}
                 nodeRef={riddleNodeRef}
@@ -254,7 +281,7 @@ export default function Home() {
                 onEntered={() => {
                     gameState.setShowRiddleSolved(false);
                     localStorage.setItem("showRiddleSolved", false);
-                    audioElement.current.audioEl.current.play();
+                    tryPlayAudio();
                 }}
                 onExited={() => {
                     gameState.setShowRiddle(true);

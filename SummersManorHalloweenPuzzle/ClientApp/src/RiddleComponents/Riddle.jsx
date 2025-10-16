@@ -54,7 +54,7 @@ const RiddleText = styled.div`
   color: #dedede;
   background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.3) 100%);
   padding: 1.5rem;
-  font-family: 'Crimson Text', serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   font-size: 1.2rem;
   line-height: 1.5;
   text-shadow: 0 0 8px rgba(255, 107, 26, 0.3);
@@ -91,7 +91,7 @@ const SpookyInputGroup = styled(InputGroup)`
     background: linear-gradient(135deg, #8b0000 0%, #ff6b1a 100%) !important;
     border: 2px solid #ff6b1a !important;
     color: #dedede !important;
-    font-family: 'Creepster', cursive !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
     font-size: 1rem !important;
     text-shadow: 0 0 8px #8b0000 !important;
     letter-spacing: 1px !important;
@@ -108,7 +108,7 @@ const SpookyFormControl = styled(FormControl)`
   background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.2) 100%) !important;
   border: 2px solid #ff6b1a !important;
   color: #ff6b1a !important;
-  font-family: 'Crimson Text', serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   font-size: 1.1rem !important;
   text-shadow: 0 0 4px rgba(255, 107, 26, 0.5) !important;
   letter-spacing: 1px !important;
@@ -121,7 +121,7 @@ const SpookyFormControl = styled(FormControl)`
   
   &::placeholder {
     color: rgba(255, 107, 26, 0.6) !important;
-    font-family: 'Crimson Text', serif !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   }
   
   &:focus {
@@ -145,12 +145,13 @@ const SpookyButton = styled(Button)`
   background: linear-gradient(135deg, #8b0000 0%, #ff6b1a 100%) !important;
   border: 2px solid #ff6b1a !important;
   color: #dedede !important;
-  font-family: 'Creepster', cursive !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   font-size: 1rem !important;
   text-shadow: 0 0 8px #8b0000 !important;
   letter-spacing: 2px !important;
   padding: 12px 24px !important;
   text-transform: uppercase !important;
+  font-weight: bold !important;
   transition: all 0.3s ease !important;
   animation: ${spookyFlicker} 3s infinite !important;
   
@@ -193,10 +194,11 @@ const SpookyModal = styled(Modal)`
     
     .modal-title {
       color: #ff6b1a;
-      font-family: 'Creepster', cursive;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
       text-shadow: 0 0 8px #8b0000;
       letter-spacing: 2px;
       text-transform: uppercase;
+      font-weight: bold;
       animation: ${spookyFlicker} 2s infinite;
     }
     
@@ -212,7 +214,7 @@ const SpookyModal = styled(Modal)`
   }
   
   .modal-body {
-    font-family: 'Crimson Text', serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     font-size: 1.1rem;
     line-height: 1.5;
     padding: 1.5rem;

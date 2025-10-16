@@ -22,27 +22,39 @@ const spookyFlicker = keyframes`
 
 const MobileContainer = styled(Container)`
   min-height: 100vh;
-  min-height: 100svh; /* Small viewport height for mobile */
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Changed from space-between to center */
+  justify-content: center;
   align-items: center;
   padding: 1rem;
   
   @media (max-width: 768px) {
-    padding: 0.5rem;
-    min-height: 100svh; /* Use small viewport height which excludes keyboard */
-    justify-content: flex-start; /* Start from top on mobile */
+    padding: 1rem;
+    min-height: 100svh;
+    justify-content: flex-start;
     padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+    padding-bottom: 2rem;
   }
 `;
 
 const ContentWrapper = styled.div`
   width: 100%;
-  margin-bottom: 2rem; /* Add space between content and form */
+  margin-bottom: 2rem;
   
   @media (max-width: 768px) {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+  }
+  
+  @media (max-width: 480px) {
     margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
   }
 `;
 
@@ -57,6 +69,11 @@ const FormWrapper = styled.div`
     border-radius: 12px 12px 0 0;
     position: sticky;
     bottom: 0;
+    margin-bottom: 1rem;
+  }
+  
+  @media (max-width: 480px) {
+    margin-bottom: 0.75rem;
   }
 `;
 
@@ -69,28 +86,28 @@ const LoginText = styled.div`
   color: #dedede;
   background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.3) 100%);
   padding: 1rem;
-  font-family: 'Creepster', cursive, 'Times New Roman', serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   text-shadow: 0 0 8px #8b0000, 0 0 16px #ff6b1a;
   animation: ${spookyFlicker} 3s infinite;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   line-height: 1.3;
   box-shadow: 
     0 0 20px rgba(255, 107, 26, 0.3),
     inset 0 0 20px rgba(139, 0, 0, 0.2);
   
-  font-size: 1.2rem !important;
+  font-size: 1.2rem;
   
   @media (max-width: 768px) {
-    font-size: 1.1rem !important;
+    font-size: 1.1rem;
     padding: 0.75rem;
-    margin: 4px 0;
+    margin: 8px 0;
     line-height: 1.2;
   }
   
   @media (max-width: 480px) {
-    font-size: 1rem !important;
+    font-size: 1rem;
     padding: 0.5rem;
-    letter-spacing: 0.5px;
+    margin: 6px 0;
   }
 `;
 
@@ -107,10 +124,10 @@ const SpookyFormControl = styled(Form.Control)`
   background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.2) 100%) !important;
   border: 2px solid #ff6b1a !important;
   color: #ff6b1a !important;
-  font-family: 'Creepster', cursive !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   font-size: 1.1rem !important;
   text-shadow: 0 0 8px #8b0000 !important;
-  letter-spacing: 2px !important;
+  letter-spacing: 1px !important;
   padding: 0.75rem !important;
   
   @media (max-width: 768px) {
@@ -125,7 +142,7 @@ const SpookyFormControl = styled(Form.Control)`
   
   &::placeholder {
     color: rgba(255, 107, 26, 0.6) !important;
-    font-family: 'Creepster', cursive !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   }
   
   &:focus {
@@ -147,12 +164,13 @@ const SpookyButton = styled(Button)`
   background: linear-gradient(135deg, #8b0000 0%, #ff6b1a 100%) !important;
   border: 2px solid #ff6b1a !important;
   color: #dedede !important;
-  font-family: 'Creepster', cursive !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   font-size: 1.2rem !important;
   text-shadow: 0 0 8px #8b0000 !important;
   letter-spacing: 2px !important;
   padding: 12px 24px !important;
   text-transform: uppercase !important;
+  font-weight: bold !important;
   transition: all 0.3s ease !important;
   width: 100% !important;
   
@@ -184,11 +202,12 @@ const SpookyButton = styled(Button)`
 `;
 
 const SpookyFeedback = styled(Form.Control.Feedback)`
-  font-family: 'Creepster', cursive !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   font-size: 0.9rem !important;
   color: #dc3545 !important;
   text-shadow: 0 0 8px #dc3545 !important;
   letter-spacing: 1px !important;
+  font-weight: bold !important;
   animation: ${spookyFlicker} 1s infinite !important;
   
   @media (max-width: 768px) {
@@ -202,7 +221,6 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
     const navigate = useNavigate();
 
     const checkGroupName = () => {
-        // Check if user typed "settings" to navigate to settings page
         if (groupName.toLowerCase().trim() === "settings") {
             navigate('/settings');
             return;

@@ -7,8 +7,6 @@ import { unregister } from './registerServiceWorker';
 import { createGlobalStyle } from 'styled-components'
 
 const GlobalStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Crimson+Text:wght@400;600&display=swap');
-
   :root {
     --primary-color: #ff6b1a;
     --secondary-color: #8b0000;
@@ -21,7 +19,7 @@ const GlobalStyle = createGlobalStyle`
   body {
     background: var(--background-color);
     color: var(--text-color);
-    font-family: 'Crimson Text', serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.6;
     min-height: 100vh;
     position: relative;
@@ -42,7 +40,8 @@ const GlobalStyle = createGlobalStyle`
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Creepster', cursive;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: bold;
     color: var(--primary-color);
     text-shadow: 2px 2px 4px var(--shadow-color);
   }
@@ -52,9 +51,10 @@ const GlobalStyle = createGlobalStyle`
     color: var(--text-color);
     border: 2px solid var(--primary-color);
     padding: 0.5em 1em;
-    font-family: 'Crimson Text', serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: bold;
     transition: all 0.3s ease;
     cursor: pointer;
 
@@ -70,7 +70,7 @@ const GlobalStyle = createGlobalStyle`
     border: 1px solid var(--primary-color);
     color: var(--text-color);
     padding: 0.5em;
-    font-family: 'Crimson Text', serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     
     &:focus {
       outline: none;
@@ -84,7 +84,6 @@ const GlobalStyle = createGlobalStyle`
     z-index: 2;
   }
 
-  /* Add some spooky animation effects */
   @keyframes flicker {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.8; }

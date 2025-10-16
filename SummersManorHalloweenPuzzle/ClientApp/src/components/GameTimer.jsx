@@ -74,7 +74,7 @@ const GroupNameColumn = styled.div`
 `;
 
 const SpookyGroupNameDiv = styled.div`
-  font-family: 'Creepster', cursive;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   color: #ff6b1a;
   font-size: 1.3rem;
   text-shadow: 
@@ -104,7 +104,7 @@ const SpookyGroupNameDiv = styled.div`
 `;
 
 const SpookyTimerText = styled.div`
-  font-family: 'Creepster', cursive;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   color: #ff6b1a;
   font-size: 1rem;
   text-shadow: 
@@ -182,12 +182,13 @@ const SpookyButton = styled(Button)`
   background: linear-gradient(135deg, #8b0000 0%, #ff6b1a 100%) !important;
   border: 2px solid #ff6b1a !important;
   color: #dedede !important;
-  font-family: 'Creepster', cursive !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   font-size: 1.2rem !important;
   text-shadow: 0 0 8px #8b0000 !important;
   letter-spacing: 2px !important;
   padding: 10px 20px !important;
   text-transform: uppercase !important;
+  font-weight: bold !important;
   transition: all 0.3s ease !important;
   animation: ${spookyFlicker} 3s infinite !important;
   

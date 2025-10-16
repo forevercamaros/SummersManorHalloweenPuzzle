@@ -17,3 +17,13 @@ code {
     background-color: #8c8c8c;
     color: #fff;
 }
+
+/* Remove all mobile font overrides - use same fonts on all devices */
+/* This ensures Creepster and other decorative fonts work consistently */
+
+/* Only keep essential mobile fixes for preventing zoom on iOS */
+@media (max-width: 480px) {
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents zoom on iOS when focusing inputs */
+  }
+}

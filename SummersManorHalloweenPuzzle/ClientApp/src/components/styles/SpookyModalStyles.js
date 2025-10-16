@@ -48,10 +48,11 @@ export const SpookyModal = styled(Modal)`
     
     .modal-title {
       color: #ff6b1a;
-      font-family: 'Creepster', cursive;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
       text-shadow: 0 0 8px #8b0000;
       letter-spacing: 2px;
       text-transform: uppercase;
+      font-weight: bold;
       animation: ${spookyFlicker} 2s infinite;
       font-size: 1.3rem;
       
@@ -75,7 +76,7 @@ export const SpookyModal = styled(Modal)`
   }
   
   .modal-body {
-    font-family: 'Crimson Text', serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     font-size: 1.1rem;
     line-height: 1.5;
     padding: 1.5rem;
@@ -96,7 +97,6 @@ export const SpookyModal = styled(Modal)`
     border-radius: 0 0 6px 6px;
   }
   
-  /* Enhanced backdrop */
   &.modal {
     backdrop-filter: blur(5px);
   }
@@ -110,12 +110,13 @@ export const SpookyButton = styled(Button)`
   background: linear-gradient(135deg, #8b0000 0%, #ff6b1a 100%) !important;
   border: 2px solid #ff6b1a !important;
   color: #dedede !important;
-  font-family: 'Creepster', cursive !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif !important;
   font-size: 1rem !important;
   text-shadow: 0 0 8px #8b0000 !important;
   letter-spacing: 2px !important;
   padding: 12px 24px !important;
   text-transform: uppercase !important;
+  font-weight: bold !important;
   transition: all 0.3s ease !important;
   animation: ${spookyFlicker} 3s infinite !important;
   

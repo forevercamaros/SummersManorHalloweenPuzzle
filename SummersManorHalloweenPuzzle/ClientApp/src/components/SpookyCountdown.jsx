@@ -16,13 +16,6 @@ const pulseGlow = keyframes`
   }
 `;
 
-const fadeInOut = keyframes`
-  0% { opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
-`;
-
 const spookyFlicker = keyframes`
   0%, 100% { opacity: 1; }
   10% { opacity: 0.7; }
@@ -46,7 +39,7 @@ const CountdownWrapper = styled.div`
 `;
 
 const CountdownNumber = styled.div`
-  font-family: 'Creepster', cursive;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   font-size: 8rem;
   color: #ff6b1a;
   animation: ${pulseGlow} 2s ease-in-out;
@@ -54,6 +47,8 @@ const CountdownNumber = styled.div`
   margin-bottom: 2rem;
   letter-spacing: 4px;
   text-transform: uppercase;
+  font-weight: bold;
+  text-shadow: 0 0 20px #8b0000, 0 0 40px #ff6b1a, 0 0 60px #8b0000;
   
   @media (max-width: 768px) {
     font-size: 6rem;
@@ -62,7 +57,7 @@ const CountdownNumber = styled.div`
 `;
 
 const CountdownText = styled.div`
-  font-family: 'Creepster', cursive;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   font-size: 2rem;
   color: #ff6b1a;
   text-shadow: 
@@ -83,7 +78,7 @@ const CountdownText = styled.div`
 `;
 
 const SpookyMessage = styled.div`
-  font-family: 'Creepster', cursive;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   font-size: 1.8rem;
   color: #8b0000;
   font-weight: bold;
@@ -96,6 +91,7 @@ const SpookyMessage = styled.div`
   transition: opacity 0.3s ease-in-out;
   letter-spacing: 1px;
   text-transform: uppercase;
+  text-shadow: 0 0 8px #000, 0 0 16px #8b0000;
   
   @media (max-width: 768px) {
     font-size: 1.4rem;
@@ -126,13 +122,11 @@ const SpookyCountdown = ({ onComplete }) => {
         setCount(count - 1);
         setShowMessage(true);
         
-        // Hide message after 2.5 seconds to match the faster pace
         setTimeout(() => setShowMessage(false), 2500);
-      }, 3000); // Changed from 4000ms to 3000ms (3 seconds)
+      }, 3000);
 
       return () => clearTimeout(timer);
     } else {
-      // Countdown complete, start the riddles - decreased delay to 2.5 seconds
       setTimeout(() => {
         onComplete();
       }, 2500);
