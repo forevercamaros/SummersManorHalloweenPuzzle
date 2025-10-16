@@ -288,11 +288,23 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
         if (answerElement.current) {
             answerElement.current.focus();
         }
+        
+        // Attempt to autoplay audio if it's an audio riddle
+        if (RiddleData.type === "audio" && audioElement.current && !clueRevealed) {
+            const playPromise = audioElement.current.audioEl.current.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // Auto-play was prevented - this is expected on first load
+                    console.log("Autoplay prevented:", error);
+                });
+            }
+        }
+        
         const timer = setTimeout(() => {
             setShowClueOption(true);
         }, 180000);
         return () => clearTimeout(timer);
-    }, []);
+    }, [RiddleData, clueRevealed]);
 
     function AddAudio({ type, audioFile }) {
         if (type === "audio" && audioFile) {
@@ -308,7 +320,6 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
                                 src={audioPath}
                                 controls
                                 onEnded={() => setShowClueOption(true)}
-                                onCanPlay={() => { if (!clueRevealed) { audioElement.current.audioEl.current.play(); }}}
                             />
                         </SpookyAudioWrapper>
                     </Col>                    
