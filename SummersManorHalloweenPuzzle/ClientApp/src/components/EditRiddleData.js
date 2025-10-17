@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Row, Col, Card, Alert, Modal, ProgressBar } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Card, Alert, Modal, ProgressBar, Badge } from 'react-bootstrap';
 import styled from 'styled-components';
 import { SpookyModal, SpookyButton, DangerButton, SuccessButton } from './styles/SpookyModalStyles';
 
@@ -85,6 +85,63 @@ const AudioFileSelector = styled.div`
     border-radius: 5px;
   }
 `;
+
+const ColorBadge = styled(Badge)`
+  margin: 2px;
+  padding: 8px 12px;
+  cursor: pointer;
+  background-color: ${props => props.color} !important;
+  color: white;
+  border: 2px solid #ff6b1a;
+  opacity: 1;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px ${props => props.color};
+  }
+`;
+
+const SequenceDisplay = styled.div`
+  padding: 10px;
+  background: rgba(139, 0, 0, 0.2);
+  border: 1px solid #ff6b1a;
+  border-radius: 5px;
+  margin-top: 10px;
+  
+  .sequence-title {
+    color: #ff6b1a;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+`;
+
+const WarningBox = styled.div`
+  padding: 10px;
+  background: rgba(255, 107, 26, 0.2);
+  border: 2px solid #ff6b1a;
+  border-radius: 5px;
+  margin-top: 10px;
+  color: #ff6b1a;
+  font-weight: bold;
+  text-align: center;
+`;
+
+const InstructionText = styled.small`
+  display: block;
+  color: #ff6b1a;
+  font-style: italic;
+  margin-top: 5px;
+  margin-bottom: 10px;
+`;
+
+const AVAILABLE_COLORS = [
+    { name: 'Red', value: 'red', hex: '#FF0000' },
+    { name: 'Blue', value: 'blue', hex: '#0000FF' },
+    { name: 'Yellow', value: 'yellow', hex: '#FFFF00' },
+    { name: 'Green', value: 'green', hex: '#00FF00' },
+    { name: 'Orange', value: 'orange', hex: '#FF8000' },
+    { name: 'Purple', value: 'purple', hex: '#800080' }
+];
 
 export default function EditRiddleData() {
     const [riddles, setRiddles] = useState({});
@@ -246,6 +303,55 @@ export default function EditRiddleData() {
         }));
     };
 
+    const handleSequenceColorClick = (riddleKey, color) => {
+        const riddle = riddles[riddleKey];
+        const currentSequence = riddle.correctSequence || [];
+        
+        // Add color to the sequence (no restriction on duplicates)
+        const newSequence = [...currentSequence, color];
+        
+        // Update sequenceColors to contain unique colors used
+        const uniqueColors = [...new Set(newSequence)];
+        
+        setRiddles(prev => ({
+            ...prev,
+            [riddleKey]: {
+                ...prev[riddleKey],
+                sequenceColors: uniqueColors,
+                correctSequence: newSequence
+            }
+        }));
+    };
+
+    const handleRemoveFromSequence = (riddleKey, index) => {
+        const riddle = riddles[riddleKey];
+        const correctSequence = riddle.correctSequence || [];
+        const newSequence = correctSequence.filter((_, i) => i !== index);
+        
+        // Update unique colors based on remaining sequence
+        const uniqueColors = [...new Set(newSequence)];
+        
+        setRiddles(prev => ({
+            ...prev,
+            [riddleKey]: {
+                ...prev[riddleKey],
+                sequenceColors: uniqueColors,
+                correctSequence: newSequence
+            }
+        }));
+    };
+
+    const handleClearSequence = (riddleKey) => {
+        setRiddles(prev => ({
+            ...prev,
+            [riddleKey]: {
+                ...prev[riddleKey],
+                sequenceColors: [],
+                correctSequence: []
+            }
+        }));
+    };
+
     const addNewRiddle = () => {
         const riddleKeys = Object.keys(riddles);
         const nextNumber = riddleKeys.length + 1;
@@ -261,7 +367,9 @@ export default function EditRiddleData() {
                 clue: '',
                 audioFile: '',
                 bonusText: '',
-                bonusAnswer: ''
+                bonusAnswer: '',
+                sequenceColors: [],
+                correctSequence: []
             }
         }));
     };
@@ -282,6 +390,21 @@ export default function EditRiddleData() {
     };
 
     const saveRiddleData = async () => {
+        // Validate sequence riddles before saving
+        const invalidRiddles = [];
+        Object.entries(riddles).forEach(([key, riddle]) => {
+            if (riddle.type === 'sequence') {
+                if (!riddle.correctSequence || riddle.correctSequence.length === 0) {
+                    invalidRiddles.push(`${key}: No sequence configured`);
+                }
+            }
+        });
+
+        if (invalidRiddles.length > 0) {
+            showAlert('error', `Cannot save! Fix these sequence riddles:\n${invalidRiddles.join('\n')}`);
+            return;
+        }
+
         setSaving(true);
         try {
             console.log('Saving riddle data:', riddles);
@@ -326,7 +449,7 @@ export default function EditRiddleData() {
             <SpookyTitle>Edit Riddle Data</SpookyTitle>
             
             {alert.show && (
-                <Alert variant={alert.type === 'success' ? 'success' : alert.type === 'warning' ? 'warning' : 'danger'}>
+                <Alert variant={alert.type === 'success' ? 'success' : alert.type === 'warning' ? 'warning' : 'danger'} style={{ whiteSpace: 'pre-line' }}>
                     {alert.message}
                 </Alert>
             )}
@@ -368,6 +491,7 @@ export default function EditRiddleData() {
                                     >
                                         <option value="text">Text</option>
                                         <option value="audio">Audio</option>
+                                        <option value="sequence">Sequence</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
@@ -413,6 +537,61 @@ export default function EditRiddleData() {
                                 </Col>
                             )}
                         </Row>
+
+                        {riddle.type === 'sequence' && (
+                            <>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Build Color Sequence</Form.Label>
+                                    <InstructionText>
+                                        Click colors below in the order users must tap them. 
+                                        Colors can be used multiple times. Not all colors need to be used.
+                                    </InstructionText>
+                                    <div>
+                                        {AVAILABLE_COLORS.map(color => (
+                                            <ColorBadge
+                                                key={color.value}
+                                                color={color.hex}
+                                                onClick={() => handleSequenceColorClick(riddleKey, color.value)}
+                                                title={`Click to add ${color.name} to sequence`}
+                                            >
+                                                {color.name} +
+                                            </ColorBadge>
+                                        ))}
+                                    </div>
+                                </Form.Group>
+
+                                {(riddle.correctSequence || []).length > 0 ? (
+                                    <SequenceDisplay>
+                                        <div className="sequence-title">Current Sequence (click to remove):</div>
+                                        {(riddle.correctSequence || []).map((color, index) => {
+                                            const colorData = AVAILABLE_COLORS.find(c => c.value === color);
+                                            return (
+                                                <ColorBadge
+                                                    key={index}
+                                                    color={colorData.hex}
+                                                    onClick={() => handleRemoveFromSequence(riddleKey, index)}
+                                                    title={`Click to remove from position ${index + 1}`}
+                                                >
+                                                    {index + 1}. {colorData.name} X
+                                                </ColorBadge>
+                                            );
+                                        })}
+                                        <div style={{ marginTop: '10px' }}>
+                                            <DangerButton 
+                                                size="sm"
+                                                onClick={() => handleClearSequence(riddleKey)}
+                                            >
+                                                Clear All
+                                            </DangerButton>
+                                        </div>
+                                    </SequenceDisplay>
+                                ) : (
+                                    <WarningBox>
+                                        WARNING: Click colors above to build the sequence
+                                    </WarningBox>
+                                )}
+                            </>
+                        )}
                         
                         <Form.Group className="mb-3">
                             <Form.Label>Riddle Text</Form.Label>
@@ -425,30 +604,32 @@ export default function EditRiddleData() {
                             />
                         </Form.Group>
 
-                        <Row>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Answer</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={riddle.answer || ''}
-                                        onChange={(e) => handleRiddleChange(riddleKey, 'answer', e.target.value)}
-                                        placeholder="Correct answer"
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Bonus Answer</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={riddle.bonusAnswer || ''}
-                                        onChange={(e) => handleRiddleChange(riddleKey, 'bonusAnswer', e.target.value)}
-                                        placeholder="Optional bonus answer"
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
+                        {riddle.type !== 'sequence' && (
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Answer</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={riddle.answer || ''}
+                                            onChange={(e) => handleRiddleChange(riddleKey, 'answer', e.target.value)}
+                                            placeholder="Correct answer"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Bonus Answer</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={riddle.bonusAnswer || ''}
+                                            onChange={(e) => handleRiddleChange(riddleKey, 'bonusAnswer', e.target.value)}
+                                            placeholder="Optional bonus answer"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        )}
 
                         <Form.Group className="mb-3">
                             <Form.Label>Bonus Text</Form.Label>
@@ -460,6 +641,22 @@ export default function EditRiddleData() {
                                 placeholder="Optional bonus question for extra time..."
                             />
                         </Form.Group>
+
+                        {riddle.type === 'sequence' && (
+                            <Row>
+                                <Col md={6}>
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>Bonus Answer</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={riddle.bonusAnswer || ''}
+                                            onChange={(e) => handleRiddleChange(riddleKey, 'bonusAnswer', e.target.value)}
+                                            placeholder="Optional bonus answer"
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        )}
 
                         <Form.Group className="mb-3">
                             <Form.Label>Clue Text</Form.Label>

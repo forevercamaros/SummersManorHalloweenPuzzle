@@ -39,6 +39,17 @@ const evilGlow = keyframes`
   }
 `;
 
+const buttonPulse = keyframes`
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 10px currentColor;
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+`;
+
 const FadeContainer = styled.div`
   transition: opacity ${props => props.duration}ms ease-in-out;
   opacity: ${props => (props.state === 'entering' || props.state === 'entered' ? '1' : '0')};
@@ -82,6 +93,109 @@ const ClueDiv = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+`;
+
+const SequenceButtonsContainer = styled.div`
+  margin: 20px 8px;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(10, 10, 10, 0.9) 0%, rgba(139, 0, 0, 0.3) 100%);
+  border: 2px solid #ff6b1a;
+  border-radius: 8px;
+  box-shadow: 
+    0 0 20px rgba(255, 107, 26, 0.3),
+    inset 0 0 20px rgba(139, 0, 0, 0.2);
+`;
+
+const SequenceButtonGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.75rem;
+  }
+`;
+
+const ColorButton = styled.button`
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 80px;
+  border: 3px solid #ff6b1a;
+  border-radius: 8px;
+  background-color: ${props => props.color};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 20px ${props => props.color};
+    animation: ${buttonPulse} 1s infinite;
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  @media (max-width: 768px) {
+    min-height: 60px;
+    font-size: 0.9rem;
+  }
+`;
+
+const SequenceDisplay = styled.div`
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(10, 10, 10, 0.6);
+  border: 2px solid #ff6b1a;
+  border-radius: 8px;
+  text-align: center;
+  
+  h5 {
+    color: #ff6b1a;
+    margin-bottom: 0.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    text-shadow: 0 0 8px rgba(255, 107, 26, 0.5);
+  }
+  
+  .sequence-items {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .sequence-item {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ff6b1a;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+    
+    @media (max-width: 768px) {
+      width: 30px;
+      height: 30px;
+      font-size: 0.8rem;
+    }
+  }
 `;
 
 const SpookyInputGroup = styled(InputGroup)`
@@ -249,7 +363,19 @@ const SpookyAudioWrapper = styled.div`
   }
 `;
 
-export default function Riddle({ onSolved, RiddleData, onAddTime }) {    
+// Color mapping for sequence riddles
+const COLOR_MAP = {
+    red: '#FF0000',
+    blue: '#0000FF',
+    yellow: '#FFFF00',
+    green: '#00FF00',
+    orange: '#FF8000',
+    purple: '#800080'
+};
+
+export default function Riddle({ onSolved, RiddleData, onAddTime }) {
+    console.log('Riddle component received RiddleData:', JSON.stringify(RiddleData, null, 2));
+    
     const answerElement = useRef(null);
     const bonusElement = useRef(null);
     const audioElement = useRef(null);
@@ -260,6 +386,8 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     const [showClue, setShowClue] = useState(false);
     const [clueRevealed, setClueRevealed] = useState(false);
     const [showClueOption, setShowClueOption] = useState(false);
+    const [userSequence, setUserSequence] = useState([]);
+    const [sequenceSolved, setSequenceSolved] = useState(false);
 
     const handleCloseClue = () => setShowClue(false);
     const handleShowClue = () => {
@@ -285,7 +413,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     }
 
     useEffect(() => {
-        if (answerElement.current) {
+        if (answerElement.current && RiddleData.type !== 'sequence') {
             answerElement.current.focus();
         }
         
@@ -328,6 +456,142 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
         } else {
             return ("");
         }
+    }
+
+    function AddSequenceButtons({ type, sequenceColors, correctSequence }) {
+        // Ensure arrays are initialized, even if null was passed
+        const colors = sequenceColors || [];
+        const sequence = correctSequence || [];
+        
+        // Add debug logging
+        console.log('AddSequenceButtons called with:', { 
+            type, 
+            sequenceColors: colors, 
+            correctSequence: sequence,
+            sequenceColorsType: typeof colors,
+            sequenceColorsIsArray: Array.isArray(colors),
+            correctSequenceType: typeof sequence,
+            correctSequenceIsArray: Array.isArray(sequence)
+        });
+        
+        if (type !== "sequence") {
+            return null;
+        }
+        
+        if (!colors || !Array.isArray(colors) || colors.length === 0) {
+            return (
+                <Row>
+                    <Col>
+                        <SequenceButtonsContainer>
+                            <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
+                                No colors configured for this sequence riddle.
+                            </p>
+                        </SequenceButtonsContainer>
+                    </Col>
+                </Row>
+            );
+        }
+        
+        if (!sequence || !Array.isArray(sequence) || sequence.length === 0) {
+            return (
+                <Row>
+                    <Col>
+                        <SequenceButtonsContainer>
+                            <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
+                                No correct sequence configured for this riddle.<br />
+                                Please go to the Settings page and edit this riddle to set up the correct sequence.
+                            </p>
+                        </SequenceButtonsContainer>
+                    </Col>
+                </Row>
+            );
+        }
+
+        const handleColorClick = (color) => {
+            if (sequenceSolved) return;
+
+            const newSequence = [...userSequence, color];
+            setUserSequence(newSequence);
+
+            // Check if the sequence matches so far
+            const correctSoFar = sequence.slice(0, newSequence.length);
+            const isCorrectSoFar = newSequence.every((c, i) => c === correctSoFar[i]);
+
+            if (!isCorrectSoFar) {
+                // Wrong sequence - reset
+                setTimeout(() => {
+                    setUserSequence([]);
+                }, 500);
+                return;
+            }
+
+            // Check if complete
+            if (newSequence.length === sequence.length) {
+                setSequenceSolved(true);
+                setReadOnlyAnswer(true);
+                
+                // Check for bonus
+                if (RiddleData.bonusText && 
+                    RiddleData.bonusText.trim() !== "" && 
+                    typeof RiddleData.bonusText !== 'undefined' && 
+                    clueRevealed === false) {
+                    handleShowBonus();
+                } else {
+                    onSolved();
+                }
+            }
+        };
+
+        const handleReset = () => {
+            setUserSequence([]);
+        };
+
+        return (
+            <Row>
+                <Col>
+                    <SequenceButtonsContainer>
+                        <SequenceButtonGrid>
+                            {colors.map((color, index) => (
+                                <ColorButton
+                                    key={index}
+                                    color={COLOR_MAP[color.toLowerCase()]}
+                                    onClick={() => handleColorClick(color)}
+                                    disabled={sequenceSolved}
+                                >
+                                    {color.charAt(0).toUpperCase() + color.slice(1)}
+                                </ColorButton>
+                            ))}
+                        </SequenceButtonGrid>
+                        
+                        {userSequence.length > 0 && (
+                            <SequenceDisplay>
+                                <h5>Your Sequence:</h5>
+                                <div className="sequence-items">
+                                    {userSequence.map((color, index) => (
+                                        <div
+                                            key={index}
+                                            className="sequence-item"
+                                            style={{ backgroundColor: COLOR_MAP[color.toLowerCase()] }}
+                                        >
+                                            {index + 1}
+                                        </div>
+                                    ))}
+                                </div>
+                                {!sequenceSolved && (
+                                    <SpookyButton 
+                                        size="sm" 
+                                        className="mt-2"
+                                        onClick={handleReset}
+                                    >
+                                        Reset
+                                    </SpookyButton>
+                                )}
+                            </SequenceDisplay>
+                        )}
+                    </SequenceButtonsContainer>
+                </Col>
+            </Row>
+        );
     }
 
     function AddClue({ clueText, clue }) {
@@ -430,16 +694,23 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
                     <RiddleText>{RiddleData.riddle}</RiddleText>
                 </Col>
             </Row>
-            <AddAudio type={RiddleData.type} audioFile={RiddleData.audioFile} />            
+            <AddAudio type={RiddleData.type} audioFile={RiddleData.audioFile} />
+            <AddSequenceButtons 
+                type={RiddleData.type} 
+                sequenceColors={RiddleData.sequenceColors} 
+                correctSequence={RiddleData.correctSequence}
+            />
             <AddBonus bonusText={RiddleData.bonusText} bonusAnswer={RiddleData.bonusAnswer} />
-            <Row>
-                <Col>
-                    <SpookyInputGroup className="mb-3">
-                        <InputGroup.Text id="basic-addon1">Answer</InputGroup.Text>
-                        <SpookyFormControl ref={answerElement} onChange={TextChange} readOnly={readOnlyAnswer}/>
-                    </SpookyInputGroup>
-                </Col>
-            </Row>
+            {RiddleData.type !== 'sequence' && (
+                <Row>
+                    <Col>
+                        <SpookyInputGroup className="mb-3">
+                            <InputGroup.Text id="basic-addon1">Answer</InputGroup.Text>
+                            <SpookyFormControl ref={answerElement} onChange={TextChange} readOnly={readOnlyAnswer}/>
+                        </SpookyInputGroup>
+                    </Col>
+                </Row>
+            )}
             <Transition in={showClueOption} timeout={1000}>
                 {state => (
                     <FadeContainer state={state} duration={1000}>
