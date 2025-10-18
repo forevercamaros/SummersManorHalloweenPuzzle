@@ -35,6 +35,18 @@ export default function Home() {
     const solvedNodeRef = useRef(null);
     const audioElement = useRef(null);
 
+    // Replace the useMemo block with a ref-backed object
+    const riddlePropsRef = useRef({
+        RiddleData: null,
+        onSolved: () => {},
+        onAddTime: () => {}
+    });
+
+    // Update the ref’s current on each render without changing the object identity
+    riddlePropsRef.current.RiddleData = gameState.riddle;
+    riddlePropsRef.current.onSolved = gameLogic.onSolved;
+    riddlePropsRef.current.onAddTime = gameLogic.addTime;
+
     // Function to safely attempt audio play without throwing errors
     const tryPlayAudio = () => {
         if (!audioElement.current?.audioEl?.current) return;
@@ -266,9 +278,7 @@ export default function Home() {
                 {state => (
                     <FadeContainer ref={riddleNodeRef} state={state} duration={fadeDuration}>
                         <Riddle
-                            RiddleData={gameState.riddle}
-                            onSolved={gameLogic.onSolved}
-                            onAddTime={gameLogic.addTime}
+                            {...riddlePropsRef.current}
                         />
                     </FadeContainer>
                 )}
