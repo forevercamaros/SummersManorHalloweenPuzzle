@@ -9,6 +9,8 @@ const StyledContainer = styled(Container)`
   min-height: 100vh;
   color: white;
   padding: 20px;
+  /* Make room so content doesn't sit under the fixed action bar */
+  padding-bottom: 110px;
 `;
 
 const StyledCard = styled(Card)`
@@ -69,6 +71,28 @@ const WarningBox = styled.div`
 
 const InstructionText = styled.small`
   display: block; color: #ff6b1a; font-style: italic; margin-top: 5px; margin-bottom: 10px;
+`;
+
+/* New fixed action bar anchored to the bottom of the screen */
+const ActionBar = styled.div`
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1030; /* below Bootstrap modals (1055), above page content */
+  background: rgba(0, 0, 0, 0.92);
+  border-top: 1px solid #ff6b1a;
+  backdrop-filter: blur(6px);
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+`;
+
+const ActionBarInner = styled.div`
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 `;
 
 // Preset colors
@@ -418,14 +442,7 @@ export default function EditRiddleData() {
         </Alert>
       )}
 
-      <Row className="mb-3">
-        <Col>
-          <SuccessButton onClick={addNewRiddle}>Add New Riddle</SuccessButton>
-          <SpookyButton className="ms-3" onClick={saveRiddleData} disabled={saving}>
-            {saving ? 'Saving...' : 'Save All Changes'}
-          </SpookyButton>
-        </Col>
-      </Row>
+      {/* Removed the top buttons; now placed in a fixed ActionBar at the bottom */}
 
       {Object.entries(riddles).map(([riddleKey, riddle]) => (
         <StyledCard key={riddleKey}>
@@ -606,6 +623,16 @@ export default function EditRiddleData() {
           </Card.Body>
         </StyledCard>
       ))}
+
+      {/* Fixed bottom action bar */}
+      <ActionBar>
+        <ActionBarInner>
+          <SuccessButton onClick={addNewRiddle}>Add New Riddle</SuccessButton>
+          <SpookyButton onClick={saveRiddleData} disabled={saving}>
+            {saving ? 'Saving...' : 'Save All Changes'}
+          </SpookyButton>
+        </ActionBarInner>
+      </ActionBar>
 
       <SpookyModal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
         <Modal.Header closeButton><Modal.Title>Confirm Delete</Modal.Title></Modal.Header>

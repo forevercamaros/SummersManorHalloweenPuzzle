@@ -101,35 +101,26 @@ const SpookyMessage = styled.div`
 
 const SpookyCountdown = ({ onComplete }) => {
   const [count, setCount] = useState(10);
-  const [showMessage, setShowMessage] = useState(false);
 
+  // Use only 5 messages. First one will show for counts 1 and 2, etc.
   const spookyMessages = [
-    "The darkness awakens...",
-    "Ancient spirits stir...",
-    "Shadows grow longer...",
-    "The manor comes alive...",
-    "Whispers in the walls...",
-    "Something watches you...",
-    "The hunt begins...",
-    "Evil stirs within...",
-    "Beware what lurks ahead...",
-    "Your fate awaits..."
+    "The darkness awakens...",      // shows for 1-2
+    "Shadows grow longer...",       // shows for 3-4
+    "Whispers in the walls...",     // shows for 5-6
+    "Beware what lurks ahead...",   // shows for 7-8
+    "Your fate awaits..."           // shows for 9-10
   ];
+
+  // Map two numbers per message (1-2 => index 0, 3-4 => index 1, ..., 9-10 => index 4)
+  const messageIndex = Math.max(0, Math.min(4, Math.floor((count - 1) / 2)));
+  const currentMessage = spookyMessages[messageIndex];
 
   useEffect(() => {
     if (count > 0) {
-      const timer = setTimeout(() => {
-        setCount(count - 1);
-        setShowMessage(true);
-        
-        setTimeout(() => setShowMessage(false), 2500);
-      }, 3000);
-
+      const timer = setTimeout(() => setCount(count - 1), 1000);
       return () => clearTimeout(timer);
     } else {
-      setTimeout(() => {
-        onComplete();
-      }, 2500);
+      setTimeout(() => onComplete(), 1000);
     }
   }, [count, onComplete]);
 
@@ -143,8 +134,8 @@ const SpookyCountdown = ({ onComplete }) => {
           <CountdownText>
             Prepare yourself...
           </CountdownText>
-          <SpookyMessage show={showMessage}>
-            {showMessage ? spookyMessages[10 - count] : ''}
+          <SpookyMessage show={true}>
+            {currentMessage}
           </SpookyMessage>
         </>
       ) : (
