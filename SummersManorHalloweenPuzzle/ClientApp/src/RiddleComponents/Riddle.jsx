@@ -50,6 +50,34 @@ const buttonPulse = keyframes`
   }
 `;
 
+const shakeAnimation = keyframes`
+  0%, 100% { transform: translateX(0) scale(1); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px) scale(1.02); }
+  20%, 40%, 60%, 80% { transform: translateX(10px) scale(1.02); }
+`;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+`;
+
+const fadeOut = keyframes`
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+`;
+
 const FadeContainer = styled.div`
   transition: opacity ${props => props.duration}ms ease-in-out;
   opacity: ${props => (props.state === 'entering' || props.state === 'entered' ? '1' : '0')};
@@ -104,6 +132,7 @@ const SequenceButtonsContainer = styled.div`
   box-shadow: 
     0 0 20px rgba(255, 107, 26, 0.3),
     inset 0 0 20px rgba(139, 0, 0, 0.2);
+  position: relative;
 `;
 
 const SequenceButtonGrid = styled.div`
@@ -156,45 +185,50 @@ const ColorButton = styled.button`
   }
 `;
 
-const SequenceDisplay = styled.div`
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(10, 10, 10, 0.6);
-  border: 2px solid #ff6b1a;
-  border-radius: 8px;
+const FailureOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  animation: ${props => props.$fadeOut ? fadeOut : fadeIn} 0.5s ease-out;
+  pointer-events: ${props => props.$fadeOut ? 'none' : 'all'};
+`;
+
+const FailureMessage = styled.div`
+  max-width: 600px;
+  margin: 0 20px;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.95) 0%, rgba(255, 107, 26, 0.7) 100%);
+  border: 4px solid #ff0000;
+  border-radius: 16px;
+  color: #ff6b1a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
   text-align: center;
+  text-shadow: 0 0 12px #8b0000, 0 0 24px #ff0000;
+  animation: ${shakeAnimation} 0.5s ease-out, ${spookyFlicker} 2s infinite;
+  box-shadow: 
+    0 0 40px rgba(255, 0, 0, 0.8),
+    0 0 80px rgba(139, 0, 0, 0.6),
+    inset 0 0 40px rgba(139, 0, 0, 0.4);
+  transform-origin: center;
   
-  h5 {
-    color: #ff6b1a;
-    margin-bottom: 0.5rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-    text-shadow: 0 0 8px rgba(255, 107, 26, 0.5);
+  @media (max-width: 768px) {
+    font-size: 1.3rem;
+    padding: 2rem 1.5rem;
   }
   
-  .sequence-items {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  
-  .sequence-item {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid #ff6b1a;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
-    
-    @media (max-width: 768px) {
-      width: 30px;
-      height: 30px;
-      font-size: 0.8rem;
-    }
+  @media (max-width: 480px) {
+    font-size: 1.1rem;
+    padding: 1.5rem 1rem;
   }
 `;
 
@@ -373,6 +407,20 @@ const COLOR_MAP = {
     purple: '#800080'
 };
 
+// Spooky failure messages
+const FAILURE_MESSAGES = [
+    "The spirits reject your sequence... Try again, if you dare!",
+    "Wrong! The shadows whisper of your failure...",
+    "Your soul trembles as the darkness denies your attempt!",
+    "The cursed pattern eludes you... Beware the creeping dread!",
+    "Incorrect! The haunted sequence mocks your feeble effort!",
+    "The phantom colors fade... Your sequence has been banished!",
+    "A ghastly mistake! The void swallows your sequence whole!",
+    "The ancient spell rejects your offering... Try once more!",
+    "Your sequence crumbles into the abyss of despair!",
+    "The vengeful spirits laugh at your misguided attempt!"
+];
+
 export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     console.log('Riddle component received RiddleData:', JSON.stringify(RiddleData, null, 2));
     
@@ -388,6 +436,9 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
     const [showClueOption, setShowClueOption] = useState(false);
     const [userSequence, setUserSequence] = useState([]);
     const [sequenceSolved, setSequenceSolved] = useState(false);
+    const [sequenceError, setSequenceError] = useState(false);
+    const [failureMessage, setFailureMessage] = useState('');
+    const [fadeOut, setFadeOut] = useState(false);
 
     const handleCloseClue = () => setShowClue(false);
     const handleShowClue = () => {
@@ -508,7 +559,7 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
         }
 
         const handleColorClick = (color) => {
-            if (sequenceSolved) return;
+            if (sequenceSolved || sequenceError) return;
 
             const newSequence = [...userSequence, color];
             setUserSequence(newSequence);
@@ -518,10 +569,24 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             const isCorrectSoFar = newSequence.every((c, i) => c === correctSoFar[i]);
 
             if (!isCorrectSoFar) {
-                // Wrong sequence - reset
+                // Wrong sequence - show spooky error overlay
+                setSequenceError(true);
+                setFadeOut(false);
+                const randomMessage = FAILURE_MESSAGES[Math.floor(Math.random() * FAILURE_MESSAGES.length)];
+                setFailureMessage(randomMessage);
+                
+                // Start fade out after 3.5 seconds
+                setTimeout(() => {
+                    setFadeOut(true);
+                }, 3500);
+                
+                // Clear everything after fade out completes
                 setTimeout(() => {
                     setUserSequence([]);
-                }, 500);
+                    setSequenceError(false);
+                    setFailureMessage('');
+                    setFadeOut(false);
+                }, 4000);
                 return;
             }
 
@@ -542,10 +607,6 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
             }
         };
 
-        const handleReset = () => {
-            setUserSequence([]);
-        };
-
         return (
             <Row>
                 <Col>
@@ -556,38 +617,12 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
                                     key={index}
                                     color={COLOR_MAP[color.toLowerCase()]}
                                     onClick={() => handleColorClick(color)}
-                                    disabled={sequenceSolved}
+                                    disabled={sequenceSolved || sequenceError}
                                 >
                                     {color.charAt(0).toUpperCase() + color.slice(1)}
                                 </ColorButton>
                             ))}
                         </SequenceButtonGrid>
-                        
-                        {userSequence.length > 0 && (
-                            <SequenceDisplay>
-                                <h5>Your Sequence:</h5>
-                                <div className="sequence-items">
-                                    {userSequence.map((color, index) => (
-                                        <div
-                                            key={index}
-                                            className="sequence-item"
-                                            style={{ backgroundColor: COLOR_MAP[color.toLowerCase()] }}
-                                        >
-                                            {index + 1}
-                                        </div>
-                                    ))}
-                                </div>
-                                {!sequenceSolved && (
-                                    <SpookyButton 
-                                        size="sm" 
-                                        className="mt-2"
-                                        onClick={handleReset}
-                                    >
-                                        Reset
-                                    </SpookyButton>
-                                )}
-                            </SequenceDisplay>
-                        )}
                     </SequenceButtonsContainer>
                 </Col>
             </Row>
@@ -689,6 +724,13 @@ export default function Riddle({ onSolved, RiddleData, onAddTime }) {
 
     return (
         <Container fluid>
+            {sequenceError && failureMessage && (
+                <FailureOverlay $fadeOut={fadeOut}>
+                    <FailureMessage>
+                        {failureMessage}
+                    </FailureMessage>
+                </FailureOverlay>
+            )}            
             <Row>
                 <Col>
                     <RiddleText>{RiddleData.riddle}</RiddleText>
