@@ -41,7 +41,6 @@ namespace SummersManorHalloweenPuzzle.Controllers
             {
                 _logger.LogInformation("GetRiddleData endpoint called");
                 
-                // If MongoDB connection fails, return default data
                 if (string.IsNullOrEmpty(_MongoDBUserName) || string.IsNullOrEmpty(_MongoDBPassword) || string.IsNullOrEmpty(_MongoDBServer))
                 {
                     _logger.LogWarning("MongoDB connection parameters not found, returning default riddles");
@@ -73,12 +72,12 @@ namespace SummersManorHalloweenPuzzle.Controllers
                     };
                 }
                 
-                // Log the riddle data for debugging
-                foreach (var riddle in riddleDataDoc.Riddles)
+                foreach (var r in riddleDataDoc.Riddles)
                 {
-                    _logger.LogInformation($"Riddle {riddle.Key}: Type={riddle.Value.Type}, " +
-                        $"SequenceColors={riddle.Value.SequenceColors?.Count ?? 0}, " +
-                        $"CorrectSequence={riddle.Value.CorrectSequence?.Count ?? 0}");
+                    _logger.LogInformation($"Riddle {r.Key}: Type={r.Value.Type}, " +
+                        $"SequenceColors={r.Value.SequenceColors?.Count ?? 0}, " +
+                        $"CorrectSequence={r.Value.CorrectSequence?.Count ?? 0}, " +
+                        $"SequenceColorNames={r.Value.SequenceColorNames?.Count ?? 0}");
                 }
                 
                 return new RiddleDataResponse 
@@ -92,7 +91,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
                 _logger.LogError(e, "Error getting riddle data");
                 return new RiddleDataResponse 
                 { 
-                    Success = true, // Return success with default data as fallback
+                    Success = true,
                     Error = e.Message,
                     Riddles = GetDefaultRiddles() 
                 };
@@ -131,7 +130,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
                 { 
                     Success = false, 
                     Error = e.Message,
-                    AudioFiles = new List<string>() // Return empty list on error
+                    AudioFiles = new List<string>()
                 };
             }
         }
@@ -191,12 +190,12 @@ namespace SummersManorHalloweenPuzzle.Controllers
             {
                 _logger.LogInformation("SaveRiddleData endpoint called");
                 
-                // Log incoming data for debugging
-                foreach (var riddle in request.Riddles)
+                foreach (var r in request.Riddles)
                 {
-                    _logger.LogInformation($"Saving Riddle {riddle.Key}: Type={riddle.Value.Type}, " +
-                        $"SequenceColors={riddle.Value.SequenceColors?.Count ?? 0}, " +
-                        $"CorrectSequence={riddle.Value.CorrectSequence?.Count ?? 0}");
+                    _logger.LogInformation($"Saving Riddle {r.Key}: Type={r.Value.Type}, " +
+                        $"SequenceColors={r.Value.SequenceColors?.Count ?? 0}, " +
+                        $"CorrectSequence={r.Value.CorrectSequence?.Count ?? 0}, " +
+                        $"SequenceColorNames={r.Value.SequenceColorNames?.Count ?? 0}");
                 }
                 
                 if (string.IsNullOrEmpty(_MongoDBUserName) || string.IsNullOrEmpty(_MongoDBPassword) || string.IsNullOrEmpty(_MongoDBServer))
@@ -211,10 +210,8 @@ namespace SummersManorHalloweenPuzzle.Controllers
                 var database = client.GetDatabase("SummersManor");
                 var collection = database.GetCollection<RiddleDataDocument>("RiddleData");
 
-                // Delete existing riddle data
                 collection.DeleteMany(new BsonDocument());
 
-                // Insert new riddle data
                 var riddleDataDoc = new RiddleDataDocument
                 {
                     Riddles = request.Riddles,
@@ -239,7 +236,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
                 ["riddle1"] = new RiddleItem
                 {
                     Type = "audio",
-                    AudioFile = "donttrytocheat4", // Use actual filename for PsychoTheme
+                    AudioFile = "donttrytocheat4",
                     Riddle = "An eerie theme can make a scary movie even more memorable. Name the film this song is from.",
                     Answer = "Psycho",
                     BonusText = "Provide the last name of the actress who starred in this film for an extra 60 seconds",
@@ -277,47 +274,50 @@ namespace SummersManorHalloweenPuzzle.Controllers
 
     public class RiddleItem
     {
-        // Support both PascalCase (for MongoDB) and camelCase (for JSON)
         [JsonPropertyName("type")]
-        [BsonElement("Type")]  // Changed to PascalCase for MongoDB
+        [BsonElement("Type")]
         public string Type { get; set; }
         
         [JsonPropertyName("audioFile")]
-        [BsonElement("AudioFile")]  // Changed to PascalCase for MongoDB
+        [BsonElement("AudioFile")]
         public string AudioFile { get; set; }
         
         [JsonPropertyName("riddle")]
-        [BsonElement("Riddle")]  // Changed to PascalCase for MongoDB
+        [BsonElement("Riddle")]
         public string Riddle { get; set; }
         
         [JsonPropertyName("answer")]
-        [BsonElement("Answer")]  // Changed to PascalCase for MongoDB
+        [BsonElement("Answer")]
         public string Answer { get; set; }
         
         [JsonPropertyName("bonusText")]
-        [BsonElement("BonusText")]  // Changed to PascalCase for MongoDB
+        [BsonElement("BonusText")]
         public string BonusText { get; set; }
         
         [JsonPropertyName("bonusAnswer")]
-        [BsonElement("BonusAnswer")]  // Changed to PascalCase for MongoDB
+        [BsonElement("BonusAnswer")]
         public string BonusAnswer { get; set; }
         
         [JsonPropertyName("clueText")]
-        [BsonElement("ClueText")]  // Changed to PascalCase for MongoDB
+        [BsonElement("ClueText")]
         public string ClueText { get; set; }
         
         [JsonPropertyName("clue")]
-        [BsonElement("Clue")]  // Changed to PascalCase for MongoDB
+        [BsonElement("Clue")]
         public string Clue { get; set; }
         
-        // New properties for sequence riddles
         [JsonPropertyName("sequenceColors")]
-        [BsonElement("SequenceColors")]  // Changed to PascalCase for MongoDB
+        [BsonElement("SequenceColors")]
         public List<string> SequenceColors { get; set; } = new List<string>();
         
         [JsonPropertyName("correctSequence")]
-        [BsonElement("CorrectSequence")]  // Changed to PascalCase for MongoDB
+        [BsonElement("CorrectSequence")]
         public List<string> CorrectSequence { get; set; } = new List<string>();
+        
+        // Explicitly map names for JSON and Mongo
+        [JsonPropertyName("sequenceColorNames")]
+        [BsonElement("SequenceColorNames")]
+        public Dictionary<string, string>? SequenceColorNames { get; set; } = new();
     }
 
     public class RiddleDataResponse
