@@ -28,6 +28,7 @@ stages:
           $(Build.BuildNumber)
           
 - stage: DEV
+  trigger: manual
   displayName: Deploy To Dev
   jobs:
   - job: DeployToDev
@@ -61,6 +62,7 @@ stages:
         tags: |
           dev.$(Build.BuildNumber)
 - stage: TEST
+  trigger: manual
   displayName: Deploy To Test
   jobs:
   - job: DeployToTest
