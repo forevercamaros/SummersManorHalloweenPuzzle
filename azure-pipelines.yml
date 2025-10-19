@@ -94,7 +94,7 @@ stages:
         containerRegistry: 'Harbor Container Registry'
         repository: 'summershalloween/summershalloween'
         tags: |
-          dev.$(Build.BuildNumber)
+          test.$(Build.BuildNumber)
 - stage: PROD
   trigger: manual
   displayName: Deploy To Prod
