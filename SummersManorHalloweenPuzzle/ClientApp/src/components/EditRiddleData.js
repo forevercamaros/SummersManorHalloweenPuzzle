@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Card, Alert, Modal, ProgressBar, Badge } from 'react-bootstrap';
 import styled from 'styled-components';
 import { SpookyModal, SpookyButton, DangerButton, SuccessButton } from './styles/SpookyModalStyles';
+import QRCode from 'qrcode';
 
 const StyledContainer = styled(Container)`
   margin-top: 20px;
@@ -59,9 +60,44 @@ const ColorBadge = styled(Badge)`
   &:hover { transform: scale(1.05); box-shadow: 0 0 10px ${props => props.color}; }
 `;
 
+const CodeBadge = styled(Badge)`
+  margin: 2px; padding: 8px 12px; cursor: pointer;
+  background-color: rgba(139, 0, 0, 0.6) !important;
+  color: #fff; border: 2px solid #ff6b1a; opacity: 1; user-select: none;
+  &:hover { transform: scale(1.05); box-shadow: 0 0 10px rgba(255, 107, 26, 0.4); }
+`;
+
 const SequenceDisplay = styled.div`
   padding: 10px; background: rgba(139, 0, 0, 0.2); border: 1px solid #ff6b1a; border-radius: 5px; margin-top: 10px;
   .sequence-title { color: #ff6b1a; font-weight: bold; margin-bottom: 8px; }
+`;
+
+// New: QR image styling
+const QrGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+`;
+
+const QrTile = styled.div`
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const QrImage = styled.img`
+  width: 128px;
+  height: 128px;
+  border: 2px solid #ff6b1a;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 0 12px rgba(255, 107, 26, 0.25), inset 0 0 12px rgba(139, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  &:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 16px rgba(255, 107, 26, 0.5), inset 0 0 12px rgba(139, 0, 0, 0.15);
+  }
 `;
 
 const WarningBox = styled.div`
@@ -115,6 +151,17 @@ const toHex = (val) => {
   return (m || v).toUpperCase();
 };
 
+// Generate a human-friendly unique code
+const generateQrValue = (existing = []) => {
+  const year = String(new Date().getFullYear()).slice(-2);
+  let code;
+  do {
+    const rand = Math.random().toString(36).slice(2, 8).toUpperCase(); // 6 chars
+    code = `SM-${year}-${rand}`;
+  } while (existing.includes(code));
+  return code;
+};
+
 export default function EditRiddleData() {
   const [riddles, setRiddles] = useState({});
   const [loading, setLoading] = useState(true);
@@ -134,6 +181,11 @@ export default function EditRiddleData() {
     selectedName: ''
   });
 
+  // Per-riddle input for adding QR codes (optional override)
+  const [qrInputs, setQrInputs] = useState({});
+  // Per-riddle map of code -> dataURL for display
+  const [qrImages, setQrImages] = useState({}); // { [riddleKey]: { [code]: dataUrl } }
+
   useEffect(() => {
     fetchRiddleData();
     fetchAudioFiles();
@@ -147,14 +199,14 @@ export default function EditRiddleData() {
       let data;
       try { data = JSON.parse(responseText); }
       catch { throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`); }
-      // normalize sequenceColorNames
+      // normalize sequenceColorNames and qrSequence (fallback for PascalCase)
       if (data.success) {
         const serverRiddles = data.riddles || {};
         const normalizedRiddles = Object.fromEntries(
           Object.entries(serverRiddles).map(([key, riddle]) => {
-            // prefer camelCase; fallback to PascalCase if present
             const names = riddle.sequenceColorNames || riddle.SequenceColorNames || {};
-            return [key, { ...riddle, sequenceColorNames: names }];
+            const qrSeq = riddle.qrSequence || riddle.QrSequence || [];
+            return [key, { ...riddle, sequenceColorNames: names, qrSequence: qrSeq }];
           })
         );
         setRiddles(normalizedRiddles);
@@ -228,14 +280,16 @@ export default function EditRiddleData() {
         bonusText: 'Provide the last name of the actress who starred in this film for an extra 60 seconds',
         bonusAnswer: 'Leigh',
         clueText: 'At a loss? Click here for a clue, but you will will be penalized 30 seconds.',
-        clue: 'This movie gave a lot of people a healthy fear of shower curtains'
+        clue: 'This movie gave a lot of people a healthy fear of shower curtains',
+        qrSequence: []
       },
       'riddle2': {
         type: 'text',
         riddle: 'This fiery predator guards our yard along with his emaciated keeper. Are you brave enough to get up close? You\'ll need the number of pointed gnashers to move on.',
         answer: '20',
         clueText: 'Need a hint? Click here for a clue, but you will will be penalized 30 seconds.',
-        clue: 'Hope this guy doesn\'t have a case of dragon breath.'
+        clue: 'Hope this guy doesn\'t have a case of dragon breath.',
+        qrSequence: []
       }
     });
   };
@@ -311,6 +365,73 @@ export default function EditRiddleData() {
     }));
   };
 
+  // Ensure a QR image exists in state for a code (data URL)
+  const ensureQrImage = async (riddleKey, code) => {
+    try {
+      const url = await QRCode.toDataURL(code, {
+        width: 512,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+        color: { dark: '#000000', light: '#FFFFFF' }
+      });
+      setQrImages(prev => ({
+        ...prev,
+        [riddleKey]: { ...(prev[riddleKey] || {}), [code]: url }
+      }));
+    } catch (e) {
+      console.error('QR generation failed:', e);
+      showAlert('error', `Failed to generate QR for "${code}": ${e?.message || e}`);
+    }
+  };
+
+  // QR sequence helpers
+  const addQrToSequence = (riddleKey) => {
+    const riddle = riddles[riddleKey] || {};
+    const existing = riddle.qrSequence || [];
+    // If user typed a value, use it; otherwise generate a new unique one
+    let next = (qrInputs[riddleKey] || '').trim();
+    if (!next) {
+      next = generateQrValue(existing);
+    }
+    if (existing.includes(next)) {
+      showAlert('warning', `Code "${next}" is already added.`);
+      return;
+    }
+    const newSeq = [...existing, next];
+    setRiddles(prev => ({
+      ...prev,
+      [riddleKey]: { ...prev[riddleKey], qrSequence: newSeq }
+    }));
+    setQrInputs(prev => ({ ...prev, [riddleKey]: '' }));
+    // Create QR image in the background
+    ensureQrImage(riddleKey, next);
+  };
+
+  const handleRemoveFromQrSequence = (riddleKey, index) => {
+    const riddle = riddles[riddleKey] || {};
+    const existing = riddle.qrSequence || [];
+    const removed = existing[index];
+    const newSeq = existing.filter((_, i) => i !== index);
+    setRiddles(prev => ({
+      ...prev,
+      [riddleKey]: { ...prev[riddleKey], qrSequence: newSeq }
+    }));
+    // Optionally remove from qrImages cache
+    setQrImages(prev => {
+      const rMap = { ...(prev[riddleKey] || {}) };
+      delete rMap[removed];
+      return { ...prev, [riddleKey]: rMap };
+    });
+  };
+
+  const handleClearQrSequence = (riddleKey) => {
+    setRiddles(prev => ({
+      ...prev,
+      [riddleKey]: { ...prev[riddleKey], qrSequence: [] }
+    }));
+    setQrImages(prev => ({ ...prev, [riddleKey]: {} }));
+  };
+
   const addNewRiddle = () => {
     const riddleKeys = Object.keys(riddles);
     const nextNumber = riddleKeys.length + 1;
@@ -328,7 +449,8 @@ export default function EditRiddleData() {
         bonusAnswer: '',
         sequenceColors: [],
         correctSequence: [],
-        sequenceColorNames: {}
+        sequenceColorNames: {},
+        qrSequence: []
       }
     }));
   };
@@ -348,7 +470,7 @@ export default function EditRiddleData() {
     setRiddleToDelete('');
   };
 
-  // Normalize legacy names to hex, keep names map
+  // Normalize legacy names to hex, keep names map; also trim QR entries
   const normalizeRiddlesForSave = (input) => {
     const clone = JSON.parse(JSON.stringify(input));
     Object.entries(clone).forEach(([key, riddle]) => {
@@ -364,22 +486,31 @@ export default function EditRiddleData() {
         });
         riddle.sequenceColorNames = remapped;
       }
+      if (riddle.type === 'qrsequence') {
+        const seq = (riddle.qrSequence || []).map(s => (s ?? '').toString().trim()).filter(s => s.length > 0);
+        riddle.qrSequence = seq;
+      }
     });
     return clone;
   };
 
   const saveRiddleData = async () => {
-    // Validate sequence riddles
+    // Validate sequence and qrsequence riddles
     const invalidRiddles = [];
     Object.entries(riddles).forEach(([key, riddle]) => {
       if (riddle.type === 'sequence') {
         if (!riddle.correctSequence || riddle.correctSequence.length === 0) {
-          invalidRiddles.push(`${key}: No sequence configured`);
+          invalidRiddles.push(`${key}: No color sequence configured`);
+        }
+      }
+      if (riddle.type === 'qrsequence') {
+        if (!riddle.qrSequence || riddle.qrSequence.length === 0) {
+          invalidRiddles.push(`${key}: No QR codes configured`);
         }
       }
     });
     if (invalidRiddles.length > 0) {
-      showAlert('error', `Cannot save! Fix these sequence riddles:\n${invalidRiddles.join('\n')}`);
+      showAlert('error', `Cannot save! Fix these riddles:\n${invalidRiddles.join('\n')}`);
       return;
     }
 
@@ -462,6 +593,7 @@ export default function EditRiddleData() {
                     <option value="text">Text</option>
                     <option value="audio">Audio</option>
                     <option value="sequence">Sequence</option>
+                    <option value="qrsequence">QR Codes</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -534,6 +666,61 @@ export default function EditRiddleData() {
               </>
             )}
 
+            {riddle.type === 'qrsequence' && (
+              <>
+                <Form.Group className="mb-3">
+                  <Form.Label>Configure QR Codes</Form.Label>
+                  <InstructionText>
+                    Click "Add Code" to auto-generate a code (or type your own). The QR will appear below.
+                    Click/tap a QR to remove it.
+                  </InstructionText>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <Form.Control
+                      type="text"
+                      placeholder="Leave blank to auto-generate (e.g., SM-25-ABC123)"
+                      value={qrInputs[riddleKey] || ''}
+                      onChange={(e) => setQrInputs(prev => ({ ...prev, [riddleKey]: e.target.value }))}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addQrToSequence(riddleKey); } }}
+                    />
+                    <SuccessButton size="sm" onClick={() => addQrToSequence(riddleKey)}>Add Code</SuccessButton>
+                  </div>
+                </Form.Group>
+
+                {(riddle.qrSequence || []).length > 0 ? (
+                  <SequenceDisplay>
+                    <div className="sequence-title">Codes for this riddle (click a QR to remove):</div>
+                    <QrGrid>
+                      {(riddle.qrSequence || []).map((code, index) => {
+                        const url = (qrImages[riddleKey] && qrImages[riddleKey][code]) || '';
+                        if (!url) {
+                          ensureQrImage(riddleKey, code);
+                        }
+                        return (
+                          <QrTile key={`${code}-${index}`}>
+                            <QrImage
+                              src={
+                                url ||
+                                'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='
+                              }
+                              alt={`QR for ${code}`}
+                              title={`Click to remove ${code}`}
+                              onClick={() => handleRemoveFromQrSequence(riddleKey, index)}
+                            />
+                            <small style={{ color: '#ccc', marginTop: 6 }}>{index + 1}. {code}</small>
+                          </QrTile>
+                        );
+                      })}
+                    </QrGrid>
+                    <div style={{ marginTop: '10px' }}>
+                      <DangerButton size="sm" onClick={() => handleClearQrSequence(riddleKey)}>Clear All</DangerButton>
+                    </div>
+                  </SequenceDisplay>
+                ) : (
+                  <WarningBox>WARNING: Add at least one code</WarningBox>
+                )}
+              </>
+            )}
+
             <Form.Group className="mb-3">
               <Form.Label>Riddle Text</Form.Label>
               <Form.Control
@@ -545,7 +732,7 @@ export default function EditRiddleData() {
               />
             </Form.Group>
 
-            {riddle.type !== 'sequence' && (
+            {(riddle.type === 'text' || riddle.type === 'audio') && (
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
@@ -583,7 +770,7 @@ export default function EditRiddleData() {
               />
             </Form.Group>
 
-            {riddle.type === 'sequence' && (
+            {(riddle.type === 'sequence' || riddle.type === 'qrsequence') && (
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">

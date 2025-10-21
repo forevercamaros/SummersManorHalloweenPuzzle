@@ -20,7 +20,6 @@ namespace SummersManorHalloweenPuzzle
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllersWithViews();
 
             // In production, the React files will be served from this directory
@@ -28,10 +27,12 @@ namespace SummersManorHalloweenPuzzle
             {
                 configuration.RootPath = "ClientApp/build";
             });
-            services.AddHttpsRedirection(options =>{
+
+            services.AddHttpsRedirection(options =>
+            {
                 options.RedirectStatusCode = (int)System.Net.HttpStatusCode.TemporaryRedirect;
                 options.HttpsPort = 443;
-                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,11 +49,14 @@ namespace SummersManorHalloweenPuzzle
                 app.UseHsts();
                 //app.UseHttpsRedirection();
             }
-            
+
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+
+            // Enable WebSockets so SPA proxy can tunnel WDS/FastRefresh websocket traffic
+            app.UseWebSockets();
 
             app.UseEndpoints(endpoints =>
             {
@@ -67,6 +71,7 @@ namespace SummersManorHalloweenPuzzle
 
                 if (env.IsDevelopment())
                 {
+                    // This runs the React dev server and proxies traffic (including websockets with UseWebSockets enabled)
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }
             });

@@ -318,6 +318,10 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [JsonPropertyName("sequenceColorNames")]
         [BsonElement("SequenceColorNames")]
         public Dictionary<string, string>? SequenceColorNames { get; set; } = new();
+        
+        [JsonPropertyName("qrSequence")]
+        [BsonElement("QrSequence")]
+        public List<string> QrSequence { get; set; } = new List<string>();
     }
 
     public class RiddleDataResponse

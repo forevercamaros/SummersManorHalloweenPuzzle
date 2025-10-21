@@ -10,6 +10,7 @@ import FormControl from 'react-bootstrap/FormControl'
 import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import { Transition } from 'react-transition-group';
+import QrSequenceScanner from '../components/QrSequenceScanner';
 
 const spookyFlicker = keyframes`
   0%, 100% { opacity: 1; }
@@ -405,6 +406,12 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
   const lastTypedAtRef = useRef(0);
   const lastAudioTimeRef = useRef(0);
 
+  // Track scanned QR codes (unique) for qrsequence type
+  const [scannedCodes, setScannedCodes] = useState(new Set());
+  // Keep a ref in sync to avoid stale closures during rapid scans
+  const scannedCodesRef = useRef(new Set());
+  useEffect(() => { scannedCodesRef.current = scannedCodes; }, [scannedCodes]);
+
   const handleCloseClue = () => setShowClue(false);
   const handleShowClue = () => {
     if (RiddleData.type === "audio") {
@@ -422,7 +429,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
   const focusBonusInput = () => { if (bonusElement.current) bonusElement.current.focus(); };
 
   useEffect(() => {
-    if (answerElement.current && RiddleData.type !== 'sequence') {
+    if (answerElement.current && type !== 'sequence' && type !== 'qrsequence') {
       answerElement.current.focus();
     }
     if (RiddleData.type === "audio" && audioElement.current && !clueRevealed) {
@@ -431,9 +438,19 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
     }
     const timer = setTimeout(() => { setShowClueOption(true); }, 180000);
     return () => clearTimeout(timer);
-  }, [RiddleData, clueRevealed]);
+  }, [RiddleData, clueRevealed, type]);
 
   useEffect(() => { if (showBonus) setTimeout(() => focusBonusInput(), 0); }, [showBonus]);
+
+  // Reset QR scan progress when riddle changes or when switching types
+  useEffect(() => {
+    setScannedCodes(new Set());
+    setUserSequence([]);
+    setSequenceSolved(false);
+    setSequenceError(false);
+    setFailureMessage('');
+    setFadeOut(false);
+  }, [RiddleData]);
 
   const handleColorClick = useCallback((colorValue) => {
     if (sequenceSolved || sequenceError) return;
@@ -607,6 +624,67 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
     shuffledColorsRef.current = { key: colorsKey, value: shuffleArray(withIndex) };
   }
 
+  const normalizeQr = (s) => (s ?? '').toString().trim().toLowerCase();
+
+  // Precompute expected codes for qrsequence; allow orderless scanning
+  const expectedCodes = useMemo(() => {
+    const raw = (RiddleData.qrSequence && RiddleData.qrSequence.length > 0
+      ? RiddleData.qrSequence
+      : RiddleData.correctSequence || []);
+    return (raw || []).map(normalizeQr);
+  }, [RiddleData.qrSequence, RiddleData.correctSequence]);
+
+  const expectedSet = useMemo(() => new Set(expectedCodes), [expectedCodes]);
+  const expectedCount = expectedSet.size;
+
+  // onCode handler now returns a result so the scanner can style its overlay
+  const handleQrCode = useCallback((qrTextRaw) => {
+    const code = normalizeQr(qrTextRaw);
+
+    if (!expectedCount) {
+      // No codes configured; show a soft error
+      setSequenceError(true);
+      setFadeOut(false);
+      setFailureMessage("No QR codes are configured for this riddle.");
+      setTimeout(() => setFadeOut(true), 2500);
+      setTimeout(() => { setSequenceError(false); setFailureMessage(''); setFadeOut(false); }, 3000);
+      return 'invalid';
+    }
+
+    if (!expectedSet.has(code)) {
+      // Unknown code scanned
+      return 'invalid';
+    }
+
+    // Duplicate (already scanned earlier in this riddle)
+    if (scannedCodesRef.current.has(code)) {
+      return 'duplicate';
+    }
+
+    // Accept new code using functional update to avoid stale state
+    const newSize = scannedCodesRef.current.size + 1;
+    setScannedCodes(prev => {
+      const next = new Set(prev);
+      next.add(code);
+      scannedCodesRef.current = next;
+      // Keep userSequence in sync for any legacy UI
+      setUserSequence(Array.from(next));
+      return next;
+    });
+
+    if (newSize === expectedCount) {
+      setSequenceSolved(true);
+      setReadOnlyAnswer(true);
+      if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
+        handleShowBonus();
+      } else {
+        onSolved();
+      }
+    }
+
+    return 'accepted';
+  }, [expectedSet, expectedCount, RiddleData.bonusText, clueRevealed, onSolved]);
+
   return (
     <Transition in={true} timeout={1000}>
       {state => (
@@ -659,6 +737,31 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
                           );
                         })}
                       </SequenceButtonGrid>
+                    )}
+                  </SequenceButtonsContainer>
+                </Col>
+              </Row>
+            )}
+
+            {type === "qrsequence" && (
+              <Row>
+                <Col>
+                  <SequenceButtonsContainer>
+                    {expectedCount === 0 ? (
+                      <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
+                        No QR codes configured for this riddle.<br />
+                        Please go to the Settings page and edit this riddle to set up the expected codes.
+                      </p>
+                    ) : (
+                      <>
+                        <div style={{ color: '#dedede', textAlign: 'center', marginBottom: '0.5rem' }}>
+                          Progress: {scannedCodes.size}/{expectedCount}
+                        </div>
+                        <QrSequenceScanner
+                          onCode={handleQrCode}
+                          onError={() => {/* camera/permission errors are transient; ignore or surface if desired */}}
+                        />
+                      </>
                     )}
                   </SequenceButtonsContainer>
                 </Col>
@@ -733,7 +836,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
               </FailureOverlay>
             )}
 
-            {type !== "sequence" && (
+            {type !== "sequence" && type !== "qrsequence" && (
               <Row>
                 <Col>
                   <SpookyInputGroup>

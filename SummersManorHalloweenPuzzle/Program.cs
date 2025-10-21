@@ -18,14 +18,19 @@ namespace SummersManorHalloweenPuzzle
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
 #if DEBUG
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                    webBuilder.UseKestrel(configure =>{
-                        configure.Listen(System.Net.IPAddress.Any, 5000);
-                    });
-                });                
+Host.CreateDefaultBuilder(args)
+    .ConfigureWebHostDefaults(webBuilder =>
+    {
+        webBuilder.UseStartup<Startup>();
+        webBuilder.UseKestrel(configure =>
+        {
+            configure.Listen(System.Net.IPAddress.Any, 5000); // HTTP
+            configure.Listen(System.Net.IPAddress.Any, 5001, listenOptions =>
+            {
+                listenOptions.UseHttps("certificate.pfx", "Rpibbb013.");
+            });
+        });
+    });
 #else
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
@@ -35,6 +40,6 @@ namespace SummersManorHalloweenPuzzle
                         configure.Listen(System.Net.IPAddress.Any, 80);
                     });
                 }); 
-#endif               
+#endif
     }
 }

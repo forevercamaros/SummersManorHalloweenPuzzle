@@ -57,7 +57,6 @@ export const useGameLogic = (gameState, timerDuration) => {
                 body: JSON.stringify(data),
                 headers: { 'Content-Type': 'application/json' },
             });
-            console.log(`Updated remaining time in DB: ${remainingTime}s for group: ${groupName}`);
         } catch (error) {
             console.error('Error updating remaining time in database:', error);
         }
