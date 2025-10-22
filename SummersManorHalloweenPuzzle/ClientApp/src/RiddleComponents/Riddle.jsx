@@ -56,6 +56,13 @@ const fadeOut = keyframes`
   to { opacity: 0; transform: scale(0.8); }
 `;
 
+// New: floating ghost animation for AR overlay
+const ghostFloat = keyframes`
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
+`;
+
 const FadeContainer = styled.div`
   transition: opacity ${props => props.$duration}ms ease-in-out;
   opacity: ${props => (props.$state === 'entering' || props.$state === 'entered' ? '1' : '0')};
@@ -329,6 +336,24 @@ const SpookyAudioWrapper = styled.div`
   }
 `;
 
+// New: ghost overlay for AR mode
+const GhostOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+`;
+
+const GhostSprite = styled.div`
+  font-size: clamp(80px, 22vw, 200px);
+  line-height: 1;
+  animation: ${ghostFloat} 3s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 107, 26, 0.4);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
+`;
+
 // Back-compat names for known colors
 const KNOWN_COLOR_MAP = {
   red: '#FF0000',
@@ -377,7 +402,7 @@ const shuffleArray = (arr) => {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+    [copy[i], copy[j]] = [copy[j]];
   }
   return copy;
 };
@@ -408,9 +433,11 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
   // Track scanned QR codes (unique) for qrsequence type
   const [scannedCodes, setScannedCodes] = useState(new Set());
-  // Keep a ref in sync to avoid stale closures during rapid scans
   const scannedCodesRef = useRef(new Set());
   useEffect(() => { scannedCodesRef.current = scannedCodes; }, [scannedCodes]);
+
+  // New: AR detection state (true once any valid code is seen)
+  const [arDetected, setArDetected] = useState(false);
 
   const handleCloseClue = () => setShowClue(false);
   const handleShowClue = () => {
@@ -442,7 +469,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
   useEffect(() => { if (showBonus) setTimeout(() => focusBonusInput(), 0); }, [showBonus]);
 
-  // Reset QR scan progress when riddle changes or when switching types
+  // Reset state when riddle changes
   useEffect(() => {
     setScannedCodes(new Set());
     setUserSequence([]);
@@ -450,6 +477,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
     setSequenceError(false);
     setFailureMessage('');
     setFadeOut(false);
+    setArDetected(false);
   }, [RiddleData]);
 
   const handleColorClick = useCallback((colorValue) => {
@@ -626,7 +654,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
   const normalizeQr = (s) => (s ?? '').toString().trim().toLowerCase();
 
-  // Precompute expected codes for qrsequence; allow orderless scanning
+  // Precompute expected codes for qrsequence or ar; allow orderless scanning
   const expectedCodes = useMemo(() => {
     const raw = (RiddleData.qrSequence && RiddleData.qrSequence.length > 0
       ? RiddleData.qrSequence
@@ -637,12 +665,11 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
   const expectedSet = useMemo(() => new Set(expectedCodes), [expectedCodes]);
   const expectedCount = expectedSet.size;
 
-  // onCode handler now returns a result so the scanner can style its overlay
+  // onCode handler for qrsequence
   const handleQrCode = useCallback((qrTextRaw) => {
     const code = normalizeQr(qrTextRaw);
 
     if (!expectedCount) {
-      // No codes configured; show a soft error
       setSequenceError(true);
       setFadeOut(false);
       setFailureMessage("No QR codes are configured for this riddle.");
@@ -652,22 +679,18 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
     }
 
     if (!expectedSet.has(code)) {
-      // Unknown code scanned
       return 'invalid';
     }
 
-    // Duplicate (already scanned earlier in this riddle)
     if (scannedCodesRef.current.has(code)) {
       return 'duplicate';
     }
 
-    // Accept new code using functional update to avoid stale state
     const newSize = scannedCodesRef.current.size + 1;
     setScannedCodes(prev => {
       const next = new Set(prev);
       next.add(code);
       scannedCodesRef.current = next;
-      // Keep userSequence in sync for any legacy UI
       setUserSequence(Array.from(next));
       return next;
     });
@@ -684,6 +707,15 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
     return 'accepted';
   }, [expectedSet, expectedCount, RiddleData.bonusText, clueRevealed, onSolved]);
+
+  // onCode handler for AR: as soon as any valid code is seen, show the ghost overlay
+  const handleArCode = useCallback((qrTextRaw) => {
+    const code = normalizeQr(qrTextRaw);
+    if (!expectedCount) return 'invalid';
+    if (!expectedSet.has(code)) return 'invalid';
+    setArDetected(true);
+    return 'accepted';
+  }, [expectedSet, expectedCount]);
 
   return (
     <Transition in={true} timeout={1000}>
@@ -737,6 +769,38 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
                           );
                         })}
                       </SequenceButtonGrid>
+                    )}
+                  </SequenceButtonsContainer>
+                </Col>
+              </Row>
+            )}
+
+            {type === "ar" && (
+              <Row>
+                <Col>
+                  <SequenceButtonsContainer>
+                    {expectedCount === 0 ? (
+                      <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
+                        No AR codes configured for this riddle.<br />
+                        Please go to Settings and add at least one code.
+                      </p>
+                    ) : (
+                      <>
+                        <div style={{ color: '#dedede', textAlign: 'center', marginBottom: '0.5rem' }}>
+                          {arDetected ? 'Target acquired! The spirit reveals itself...' : 'Point your camera at the haunted code to summon the ghost.'}
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                          <QrSequenceScanner
+                            onCode={handleArCode}
+                            onError={() => { /* silently ignore transient camera errors */ }}
+                          />
+                          {arDetected && (
+                            <GhostOverlay>
+                              <GhostSprite role="img" aria-label="ghost">??</GhostSprite>
+                            </GhostOverlay>
+                          )}
+                        </div>
+                      </>
                     )}
                   </SequenceButtonsContainer>
                 </Col>

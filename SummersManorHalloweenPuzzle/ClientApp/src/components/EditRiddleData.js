@@ -486,7 +486,7 @@ export default function EditRiddleData() {
         });
         riddle.sequenceColorNames = remapped;
       }
-      if (riddle.type === 'qrsequence') {
+      if (riddle.type === 'qrsequence' || riddle.type === 'ar') {
         const seq = (riddle.qrSequence || []).map(s => (s ?? '').toString().trim()).filter(s => s.length > 0);
         riddle.qrSequence = seq;
       }
@@ -495,7 +495,7 @@ export default function EditRiddleData() {
   };
 
   const saveRiddleData = async () => {
-    // Validate sequence and qrsequence riddles
+    // Validate sequence and qrsequence/ar riddles
     const invalidRiddles = [];
     Object.entries(riddles).forEach(([key, riddle]) => {
       if (riddle.type === 'sequence') {
@@ -503,9 +503,9 @@ export default function EditRiddleData() {
           invalidRiddles.push(`${key}: No color sequence configured`);
         }
       }
-      if (riddle.type === 'qrsequence') {
+      if (riddle.type === 'qrsequence' || riddle.type === 'ar') {
         if (!riddle.qrSequence || riddle.qrSequence.length === 0) {
-          invalidRiddles.push(`${key}: No QR codes configured`);
+          invalidRiddles.push(`${key}: No QR/AR codes configured`);
         }
       }
     });
@@ -594,6 +594,7 @@ export default function EditRiddleData() {
                     <option value="audio">Audio</option>
                     <option value="sequence">Sequence</option>
                     <option value="qrsequence">QR Codes</option>
+                    <option value="ar">AR (Camera)</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -666,13 +667,13 @@ export default function EditRiddleData() {
               </>
             )}
 
-            {riddle.type === 'qrsequence' && (
+            {(riddle.type === 'qrsequence' || riddle.type === 'ar') && (
               <>
                 <Form.Group className="mb-3">
-                  <Form.Label>Configure QR Codes</Form.Label>
+                  <Form.Label>{riddle.type === 'ar' ? 'Configure AR Target Codes' : 'Configure QR Codes'}</Form.Label>
                   <InstructionText>
                     Click "Add Code" to auto-generate a code (or type your own). The QR will appear below.
-                    Click/tap a QR to remove it.
+                    Click/tap a QR to remove it. {riddle.type === 'ar' ? 'Print and place one at the haunted location. When the camera sees it, a ghost will appear.' : ''}
                   </InstructionText>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <Form.Control
@@ -688,7 +689,7 @@ export default function EditRiddleData() {
 
                 {(riddle.qrSequence || []).length > 0 ? (
                   <SequenceDisplay>
-                    <div className="sequence-title">Codes for this riddle (click a QR to remove):</div>
+                    <div className="sequence-title">{riddle.type === 'ar' ? 'AR Codes for this riddle (click a QR to remove):' : 'Codes for this riddle (click a QR to remove):'}</div>
                     <QrGrid>
                       {(riddle.qrSequence || []).map((code, index) => {
                         const url = (qrImages[riddleKey] && qrImages[riddleKey][code]) || '';
@@ -770,7 +771,7 @@ export default function EditRiddleData() {
               />
             </Form.Group>
 
-            {(riddle.type === 'sequence' || riddle.type === 'qrsequence') && (
+            {(riddle.type === 'sequence' || riddle.type === 'qrsequence' || riddle.type === 'ar') && (
               <Row>
                 <Col md={6}>
                   <Form.Group className="mb-3">
