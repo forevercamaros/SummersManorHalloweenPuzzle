@@ -24,6 +24,7 @@ stages:
         command: 'build'
         repository: 'summershalloween/summershalloween'
         Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile.webapp'
+        arguments: '--no-cache'
         tags: |
           $(Build.BuildNumber)
 
