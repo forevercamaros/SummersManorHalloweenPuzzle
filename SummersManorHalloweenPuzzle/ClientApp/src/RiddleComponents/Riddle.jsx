@@ -11,6 +11,7 @@ import Modal from 'react-bootstrap/Modal'
 import Button from 'react-bootstrap/Button'
 import { Transition } from 'react-transition-group';
 import QrSequenceScanner from '../components/QrSequenceScanner';
+import ArMindImage from '../components/ArMindImage';
 
 const spookyFlicker = keyframes`
   0%, 100% { opacity: 1; }
@@ -356,585 +357,565 @@ const GhostSprite = styled.div`
 
 // Back-compat names for known colors
 const KNOWN_COLOR_MAP = {
-  red: '#FF0000',
-  blue: '#0000FF',
-  yellow: '#FFFF00',
-  green: '#00FF00',
-  orange: '#FF8000',
-  purple: '#800080'
+    red: '#FF0000',
+    blue: '#0000FF',
+    yellow: '#FFFF00',
+    green: '#00FF00',
+    orange: '#FF8000',
+    purple: '#800080'
 };
 
 const toCssColor = (value) => {
-  if (!value) return '#000000';
-  const v = String(value).trim();
-  if (v.startsWith('#')) return v;
-  const m = KNOWN_COLOR_MAP[v.toLowerCase()];
-  return m || v;
+    if (!value) return '#000000';
+    const v = String(value).trim();
+    if (v.startsWith('#')) return v;
+    const m = KNOWN_COLOR_MAP[v.toLowerCase()];
+    return m || v;
 };
 
 const getColorLabel = (value, namesMap) => {
-  const v = String(value || '').trim();
-  const hex = v.startsWith('#') ? v.toUpperCase() : (KNOWN_COLOR_MAP[v.toLowerCase()] || v).toUpperCase();
-  // Prefer explicit name from data
-  if (namesMap && typeof namesMap === 'object' && namesMap[hex]) return namesMap[hex];
-  // Fallback to known color name if provided as name
-  if (!v.startsWith('#') && KNOWN_COLOR_MAP[v.toLowerCase()]) return v.charAt(0).toUpperCase() + v.slice(1);
-  // Last resort: show hex
-  return hex.startsWith('#') ? hex : '';
+    const v = String(value || '').trim();
+    const hex = v.startsWith('#') ? v.toUpperCase() : (KNOWN_COLOR_MAP[v.toLowerCase()] || v).toUpperCase();
+    // Prefer explicit name from data
+    if (namesMap && typeof namesMap === 'object' && namesMap[hex]) return namesMap[hex];
+    // Fallback to known color name if provided as name
+    if (!v.startsWith('#') && KNOWN_COLOR_MAP[v.toLowerCase()]) return v.charAt(0).toUpperCase() + v.slice(1);
+    // Last resort: show hex
+    return hex.startsWith('#') ? hex : '';
 };
 
 // Spooky failure messages
 const FAILURE_MESSAGES = [
-  "The spirits reject your sequence... Try again, if you dare!",
-  "Wrong! The shadows whisper of your failure...",
-  "Your soul trembles as the darkness denies your attempt!",
-  "The cursed pattern eludes you... Beware the creeping dread!",
-  "Incorrect! The haunted sequence mocks your feeble effort!",
-  "The phantom colors fade... Your sequence has been banished!",
-  "A ghastly mistake! The void swallows your sequence whole!",
-  "The ancient spell rejects your offering... Try once more!",
-  "Your sequence crumbles into the abyss of despair!",
-  "The vengeful spirits laugh at your misguided attempt!"
+    "The spirits reject your sequence... Try again, if you dare!",
+    "Wrong! The shadows whisper of your failure...",
+    "Your soul trembles as the darkness denies your attempt!",
+    "The cursed pattern eludes you... Beware the creeping dread!",
+    "Incorrect! The haunted sequence mocks your feeble effort!",
+    "The phantom colors fade... Your sequence has been banished!",
+    "A ghastly mistake! The void swallows your sequence whole!",
+    "The ancient spell rejects your offering... Try once more!",
+    "Your sequence crumbles into the abyss of despair!",
+    "The vengeful spirits laugh at your misguided attempt!"
 ];
 
 // Fisher–Yates shuffle to randomize color buttons
 const shuffleArray = (arr) => {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j]];
-  }
-  return copy;
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j]];
+    }
+    return copy;
 };
 
 const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime }) {
-  const type = (RiddleData.type ?? '').toLowerCase();
+    const type = (RiddleData.type ?? '').toLowerCase();
 
-  const answerElement = useRef(null);
-  const bonusElement = useRef(null);
-  const audioElement = useRef(null);
-  const navigate = useNavigate();
+    const answerElement = useRef(null);
+    const bonusElement = useRef(null);
+    const audioElement = useRef(null);
+    const navigate = useNavigate();
 
-  const [readOnlyAnswer, setReadOnlyAnswer] = useState(false);
-  const [readOnlyBonus, setReadOnlyBonus] = useState(false);
-  const [showClue, setShowClue] = useState(false);
-  const [clueRevealed, setClueRevealed] = useState(false);
-  const [showClueOption, setShowClueOption] = useState(false);
-  const [userSequence, setUserSequence] = useState([]);
-  const [sequenceSolved, setSequenceSolved] = useState(false);
-  const [sequenceError, setSequenceError] = useState(false);
-  const [failureMessage, setFailureMessage] = useState('');
-  const [fadeOut, setFadeOut] = useState(false);
-  const [pressedButton, setPressedButton] = useState(null);
-  const [answerText, setAnswerText] = useState('');
-  const [bonusAnswerText, setBonusAnswerText] = useState('');
-  const lastTypedAtRef = useRef(0);
-  const lastAudioTimeRef = useRef(0);
+    const [readOnlyAnswer, setReadOnlyAnswer] = useState(false);
+    const [readOnlyBonus, setReadOnlyBonus] = useState(false);
+    const [showClue, setShowClue] = useState(false);
+    const [clueRevealed, setClueRevealed] = useState(false);
+    const [showClueOption, setShowClueOption] = useState(false);
+    const [userSequence, setUserSequence] = useState([]);
+    const [sequenceSolved, setSequenceSolved] = useState(false);
+    const [sequenceError, setSequenceError] = useState(false);
+    const [failureMessage, setFailureMessage] = useState('');
+    const [fadeOut, setFadeOut] = useState(false);
+    const [pressedButton, setPressedButton] = useState(null);
+    const [answerText, setAnswerText] = useState('');
+    const [bonusAnswerText, setBonusAnswerText] = useState('');
+    const lastTypedAtRef = useRef(0);
+    const lastAudioTimeRef = useRef(0);
 
-  // Track scanned QR codes (unique) for qrsequence type
-  const [scannedCodes, setScannedCodes] = useState(new Set());
-  const scannedCodesRef = useRef(new Set());
-  useEffect(() => { scannedCodesRef.current = scannedCodes; }, [scannedCodes]);
+    // Track scanned QR codes (unique) for qrsequence type
+    const [scannedCodes, setScannedCodes] = useState(new Set());
+    const scannedCodesRef = useRef(new Set());
+    useEffect(() => { scannedCodesRef.current = scannedCodes; }, [scannedCodes]);
 
-  // New: AR detection state (true once any valid code is seen)
-  const [arDetected, setArDetected] = useState(false);
+    // New: AR detection state (true once any valid code is seen)
+    const [arDetected, setArDetected] = useState(false);
 
-  const handleCloseClue = () => setShowClue(false);
-  const handleShowClue = () => {
-    if (RiddleData.type === "audio") {
-      audioElement.current.audioEl.current.pause();
-    }
-    setClueRevealed(true);
-    setShowClue(true);
-    onAddTime(-30);
-  };
+    const handleCloseClue = () => setShowClue(false);
+    const handleShowClue = () => {
+        if (RiddleData.type === "audio") {
+            audioElement.current.audioEl.current.pause();
+        }
+        setClueRevealed(true);
+        setShowClue(true);
+        onAddTime(-30);
+    };
 
-  const [showBonus, setShowBonus] = useState(false);
-  const handleCloseBonus = () => { setShowBonus(false); onSolved(); };
-  const handleShowBonus = () => setShowBonus(true);
+    const [showBonus, setShowBonus] = useState(false);
+    const handleCloseBonus = () => { setShowBonus(false); onSolved(); };
+    const handleShowBonus = () => setShowBonus(true);
 
-  const focusBonusInput = () => { if (bonusElement.current) bonusElement.current.focus(); };
+    const focusBonusInput = () => { if (bonusElement.current) bonusElement.current.focus(); };
 
-  useEffect(() => {
-    if (answerElement.current && type !== 'sequence' && type !== 'qrsequence') {
-      answerElement.current.focus();
-    }
-    if (RiddleData.type === "audio" && audioElement.current && !clueRevealed) {
-      const playPromise = audioElement.current.audioEl.current.play();
-      if (playPromise !== undefined) playPromise.catch(() => {});
-    }
-    const timer = setTimeout(() => { setShowClueOption(true); }, 180000);
-    return () => clearTimeout(timer);
-  }, [RiddleData, clueRevealed, type]);
+    useEffect(() => {
+        if (answerElement.current && type !== 'sequence' && type !== 'qrsequence') {
+            answerElement.current.focus();
+        }
+        if (RiddleData.type === "audio" && audioElement.current && !clueRevealed) {
+            const playPromise = audioElement.current.audioEl.current.play();
+            if (playPromise !== undefined) playPromise.catch(() => { });
+        }
+        const timer = setTimeout(() => { setShowClueOption(true); }, 180000);
+        return () => clearTimeout(timer);
+    }, [RiddleData, clueRevealed, type]);
 
-  useEffect(() => { if (showBonus) setTimeout(() => focusBonusInput(), 0); }, [showBonus]);
+    useEffect(() => { if (showBonus) setTimeout(() => focusBonusInput(), 0); }, [showBonus]);
 
-  // Reset state when riddle changes
-  useEffect(() => {
-    setScannedCodes(new Set());
-    setUserSequence([]);
-    setSequenceSolved(false);
-    setSequenceError(false);
-    setFailureMessage('');
-    setFadeOut(false);
-    setArDetected(false);
-  }, [RiddleData]);
-
-  const handleColorClick = useCallback((colorValue) => {
-    if (sequenceSolved || sequenceError) return;
-    const newSequence = [...userSequence, colorValue];
-    setUserSequence(newSequence);
-
-    const correctSoFar = RiddleData.correctSequence.slice(0, newSequence.length);
-    const isCorrectSoFar = newSequence.every((c, i) => c === correctSoFar[i]);
-
-    if (!isCorrectSoFar) {
-      setSequenceError(true);
-      setFadeOut(false);
-      const randomMessage = FAILURE_MESSAGES[Math.floor(Math.random() * FAILURE_MESSAGES.length)];
-      setFailureMessage(randomMessage);
-      setTimeout(() => setFadeOut(true), 3500);
-      setTimeout(() => {
+    // Reset state when riddle changes
+    useEffect(() => {
+        setScannedCodes(new Set());
         setUserSequence([]);
+        setSequenceSolved(false);
         setSequenceError(false);
         setFailureMessage('');
         setFadeOut(false);
-      }, 4000);
-      return;
+        setArDetected(false);
+    }, [RiddleData]);
+
+    const handleColorClick = useCallback((colorValue) => {
+        if (sequenceSolved || sequenceError) return;
+        const newSequence = [...userSequence, colorValue];
+        setUserSequence(newSequence);
+
+        const correctSoFar = RiddleData.correctSequence.slice(0, newSequence.length);
+        const isCorrectSoFar = newSequence.every((c, i) => c === correctSoFar[i]);
+
+        if (!isCorrectSoFar) {
+            setSequenceError(true);
+            setFadeOut(false);
+            const randomMessage = FAILURE_MESSAGES[Math.floor(Math.random() * FAILURE_MESSAGES.length)];
+            setFailureMessage(randomMessage);
+            setTimeout(() => setFadeOut(true), 3500);
+            setTimeout(() => {
+                setUserSequence([]);
+                setSequenceError(false);
+                setFailureMessage('');
+                setFadeOut(false);
+            }, 4000);
+            return;
+        }
+
+        if (newSequence.length === RiddleData.correctSequence.length) {
+            setSequenceSolved(true);
+            setReadOnlyAnswer(true);
+            if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
+                handleShowBonus();
+            } else {
+                onSolved();
+            }
+        }
+    }, [userSequence, sequenceSolved, sequenceError, RiddleData.correctSequence, RiddleData.bonusText, clueRevealed, onSolved]);
+
+    const normalize = (s) => (s ?? '').toString().trim().toLowerCase();
+
+    // Magic keyword to jump to Settings
+    const SETTINGS_KEYWORD = 'settings';
+
+    const checkAnswer = useCallback((value) => {
+        if (readOnlyAnswer) return;
+        const actual = normalize(value);
+
+        // Navigate to settings if magic word typed
+        if (actual === SETTINGS_KEYWORD) {
+            navigate('/settings');
+            return;
+        }
+
+        const expected = normalize(RiddleData.answer);
+        if (expected && actual === expected) {
+            setReadOnlyAnswer(true);
+            if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
+                handleShowBonus();
+            } else {
+                onSolved();
+            }
+        }
+    }, [readOnlyAnswer, RiddleData.answer, RiddleData.bonusText, clueRevealed, onSolved, navigate]);
+
+    const keepAudioPlaying = useCallback(() => {
+        if (type !== 'audio') return;
+        const el = audioElement.current?.audioEl?.current;
+        if (!el) return;
+        if (!el.ended && lastAudioTimeRef.current > 0 && Math.abs(el.currentTime - lastAudioTimeRef.current) > 0.05) {
+            el.currentTime = lastAudioTimeRef.current;
+        }
+        if (el.paused && !el.ended) {
+            const p = el.play();
+            if (p && typeof p.then === 'function') p.catch(() => { });
+        }
+    }, [type]);
+
+    const checkBonusAnswer = useCallback((value) => {
+        if (readOnlyBonus) return;
+        const expected = normalize(RiddleData.bonusAnswer);
+        const actual = normalize(value);
+        if (expected && actual === expected) {
+            setReadOnlyBonus(true);
+            if (typeof onAddTime === 'function') onAddTime(60);
+            if (showBonus) handleCloseBonus();
+        }
+    }, [readOnlyBonus, RiddleData.bonusAnswer, showBonus, onAddTime]);
+
+    const handleAnswerSubmit = () => {
+        if (readOnlyAnswer) return;
+        const normalizedAnswer = answerText.trim().toLowerCase();
+
+        // Respect magic navigation on submit too
+        if (normalizedAnswer === SETTINGS_KEYWORD) {
+            navigate('/settings');
+            return;
+        }
+
+        if (normalizedAnswer === (RiddleData.answer ?? '').toString().trim().toLowerCase()) {
+            setReadOnlyAnswer(true);
+            if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
+                handleShowBonus();
+            } else {
+                onSolved();
+            }
+        } else {
+            setFadeOut(false);
+            const randomMessage = FAILURE_MESSAGES[Math.floor(Math.random() * FAILURE_MESSAGES.length)];
+            setFailureMessage(randomMessage);
+            setTimeout(() => setFadeOut(true), 3500);
+            setTimeout(() => { setFadeOut(false); setFailureMessage(''); }, 4000);
+        }
+    };
+
+    function AddAudio({ type, audioFile }) {
+        if (type === "audio" && audioFile) {
+            const audioPath = require(`../audio/${audioFile}.mp3`);
+            return (
+                <Row>
+                    <Col>
+                        <SpookyAudioWrapper>
+                            <ReactAudioPlayer
+                                key={audioFile}
+                                ref={audioElement}
+                                src={audioPath}
+                                controls
+                                autoPlay
+                                playsInline
+                                preload="auto"
+                                onEnded={handleAudioEnded}
+                                onPause={handleAudioPause}
+                                listenInterval={250}
+                                onListen={(time) => { lastAudioTimeRef.current = time; }}
+                                onLoadedMetadata={(e) => {
+                                    const el = e.currentTarget;
+                                    if (lastAudioTimeRef.current > 0 && Math.abs(el.currentTime - lastAudioTimeRef.current) > 0.05) {
+                                        el.currentTime = lastAudioTimeRef.current;
+                                    }
+                                }}
+                            />
+                        </SpookyAudioWrapper>
+                    </Col>
+                </Row>
+            );
+        }
+        return "";
     }
 
-    if (newSequence.length === RiddleData.correctSequence.length) {
-      setSequenceSolved(true);
-      setReadOnlyAnswer(true);
-      if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
-        handleShowBonus();
-      } else {
-        onSolved();
-      }
-    }
-  }, [userSequence, sequenceSolved, sequenceError, RiddleData.correctSequence, RiddleData.bonusText, clueRevealed, onSolved]);
+    const handleAudioEnded = useCallback(() => setShowClueOption(true), []);
 
-  const normalize = (s) => (s ?? '').toString().trim().toLowerCase();
+    const handleAudioPause = useCallback(() => {
+        if (type !== 'audio') return;
+        const el = audioElement.current?.audioEl?.current;
+        if (!el || el.ended) return;
+        const justTyped = Date.now() - lastTypedAtRef.current < 1000;
+        const inputHasFocus = document.activeElement === answerElement.current;
+        if ((justTyped || inputHasFocus)) {
+            if (lastAudioTimeRef.current > 0 && Math.abs(el.currentTime - lastAudioTimeRef.current) > 0.05) {
+                el.currentTime = lastAudioTimeRef.current;
+            }
+            const p = el.play();
+            if (p && typeof p.then === 'function') p.catch(() => { });
+        }
+    }, [type]);
 
-  // Magic keyword to jump to Settings
-  const SETTINGS_KEYWORD = 'settings';
-
-  const checkAnswer = useCallback((value) => {
-    if (readOnlyAnswer) return;
-    const actual = normalize(value);
-
-    // Navigate to settings if magic word typed
-    if (actual === SETTINGS_KEYWORD) {
-      navigate('/settings');
-      return;
-    }
-
-    const expected = normalize(RiddleData.answer);
-    if (expected && actual === expected) {
-      setReadOnlyAnswer(true);
-      if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
-        handleShowBonus();
-      } else {
-        onSolved();
-      }
-    }
-  }, [readOnlyAnswer, RiddleData.answer, RiddleData.bonusText, clueRevealed, onSolved, navigate]);
-
-  const keepAudioPlaying = useCallback(() => {
-    if (type !== 'audio') return;
-    const el = audioElement.current?.audioEl?.current;
-    if (!el) return;
-    if (!el.ended && lastAudioTimeRef.current > 0 && Math.abs(el.currentTime - lastAudioTimeRef.current) > 0.05) {
-      el.currentTime = lastAudioTimeRef.current;
-    }
-    if (el.paused && !el.ended) {
-      const p = el.play();
-      if (p && typeof p.then === 'function') p.catch(() => {});
-    }
-  }, [type]);
-
-  const checkBonusAnswer = useCallback((value) => {
-    if (readOnlyBonus) return;
-    const expected = normalize(RiddleData.bonusAnswer);
-    const actual = normalize(value);
-    if (expected && actual === expected) {
-      setReadOnlyBonus(true);
-      if (typeof onAddTime === 'function') onAddTime(60);
-      if (showBonus) handleCloseBonus();
-    }
-  }, [readOnlyBonus, RiddleData.bonusAnswer, showBonus, onAddTime]);
-
-  const handleAnswerSubmit = () => {
-    if (readOnlyAnswer) return;
-    const normalizedAnswer = answerText.trim().toLowerCase();
-
-    // Respect magic navigation on submit too
-    if (normalizedAnswer === SETTINGS_KEYWORD) {
-      navigate('/settings');
-      return;
+    // Stable shuffle for sequence buttons:
+    const colors = RiddleData.sequenceColors || [];
+    const sequence = RiddleData.correctSequence || [];
+    const namesMap = RiddleData.sequenceColorNames || {};
+    const colorsKey = useMemo(() => JSON.stringify(colors), [colors]);
+    const shuffledColorsRef = useRef({ key: '', value: [] });
+    if (type === 'sequence' && shuffledColorsRef.current.key !== colorsKey) {
+        const withIndex = colors.map((c, i) => ({ color: c, originalIndex: i }));
+        shuffledColorsRef.current = { key: colorsKey, value: shuffleArray(withIndex) };
     }
 
-    if (normalizedAnswer === (RiddleData.answer ?? '').toString().trim().toLowerCase()) {
-      setReadOnlyAnswer(true);
-      if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
-        handleShowBonus();
-      } else {
-        onSolved();
-      }
-    } else {
-      setFadeOut(false);
-      const randomMessage = FAILURE_MESSAGES[Math.floor(Math.random() * FAILURE_MESSAGES.length)];
-      setFailureMessage(randomMessage);
-      setTimeout(() => setFadeOut(true), 3500);
-      setTimeout(() => { setFadeOut(false); setFailureMessage(''); }, 4000);
-    }
-  };
+    const normalizeQr = (s) => (s ?? '').toString().trim().toLowerCase();
 
-  function AddAudio({ type, audioFile }) {
-    if (type === "audio" && audioFile) {
-      const audioPath = require(`../audio/${audioFile}.mp3`);
-      return (
-        <Row>
-          <Col>
-            <SpookyAudioWrapper>
-              <ReactAudioPlayer
-                key={audioFile}
-                ref={audioElement}
-                src={audioPath}
-                controls
-                autoPlay
-                playsInline
-                preload="auto"
-                onEnded={handleAudioEnded}
-                onPause={handleAudioPause}
-                listenInterval={250}
-                onListen={(time) => { lastAudioTimeRef.current = time; }}
-                onLoadedMetadata={(e) => {
-                  const el = e.currentTarget;
-                  if (lastAudioTimeRef.current > 0 && Math.abs(el.currentTime - lastAudioTimeRef.current) > 0.05) {
-                    el.currentTime = lastAudioTimeRef.current;
-                  }
-                }}
-              />
-            </SpookyAudioWrapper>
-          </Col>
-        </Row>
-      );
-    }
-    return "";
-  }
+    // Precompute expected codes for qrsequence or ar; allow orderless scanning
+    const expectedCodes = useMemo(() => {
+        const raw = (RiddleData.qrSequence && RiddleData.qrSequence.length > 0
+            ? RiddleData.qrSequence
+            : RiddleData.correctSequence || []);
+        return (raw || []).map(normalizeQr);
+    }, [RiddleData.qrSequence, RiddleData.correctSequence]);
 
-  const handleAudioEnded = useCallback(() => setShowClueOption(true), []);
+    const expectedSet = useMemo(() => new Set(expectedCodes), [expectedCodes]);
+    const expectedCount = expectedSet.size;
 
-  const handleAudioPause = useCallback(() => {
-    if (type !== 'audio') return;
-    const el = audioElement.current?.audioEl?.current;
-    if (!el || el.ended) return;
-    const justTyped = Date.now() - lastTypedAtRef.current < 1000;
-    const inputHasFocus = document.activeElement === answerElement.current;
-    if ((justTyped || inputHasFocus)) {
-      if (lastAudioTimeRef.current > 0 && Math.abs(el.currentTime - lastAudioTimeRef.current) > 0.05) {
-        el.currentTime = lastAudioTimeRef.current;
-      }
-      const p = el.play();
-      if (p && typeof p.then === 'function') p.catch(() => {});
-    }
-  }, [type]);
+    // onCode handler for qrsequence
+    const handleQrCode = useCallback((qrTextRaw) => {
+        const code = normalizeQr(qrTextRaw);
 
-  // Stable shuffle for sequence buttons:
-  const colors = RiddleData.sequenceColors || [];
-  const sequence = RiddleData.correctSequence || [];
-  const namesMap = RiddleData.sequenceColorNames || {};
-  const colorsKey = useMemo(() => JSON.stringify(colors), [colors]);
-  const shuffledColorsRef = useRef({ key: '', value: [] });
-  if (type === 'sequence' && shuffledColorsRef.current.key !== colorsKey) {
-    const withIndex = colors.map((c, i) => ({ color: c, originalIndex: i }));
-    shuffledColorsRef.current = { key: colorsKey, value: shuffleArray(withIndex) };
-  }
+        if (!expectedCount) {
+            setSequenceError(true);
+            setFadeOut(false);
+            setFailureMessage("No QR codes are configured for this riddle.");
+            setTimeout(() => setFadeOut(true), 2500);
+            setTimeout(() => { setSequenceError(false); setFailureMessage(''); setFadeOut(false); }, 3000);
+            return 'invalid';
+        }
 
-  const normalizeQr = (s) => (s ?? '').toString().trim().toLowerCase();
+        if (!expectedSet.has(code)) {
+            return 'invalid';
+        }
 
-  // Precompute expected codes for qrsequence or ar; allow orderless scanning
-  const expectedCodes = useMemo(() => {
-    const raw = (RiddleData.qrSequence && RiddleData.qrSequence.length > 0
-      ? RiddleData.qrSequence
-      : RiddleData.correctSequence || []);
-    return (raw || []).map(normalizeQr);
-  }, [RiddleData.qrSequence, RiddleData.correctSequence]);
+        if (scannedCodesRef.current.has(code)) {
+            return 'duplicate';
+        }
 
-  const expectedSet = useMemo(() => new Set(expectedCodes), [expectedCodes]);
-  const expectedCount = expectedSet.size;
+        const newSize = scannedCodesRef.current.size + 1;
+        setScannedCodes(prev => {
+            const next = new Set(prev);
+            next.add(code);
+            scannedCodesRef.current = next;
+            setUserSequence(Array.from(next));
+            return next;
+        });
 
-  // onCode handler for qrsequence
-  const handleQrCode = useCallback((qrTextRaw) => {
-    const code = normalizeQr(qrTextRaw);
+        if (newSize === expectedCount) {
+            setSequenceSolved(true);
+            setReadOnlyAnswer(true);
+            if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
+                handleShowBonus();
+            } else {
+                onSolved();
+            }
+        }
 
-    if (!expectedCount) {
-      setSequenceError(true);
-      setFadeOut(false);
-      setFailureMessage("No QR codes are configured for this riddle.");
-      setTimeout(() => setFadeOut(true), 2500);
-      setTimeout(() => { setSequenceError(false); setFailureMessage(''); setFadeOut(false); }, 3000);
-      return 'invalid';
-    }
+        return 'accepted';
+    }, [expectedSet, expectedCount, RiddleData.bonusText, clueRevealed, onSolved]);
 
-    if (!expectedSet.has(code)) {
-      return 'invalid';
-    }
+    // onCode handler for AR: as soon as any valid code is seen, show the ghost overlay
+    const handleArCode = useCallback((qrTextRaw) => {
+        const code = normalizeQr(qrTextRaw);
+        if (!expectedCount) return 'invalid';
+        if (!expectedSet.has(code)) return 'invalid';
+        setArDetected(true);
+        return 'accepted';
+    }, [expectedSet, expectedCount]);
 
-    if (scannedCodesRef.current.has(code)) {
-      return 'duplicate';
-    }
+    return (
+        <Transition in={true} timeout={1000}>
+            {state => (
+                <FadeContainer $state={state} $duration={1000}>
+                    <Container fluid>
+                        <Row>
+                            <Col><RiddleText>{RiddleData.riddle}</RiddleText></Col>
+                        </Row>
 
-    const newSize = scannedCodesRef.current.size + 1;
-    setScannedCodes(prev => {
-      const next = new Set(prev);
-      next.add(code);
-      scannedCodesRef.current = next;
-      setUserSequence(Array.from(next));
-      return next;
-    });
+                        <AddAudio type={type} audioFile={RiddleData.audioFile} />
 
-    if (newSize === expectedCount) {
-      setSequenceSolved(true);
-      setReadOnlyAnswer(true);
-      if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
-        handleShowBonus();
-      } else {
-        onSolved();
-      }
-    }
+                        {type === "sequence" && (
+                            <Row>
+                                <Col>
+                                    <SequenceButtonsContainer>
+                                        {(!colors || colors.length === 0) ? (
+                                            <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
+                                                No colors configured for this sequence riddle.
+                                            </p>
+                                        ) : (!sequence || sequence.length === 0) ? (
+                                            <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
+                                                No correct sequence configured for this riddle.<br />
+                                                Please go to the Settings page and edit this riddle to set up the correct sequence.
+                                            </p>
+                                        ) : (
+                                            <SequenceButtonGrid>
+                                                {shuffledColorsRef.current.value.map(({ color, originalIndex }) => {
+                                                    const css = toCssColor(color);
+                                                    const label = getColorLabel(color, namesMap);
+                                                    return (
+                                                        <ColorButton
+                                                            key={originalIndex}
+                                                            color={css}
+                                                            onPointerDown={() => setPressedButton(originalIndex)}
+                                                            onPointerUp={() => {
+                                                                setPressedButton(null);
+                                                                handleColorClick(color);
+                                                            }}
+                                                            onPointerCancel={() => setPressedButton(null)}
+                                                            onPointerLeave={() => setPressedButton(null)}
+                                                            disabled={sequenceSolved || sequenceError}
+                                                            style={pressedButton === originalIndex ? {
+                                                                transform: 'scale(0.92)',
+                                                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.4)',
+                                                                borderWidth: '4px'
+                                                            } : {}}
+                                                        >
+                                                            {label}
+                                                        </ColorButton>
+                                                    );
+                                                })}
+                                            </SequenceButtonGrid>
+                                        )}
+                                    </SequenceButtonsContainer>
+                                </Col>
+                            </Row>
+                        )}
 
-    return 'accepted';
-  }, [expectedSet, expectedCount, RiddleData.bonusText, clueRevealed, onSolved]);
+                        {type === "ar" && (
+                            <ArMindImage
+                                targetSrc="/ar/demon.mind"
+                                black_demon="/ar/scene.gltf"
+                                onDetected={() => setArDetected(true)}
+                            // Optional: tweak transform to align with your printed marker
+                            // modelPosition={new THREE.Vector3(0, 0, 0)}
+                            // modelRotationEuler={new THREE.Euler(-Math.PI / 2, 0, 0)}
+                            // modelScale={0.8}
+                            />
+                        )}
 
-  // onCode handler for AR: as soon as any valid code is seen, show the ghost overlay
-  const handleArCode = useCallback((qrTextRaw) => {
-    const code = normalizeQr(qrTextRaw);
-    if (!expectedCount) return 'invalid';
-    if (!expectedSet.has(code)) return 'invalid';
-    setArDetected(true);
-    return 'accepted';
-  }, [expectedSet, expectedCount]);
+                        {type === "qrsequence" && (
+                            <Row>
+                                <Col>
+                                    <SequenceButtonsContainer>
+                                        {expectedCount === 0 ? (
+                                            <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
+                                                No QR codes configured for this riddle.<br />
+                                                Please go to the Settings page and edit this riddle to set up the expected codes.
+                                            </p>
+                                        ) : (
+                                            <>
+                                                <div style={{ color: '#dedede', textAlign: 'center', marginBottom: '0.5rem' }}>
+                                                    Progress: {scannedCodes.size}/{expectedCount}
+                                                </div>
+                                                <QrSequenceScanner
+                                                    onCode={handleQrCode}
+                                                    onError={() => {/* camera/permission errors are transient; ignore or surface if desired */ }}
+                                                />
+                                            </>
+                                        )}
+                                    </SequenceButtonsContainer>
+                                </Col>
+                            </Row>
+                        )}
 
-  return (
-    <Transition in={true} timeout={1000}>
-      {state => (
-        <FadeContainer $state={state} $duration={1000}>
-          <Container fluid>
-            <Row>
-              <Col><RiddleText>{RiddleData.riddle}</RiddleText></Col>
-            </Row>
+                        <Row>
+                            <Col>
+                                <ClueDiv>
+                                    {showClueOption &&
+                                        <SpookyButton variant="primary" onClick={handleShowClue}>
+                                            Reveal Clue
+                                        </SpookyButton>
+                                    }
 
-            <AddAudio type={type} audioFile={RiddleData.audioFile} />
+                                    <SpookyModal show={showClue} onHide={handleCloseClue} centered size="lg">
+                                        <Modal.Header closeButton>
+                                            <Modal.Title>Clue</Modal.Title>
+                                        </Modal.Header>
+                                        <Modal.Body>
+                                            <div style={{ whiteSpace: 'pre-line' }}>
+                                                {RiddleData.clue}
+                                            </div>
+                                        </Modal.Body>
+                                        <Modal.Footer>
+                                            <SpookyButton variant="secondary" onClick={handleCloseClue}>
+                                                Close
+                                            </SpookyButton>
+                                        </Modal.Footer>
+                                    </SpookyModal>
+                                </ClueDiv>
+                            </Col>
+                        </Row>
 
-            {type === "sequence" && (
-              <Row>
-                <Col>
-                  <SequenceButtonsContainer>
-                    {(!colors || colors.length === 0) ? (
-                      <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
-                        No colors configured for this sequence riddle.
-                      </p>
-                    ) : (!sequence || sequence.length === 0) ? (
-                      <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
-                        No correct sequence configured for this riddle.<br />
-                        Please go to the Settings page and edit this riddle to set up the correct sequence.
-                      </p>
-                    ) : (
-                      <SequenceButtonGrid>
-                        {shuffledColorsRef.current.value.map(({ color, originalIndex }) => {
-                          const css = toCssColor(color);
-                          const label = getColorLabel(color, namesMap);
-                          return (
-                            <ColorButton
-                              key={originalIndex}
-                              color={css}
-                              onPointerDown={() => setPressedButton(originalIndex)}
-                              onPointerUp={() => {
-                                setPressedButton(null);
-                                handleColorClick(color);
-                              }}
-                              onPointerCancel={() => setPressedButton(null)}
-                              onPointerLeave={() => setPressedButton(null)}
-                              disabled={sequenceSolved || sequenceError}
-                              style={pressedButton === originalIndex ? {
-                                transform: 'scale(0.92)',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.4)',
-                                borderWidth: '4px'
-                              } : {}}
-                            >
-                              {label}
-                            </ColorButton>
-                          );
-                        })}
-                      </SequenceButtonGrid>
-                    )}
-                  </SequenceButtonsContainer>
-                </Col>
-              </Row>
+                        {RiddleData.bonusText && (
+                            <SpookyModal show={showBonus} onHide={handleCloseBonus} centered size="lg">
+                                <Modal.Header closeButton>
+                                    <Modal.Title>Bonus Hint</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <div style={{ whiteSpace: 'pre-line', marginBottom: '1rem' }}>
+                                        {RiddleData.bonusText}
+                                    </div>
+                                    {(type === 'sequence' || (typeof RiddleData.bonusAnswer === 'string' && RiddleData.bonusAnswer.trim() !== '')) && (
+                                        <SpookyInputGroup>
+                                            <InputGroup.Text>Bonus Answer</InputGroup.Text>
+                                            <SpookyFormControl
+                                                ref={bonusElement}
+                                                placeholder="Enter bonus answer"
+                                                value={bonusAnswerText}
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    setBonusAnswerText(v);
+                                                    checkBonusAnswer(v);
+                                                }}
+                                                readOnly={readOnlyBonus}
+                                            />
+                                        </SpookyInputGroup>
+                                    )}
+                                </Modal.Body>
+                                <Modal.Footer>
+                                    <SpookyButton variant="secondary" onClick={handleCloseBonus}>
+                                        Close
+                                    </SpookyButton>
+                                </Modal.Footer>
+                            </SpookyModal>
+                        )}
+
+                        {sequenceError && failureMessage && (
+                            <FailureOverlay $fadeOut={fadeOut}>
+                                <FailureMessage>{failureMessage}</FailureMessage>
+                            </FailureOverlay>
+                        )}
+
+                        {type !== "sequence" && type !== "qrsequence" && (
+                            <Row>
+                                <Col>
+                                    <SpookyInputGroup>
+                                        <InputGroup.Text>Answer</InputGroup.Text>
+                                        <SpookyFormControl
+                                            ref={answerElement}
+                                            placeholder="Enter your answer"
+                                            value={answerText}
+                                            onChange={(e) => {
+                                                const v = e.target.value;
+                                                lastTypedAtRef.current = Date.now();
+                                                setAnswerText(v);
+                                                checkAnswer(v);
+                                                keepAudioPlaying();
+                                            }}
+                                            onFocus={() => { keepAudioPlaying(); }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    lastTypedAtRef.current = Date.now();
+                                                    checkAnswer(answerText);
+                                                    keepAudioPlaying();
+                                                }
+                                            }}
+                                            readOnly={readOnlyAnswer}
+                                        />
+                                    </SpookyInputGroup>
+                                </Col>
+                            </Row>
+                        )}
+                    </Container>
+                </FadeContainer>
             )}
-
-            {type === "ar" && (
-              <Row>
-                <Col>
-                  <SequenceButtonsContainer>
-                    {expectedCount === 0 ? (
-                      <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
-                        No AR codes configured for this riddle.<br />
-                        Please go to Settings and add at least one code.
-                      </p>
-                    ) : (
-                      <>
-                        <div style={{ color: '#dedede', textAlign: 'center', marginBottom: '0.5rem' }}>
-                          {arDetected ? 'Target acquired! The spirit reveals itself...' : 'Point your camera at the haunted code to summon the ghost.'}
-                        </div>
-                        <div style={{ position: 'relative' }}>
-                          <QrSequenceScanner
-                            onCode={handleArCode}
-                            onError={() => { /* silently ignore transient camera errors */ }}
-                          />
-                          {arDetected && (
-                            <GhostOverlay>
-                              <GhostSprite role="img" aria-label="ghost">??</GhostSprite>
-                            </GhostOverlay>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </SequenceButtonsContainer>
-                </Col>
-              </Row>
-            )}
-
-            {type === "qrsequence" && (
-              <Row>
-                <Col>
-                  <SequenceButtonsContainer>
-                    {expectedCount === 0 ? (
-                      <p style={{ color: '#ff6b1a', textAlign: 'center' }}>
-                        No QR codes configured for this riddle.<br />
-                        Please go to the Settings page and edit this riddle to set up the expected codes.
-                      </p>
-                    ) : (
-                      <>
-                        <div style={{ color: '#dedede', textAlign: 'center', marginBottom: '0.5rem' }}>
-                          Progress: {scannedCodes.size}/{expectedCount}
-                        </div>
-                        <QrSequenceScanner
-                          onCode={handleQrCode}
-                          onError={() => {/* camera/permission errors are transient; ignore or surface if desired */}}
-                        />
-                      </>
-                    )}
-                  </SequenceButtonsContainer>
-                </Col>
-              </Row>
-            )}
-
-            <Row>
-              <Col>
-                <ClueDiv>
-                  {showClueOption &&
-                    <SpookyButton variant="primary" onClick={handleShowClue}>
-                      Reveal Clue
-                    </SpookyButton>
-                  }
-
-                  <SpookyModal show={showClue} onHide={handleCloseClue} centered size="lg">
-                    <Modal.Header closeButton>
-                      <Modal.Title>Clue</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                      <div style={{ whiteSpace: 'pre-line' }}>
-                        {RiddleData.clue}
-                      </div>
-                    </Modal.Body>
-                    <Modal.Footer>
-                      <SpookyButton variant="secondary" onClick={handleCloseClue}>
-                        Close
-                      </SpookyButton>
-                    </Modal.Footer>
-                  </SpookyModal>
-                </ClueDiv>
-              </Col>
-            </Row>
-
-            {RiddleData.bonusText && (
-              <SpookyModal show={showBonus} onHide={handleCloseBonus} centered size="lg">
-                <Modal.Header closeButton>
-                  <Modal.Title>Bonus Hint</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <div style={{ whiteSpace: 'pre-line', marginBottom: '1rem' }}>
-                    {RiddleData.bonusText}
-                  </div>
-                  {(type === 'sequence' || (typeof RiddleData.bonusAnswer === 'string' && RiddleData.bonusAnswer.trim() !== '')) && (
-                    <SpookyInputGroup>
-                      <InputGroup.Text>Bonus Answer</InputGroup.Text>
-                      <SpookyFormControl
-                        ref={bonusElement}
-                        placeholder="Enter bonus answer"
-                        value={bonusAnswerText}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          setBonusAnswerText(v);
-                          checkBonusAnswer(v);
-                        }}
-                        readOnly={readOnlyBonus}
-                      />
-                    </SpookyInputGroup>
-                  )}
-                </Modal.Body>
-                <Modal.Footer>
-                  <SpookyButton variant="secondary" onClick={handleCloseBonus}>
-                    Close
-                  </SpookyButton>
-                </Modal.Footer>
-              </SpookyModal>
-            )}
-
-            {sequenceError && failureMessage && (
-              <FailureOverlay $fadeOut={fadeOut}>
-                <FailureMessage>{failureMessage}</FailureMessage>
-              </FailureOverlay>
-            )}
-
-            {type !== "sequence" && type !== "qrsequence" && (
-              <Row>
-                <Col>
-                  <SpookyInputGroup>
-                    <InputGroup.Text>Answer</InputGroup.Text>
-                    <SpookyFormControl
-                      ref={answerElement}
-                      placeholder="Enter your answer"
-                      value={answerText}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        lastTypedAtRef.current = Date.now();
-                        setAnswerText(v);
-                        checkAnswer(v);
-                        keepAudioPlaying();
-                      }}
-                      onFocus={() => { keepAudioPlaying(); }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          lastTypedAtRef.current = Date.now();
-                          checkAnswer(answerText);
-                          keepAudioPlaying();
-                        }
-                      }}
-                      readOnly={readOnlyAnswer}
-                    />
-                  </SpookyInputGroup>
-                </Col>
-              </Row>
-            )}
-          </Container>
-        </FadeContainer>
-      )}
-    </Transition>
-  );
+        </Transition>
+    );
 }, (prevProps, nextProps) => JSON.stringify(prevProps.RiddleData) === JSON.stringify(nextProps.RiddleData));
 
 export default MemoizedRiddle;

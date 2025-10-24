@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace SummersManorHalloweenPuzzle
 {
@@ -50,7 +50,14 @@ namespace SummersManorHalloweenPuzzle
                 //app.UseHttpsRedirection();
             }
 
-            app.UseStaticFiles();
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".mind"] = "application/octet-stream";
+            provider.Mappings[".glb"]  = "model/gltf-binary";
+            provider.Mappings[".gltf"] = "model/gltf+json";
+            provider.Mappings[".bin"]  = "application/octet-stream";
+            provider.Mappings[".wasm"] = "application/wasm";
+
+            app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = provider });
             app.UseSpaStaticFiles();
 
             app.UseRouting();
