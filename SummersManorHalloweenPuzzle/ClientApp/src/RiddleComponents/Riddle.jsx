@@ -547,13 +547,19 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
   function AddAudio({ type, audioFile }) {
     if (type === "audio" && audioFile) {
-      const audioPath = require(`../audio/${audioFile}.mp3`);
+      // Support values with or without extension
+      const fileName = (audioFile || '').toString();
+      const normalized = fileName.toLowerCase().endsWith('.mp3') ? fileName : `${fileName}.mp3`;
+
+      // Served by ASP.NET Core static files from wwwroot/audio
+      const audioPath = `/audio/${encodeURIComponent(normalized)}`;
+
       return (
         <Row>
           <Col>
             <SpookyAudioWrapper>
               <ReactAudioPlayer
-                key={audioFile}
+                key={normalized}
                 ref={audioElement}
                 src={audioPath}
                 controls
