@@ -12,6 +12,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace SummersManorHalloweenPuzzle.Controllers
 {
@@ -31,6 +32,32 @@ namespace SummersManorHalloweenPuzzle.Controllers
             _MongoDBUserName = Environment.GetEnvironmentVariable("MONGO_INITDB_ROOT_USERNAME");
             _MongoDBPassword = Environment.GetEnvironmentVariable("MONGO_INITDB_ROOT_PASSWORD");
             _MongoDBServer = Environment.GetEnvironmentVariable("MONGO_SERVER");
+        }
+
+        // Replace this helper to handle case-insensitive Audio/audio on Linux too
+        private string GetWebAudioPath()
+        {
+            var contentRoot = _environment.ContentRootPath;
+            var webRoot = _environment.WebRootPath ?? Path.Combine(contentRoot, "wwwroot");
+            _logger.LogInformation("ContentRootPath={ContentRoot} WebRootPath={WebRoot}", contentRoot, webRoot);
+
+            var lower = Path.Combine(webRoot, "audio");
+            var upper = Path.Combine(webRoot, "Audio");
+
+            if (Directory.Exists(lower)) return lower;
+            if (Directory.Exists(upper)) return upper;
+
+            // Create lowercase by default
+            try
+            {
+                Directory.CreateDirectory(lower);
+                _logger.LogInformation("Created audio directory at {Path}", lower);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed creating audio directory {Path}", lower);
+            }
+            return lower;
         }
 
         [HttpGet]
@@ -104,35 +131,54 @@ namespace SummersManorHalloweenPuzzle.Controllers
         {
             try
             {
-                _logger.LogInformation("GetAudioFiles endpoint called");
-                
-                var audioPath = Path.Combine(_environment.ContentRootPath, "ClientApp", "src", "audio");
-                var audioFiles = new List<string>();
+                var audioPath = GetWebAudioPath();
+                _logger.LogInformation("GetAudioFiles: resolved audioPath={AudioPath}", audioPath);
 
-                if (Directory.Exists(audioPath))
+                if (!Directory.Exists(audioPath))
                 {
-                    var files = Directory.GetFiles(audioPath, "*.mp3");
-                    audioFiles = files.Select(f => Path.GetFileNameWithoutExtension(f)).ToList();
+                    _logger.LogWarning("Audio directory not found: {AudioPath}", audioPath);
+                    return new AudioFilesResponse { Success = true, AudioFiles = new List<string>() };
                 }
 
-                _logger.LogInformation($"Found {audioFiles.Count} audio files: {string.Join(", ", audioFiles)}");
+                // Case-insensitive extension match across platforms
+                var files = Directory.EnumerateFiles(audioPath, "*", SearchOption.TopDirectoryOnly)
+                    .Where(f => string.Equals(Path.GetExtension(f), ".mp3", StringComparison.OrdinalIgnoreCase))
+                    .Select(Path.GetFileNameWithoutExtension)
+                    .OrderBy(n => n)
+                    .ToList();
 
-                return new AudioFilesResponse 
-                { 
-                    Success = true, 
-                    AudioFiles = audioFiles.OrderBy(f => f).ToList()
-                };
+                _logger.LogInformation("GetAudioFiles: count={Count} files=[{Files}]", files.Count, string.Join(", ", files));
+
+                return new AudioFilesResponse { Success = true, AudioFiles = files };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error getting audio files");
-                return new AudioFilesResponse 
-                { 
-                    Success = false, 
-                    Error = e.Message,
-                    AudioFiles = new List<string>()
-                };
+                return new AudioFilesResponse { Success = false, Error = e.Message, AudioFiles = new List<string>() };
             }
+        }
+
+        // New: stream audio from the same folder; avoids SPA fallback to index.html
+        [HttpGet("audio/{fileName}")]
+        public IActionResult GetAudio(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName)) return BadRequest();
+
+            var safe = Path.GetFileName(fileName);
+            var final = safe.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) ? safe : $"{safe}.mp3";
+
+            var path = Path.Combine(GetWebAudioPath(), final);
+            _logger.LogInformation("GetAudio: resolved path={Path}", path);
+
+            if (!System.IO.File.Exists(path))
+            {
+                _logger.LogWarning("GetAudio: file not found at {Path}", path);
+                return NotFound();
+            }
+
+            var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            // Set correct content type
+            return File(stream, "audio/mpeg", enableRangeProcessing: true);
         }
 
         [HttpPost]
@@ -148,31 +194,30 @@ namespace SummersManorHalloweenPuzzle.Controllers
                     return new UploadAudioResponse { Success = false, Error = "No file provided" };
                 }
 
-                if (!audioFile.ContentType.StartsWith("audio/") && !audioFile.FileName.EndsWith(".mp3"))
+                if (!audioFile.ContentType.StartsWith("audio/") && !audioFile.FileName.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
                 {
                     return new UploadAudioResponse { Success = false, Error = "Only MP3 files are allowed" };
                 }
 
-                var audioPath = Path.Combine(_environment.ContentRootPath, "ClientApp", "src", "audio");
-                
+                var audioPath = GetWebAudioPath();
                 if (!Directory.Exists(audioPath))
                 {
                     Directory.CreateDirectory(audioPath);
                 }
 
-                var fileName = Path.GetFileNameWithoutExtension(audioFile.FileName);
-                var filePath = Path.Combine(audioPath, $"{fileName}.mp3");
+                var safeName = Path.GetFileNameWithoutExtension(audioFile.FileName);
+                var filePath = Path.Combine(audioPath, $"{safeName}.mp3");
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await audioFile.CopyToAsync(stream);
                 }
 
-                return new UploadAudioResponse 
-                { 
-                    Success = true, 
-                    FileName = fileName,
-                    Message = "File uploaded successfully" 
+                return new UploadAudioResponse
+                {
+                    Success = true,
+                    FileName = safeName,
+                    Message = "File uploaded successfully"
                 };
             }
             catch (Exception e)
@@ -181,6 +226,7 @@ namespace SummersManorHalloweenPuzzle.Controllers
                 return new UploadAudioResponse { Success = false, Error = e.Message };
             }
         }
+
 
         [HttpPost]
         [Route("SaveRiddleData")]
