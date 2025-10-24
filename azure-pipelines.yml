@@ -18,6 +18,11 @@ stages:
     displayName: Build
     pool: Default
     steps:
+    - task: Bash@3
+      displayName: Prune all Docker images
+      inputs:
+        targetType: 'inline'
+        script: 'docker image prune -a -f'
     - task: Docker@2
       displayName: Build Docker image
       inputs:
@@ -27,7 +32,7 @@ stages:
         arguments: '--no-cache'
         tags: |
           $(Build.BuildNumber)
-
+          
 - stage: TEST
   displayName: Deploy To Test
   jobs:
