@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState, useCallback, memo, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
 import Container from 'react-bootstrap/Container';
@@ -388,7 +387,6 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
   const answerElement = useRef(null);
   const bonusElement = useRef(null);
   const audioElement = useRef(null);
-  const navigate = useNavigate();
 
   const [readOnlyAnswer, setReadOnlyAnswer] = useState(false);
   const [readOnlyBonus, setReadOnlyBonus] = useState(false);
@@ -488,18 +486,9 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
   const normalize = (s) => (s ?? '').toString().trim().toLowerCase();
 
-  // Magic keyword to jump to Settings
-  const SETTINGS_KEYWORD = 'settings';
-
   const checkAnswer = useCallback((value) => {
     if (readOnlyAnswer) return;
     const actual = normalize(value);
-
-    // Navigate to settings if magic word typed
-    if (actual === SETTINGS_KEYWORD) {
-      navigate('/settings');
-      return;
-    }
 
     const expected = normalize(RiddleData.answer);
     if (expected && actual === expected) {
@@ -510,7 +499,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
         onSolved();
       }
     }
-  }, [readOnlyAnswer, RiddleData.answer, RiddleData.bonusText, clueRevealed, onSolved, navigate]);
+  }, [readOnlyAnswer, RiddleData.answer, RiddleData.bonusText, clueRevealed, onSolved]);
 
   const keepAudioPlaying = useCallback(() => {
     if (type !== 'audio') return;
@@ -539,12 +528,6 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
   const handleAnswerSubmit = () => {
     if (readOnlyAnswer) return;
     const normalizedAnswer = answerText.trim().toLowerCase();
-
-    // Respect magic navigation on submit too
-    if (normalizedAnswer === SETTINGS_KEYWORD) {
-      navigate('/settings');
-      return;
-    }
 
     if (normalizedAnswer === (RiddleData.answer ?? '').toString().trim().toLowerCase()) {
       setReadOnlyAnswer(true);
