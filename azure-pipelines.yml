@@ -27,7 +27,7 @@ stages:
       displayName: Build Docker image
       inputs:
         command: 'build'
-        repository: 'HalloweenApp/summershalloween'
+        repository: 'summershalloween/summershalloween'
         Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile.webapp'
         arguments: '--no-cache'
         tags: |
@@ -44,7 +44,7 @@ stages:
       displayName: Tag image for Nexus
       inputs:
         command: 'tag'
-        arguments: 'HalloweenApp/summershalloween:$(Build.BuildNumber) nexus.summershome.duckdns.org/HalloweenApp/summershalloween:test.$(Build.BuildNumber)'
+        arguments: 'summershalloween/summershalloween:$(Build.BuildNumber) nexus.summershome.duckdns.org/summershalloween/summershalloween:test.$(Build.BuildNumber)'
     - task: Docker@2
       displayName: Login to Nexus
       inputs:
@@ -55,7 +55,7 @@ stages:
       inputs:
         command: 'push'
         containerRegistry: 'Nexus Docker'
-        repository: 'HalloweenApp/summershalloween'
+        repository: 'summershalloween/summershalloween'
         tags: |
           test.$(Build.BuildNumber)
 - stage: PROD
@@ -70,7 +70,7 @@ stages:
       displayName: Tag image for Nexus
       inputs:
         command: 'tag'
-        arguments: 'HalloweenApp/summershalloween:$(Build.BuildNumber) nexus.summershome.duckdns.org/HalloweenApp/summershalloween:prod.$(Build.BuildNumber)'
+        arguments: 'summershalloween/summershalloween:$(Build.BuildNumber) nexus.summershome.duckdns.org/summershalloween/summershalloween:prod.$(Build.BuildNumber)'
     - task: Docker@2
       displayName: Login to Nexus
       inputs:
@@ -81,6 +81,6 @@ stages:
       inputs:
         command: 'push'
         containerRegistry: 'Nexus Docker'
-        repository: 'HalloweenApp/summershalloween'
+        repository: 'summershalloween/summershalloween'
         tags: |
           prod.$(Build.BuildNumber)
