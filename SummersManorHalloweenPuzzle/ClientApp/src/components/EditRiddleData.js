@@ -162,6 +162,19 @@ const generateQrValue = (existing = []) => {
   return code;
 };
 
+// Helper: find the first available riddle key (riddle1, riddle2, ...)
+const getNextRiddleKey = (riddlesObj) => {
+  const taken = new Set(
+    Object.keys(riddlesObj)
+      .map(k => k.match(/^riddle(\d+)$/i)?.[1])
+      .filter(Boolean)
+      .map(n => parseInt(n, 10))
+  );
+  let i = 1;
+  while (taken.has(i)) i++;
+  return `riddle${i}`;
+};
+
 export default function EditRiddleData() {
   const [riddles, setRiddles] = useState({});
   const [loading, setLoading] = useState(true);
@@ -433,26 +446,26 @@ export default function EditRiddleData() {
   };
 
   const addNewRiddle = () => {
-    const riddleKeys = Object.keys(riddles);
-    const nextNumber = riddleKeys.length + 1;
-    const newKey = `riddle${nextNumber}`;
-    setRiddles(prev => ({
-      ...prev,
-      [newKey]: {
-        type: 'text',
-        riddle: '',
-        answer: '',
-        clueText: 'Need a clue? Click here for a clue, but you will be penalized 30 seconds.',
-        clue: '',
-        audioFile: '',
-        bonusText: '',
-        bonusAnswer: '',
-        sequenceColors: [],
-        correctSequence: [],
-        sequenceColorNames: {},
-        qrSequence: []
-      }
-    }));
+    setRiddles(prev => {
+      const newKey = getNextRiddleKey(prev);
+      return {
+        ...prev,
+        [newKey]: {
+          type: 'text',
+          riddle: '',
+          answer: '',
+          clueText: 'Need a clue? Click here for a clue, but you will be penalized 30 seconds.',
+          clue: '',
+          audioFile: '',
+          bonusText: '',
+          bonusAnswer: '',
+          sequenceColors: [],
+          correctSequence: [],
+          sequenceColorNames: {},
+          qrSequence: []
+        }
+      };
+    });
   };
 
   const confirmDeleteRiddle = (riddleKey) => {

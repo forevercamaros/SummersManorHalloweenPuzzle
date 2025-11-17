@@ -1,5 +1,4 @@
 import React, { useRef, useEffect, useState, useCallback, memo, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import ReactAudioPlayer from 'react-audio-player'
 import Container from 'react-bootstrap/Container';
@@ -411,10 +410,9 @@ const shuffleArray = (arr) => {
 const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime }) {
     const type = (RiddleData.type ?? '').toLowerCase();
 
-    const answerElement = useRef(null);
-    const bonusElement = useRef(null);
-    const audioElement = useRef(null);
-    const navigate = useNavigate();
+  const answerElement = useRef(null);
+  const bonusElement = useRef(null);
+  const audioElement = useRef(null);
 
     const [readOnlyAnswer, setReadOnlyAnswer] = useState(false);
     const [readOnlyBonus, setReadOnlyBonus] = useState(false);
@@ -517,29 +515,20 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
     const normalize = (s) => (s ?? '').toString().trim().toLowerCase();
 
-    // Magic keyword to jump to Settings
-    const SETTINGS_KEYWORD = 'settings';
+  const checkAnswer = useCallback((value) => {
+    if (readOnlyAnswer) return;
+    const actual = normalize(value);
 
-    const checkAnswer = useCallback((value) => {
-        if (readOnlyAnswer) return;
-        const actual = normalize(value);
-
-        // Navigate to settings if magic word typed
-        if (actual === SETTINGS_KEYWORD) {
-            navigate('/settings');
-            return;
-        }
-
-        const expected = normalize(RiddleData.answer);
-        if (expected && actual === expected) {
-            setReadOnlyAnswer(true);
-            if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
-                handleShowBonus();
-            } else {
-                onSolved();
-            }
-        }
-    }, [readOnlyAnswer, RiddleData.answer, RiddleData.bonusText, clueRevealed, onSolved, navigate]);
+    const expected = normalize(RiddleData.answer);
+    if (expected && actual === expected) {
+      setReadOnlyAnswer(true);
+      if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
+        handleShowBonus();
+      } else {
+        onSolved();
+      }
+    }
+  }, [readOnlyAnswer, RiddleData.answer, RiddleData.bonusText, clueRevealed, onSolved]);
 
     const keepAudioPlaying = useCallback(() => {
         if (type !== 'audio') return;
@@ -569,61 +558,61 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
         if (readOnlyAnswer) return;
         const normalizedAnswer = answerText.trim().toLowerCase();
 
-        // Respect magic navigation on submit too
-        if (normalizedAnswer === SETTINGS_KEYWORD) {
-            navigate('/settings');
-            return;
-        }
-
-        if (normalizedAnswer === (RiddleData.answer ?? '').toString().trim().toLowerCase()) {
-            setReadOnlyAnswer(true);
-            if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
-                handleShowBonus();
-            } else {
-                onSolved();
-            }
-        } else {
-            setFadeOut(false);
-            const randomMessage = FAILURE_MESSAGES[Math.floor(Math.random() * FAILURE_MESSAGES.length)];
-            setFailureMessage(randomMessage);
-            setTimeout(() => setFadeOut(true), 3500);
-            setTimeout(() => { setFadeOut(false); setFailureMessage(''); }, 4000);
-        }
-    };
-
-    function AddAudio({ type, audioFile }) {
-        if (type === "audio" && audioFile) {
-            const audioPath = require(`../audio/${audioFile}.mp3`);
-            return (
-                <Row>
-                    <Col>
-                        <SpookyAudioWrapper>
-                            <ReactAudioPlayer
-                                key={audioFile}
-                                ref={audioElement}
-                                src={audioPath}
-                                controls
-                                autoPlay
-                                playsInline
-                                preload="auto"
-                                onEnded={handleAudioEnded}
-                                onPause={handleAudioPause}
-                                listenInterval={250}
-                                onListen={(time) => { lastAudioTimeRef.current = time; }}
-                                onLoadedMetadata={(e) => {
-                                    const el = e.currentTarget;
-                                    if (lastAudioTimeRef.current > 0 && Math.abs(el.currentTime - lastAudioTimeRef.current) > 0.05) {
-                                        el.currentTime = lastAudioTimeRef.current;
-                                    }
-                                }}
-                            />
-                        </SpookyAudioWrapper>
-                    </Col>
-                </Row>
-            );
-        }
-        return "";
+    if (normalizedAnswer === (RiddleData.answer ?? '').toString().trim().toLowerCase()) {
+      setReadOnlyAnswer(true);
+      if (RiddleData.bonusText && RiddleData.bonusText.trim() !== "" && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
+        handleShowBonus();
+      } else {
+        onSolved();
+      }
+    } else {
+      setFadeOut(false);
+      const randomMessage = FAILURE_MESSAGES[Math.floor(Math.random() * FAILURE_MESSAGES.length)];
+      setFailureMessage(randomMessage);
+      setTimeout(() => setFadeOut(true), 3500);
+      setTimeout(() => { setFadeOut(false); setFailureMessage(''); }, 4000);
     }
+  };
+
+  function AddAudio({ type, audioFile }) {
+    if (type === "audio" && audioFile) {
+      // Support values with or without extension
+      const fileName = (audioFile || '').toString();
+      const normalized = fileName.toLowerCase().endsWith('.mp3') ? fileName : `${fileName}.mp3`;
+
+      // Served by ASP.NET Core static files from wwwroot/audio
+      const audioPath = `/audio/${encodeURIComponent(normalized)}`;
+
+      return (
+        <Row>
+          <Col>
+            <SpookyAudioWrapper>
+              <ReactAudioPlayer
+                key={normalized}
+                ref={audioElement}
+                src={audioPath}
+                controls
+                autoPlay
+                playsInline
+                preload="auto"
+                onEnded={handleAudioEnded}
+                onPause={handleAudioPause}
+                listenInterval={250}
+                onListen={(time) => { lastAudioTimeRef.current = time; }}
+                onLoadedMetadata={(e) => {
+                  const el = e.currentTarget;
+                  if (lastAudioTimeRef.current > 0 && Math.abs(el.currentTime - lastAudioTimeRef.current) > 0.05) {
+                    el.currentTime = lastAudioTimeRef.current;
+                  }
+                }}
+              />
+            </SpookyAudioWrapper>
+          </Col>
+        </Row>
+      );
+    }
+    return "";
+  }
 
     const handleAudioEnded = useCallback(() => setShowClueOption(true), []);
 

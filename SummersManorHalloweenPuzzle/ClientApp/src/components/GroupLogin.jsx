@@ -221,11 +221,6 @@ export default function GroupLogin({ riddleCount, countDownTime, onClick }) {
     const navigate = useNavigate();
 
     const checkGroupName = () => {
-        if (groupName.toLowerCase().trim() === "settings") {
-            navigate('/settings');
-            return;
-        }
-
         fetch(`GroupExists?groupName=${encodeURIComponent(groupName)}`)
             .then(response => {
                 if (!response.ok) {
