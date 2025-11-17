@@ -27,7 +27,7 @@ stages:
       displayName: Build Docker image
       inputs:
         command: 'build'
-        repository: 'summershalloween/summershalloween'
+        repository: 'HalloweenApp/summershalloween'
         Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile.webapp'
         arguments: '--no-cache'
         tags: |
@@ -40,30 +40,22 @@ stages:
     displayName: Deploy To Test
     pool: Default
     steps:
-    - task: Bash@3
-      displayName: 'Test Harbor connectivity'
-      inputs:
-        targetType: 'inline'
-        script: |
-          ping -c 4 harbor.summershome.duckdns.org
-              nslookup harbor.summershome.duckdns.org
-              curl -I https://harbor.summershome.duckdns.org
     - task: Docker@2
-      displayName: Tag image for Harbor
+      displayName: Tag image for Nexus
       inputs:
         command: 'tag'
-        arguments: 'summershalloween/summershalloween:$(Build.BuildNumber) harbor.summershome.duckdns.org/summershalloween/summershalloween:test.$(Build.BuildNumber)'
+        arguments: 'HalloweenApp/summershalloween:$(Build.BuildNumber) nexus.summershome.duckdns.org/HalloweenApp/summershalloween:test.$(Build.BuildNumber)'
     - task: Docker@2
-      displayName: Login to Harbor
+      displayName: Login to Nexus
       inputs:
         command: 'login'
-        containerRegistry: 'Harbor Container Registry'
+        containerRegistry: 'Nexus Docker'
     - task: Docker@2
-      displayName: Push image to Harbor
+      displayName: Push image to Nexus
       inputs:
         command: 'push'
-        containerRegistry: 'Harbor Container Registry'
-        repository: 'summershalloween/summershalloween'
+        containerRegistry: 'Nexus Docker'
+        repository: 'HalloweenApp/summershalloween'
         tags: |
           test.$(Build.BuildNumber)
 - stage: PROD
@@ -74,29 +66,21 @@ stages:
     displayName: Deploy To Prod
     pool: Default
     steps:
-    - task: Bash@3
-      displayName: 'Test Harbor connectivity'
-      inputs:
-        targetType: 'inline'
-        script: |
-          ping -c 4 harbor.summershome.duckdns.org
-              nslookup harbor.summershome.duckdns.org
-              curl -I https://harbor.summershome.duckdns.org
     - task: Docker@2
-      displayName: Tag image for Harbor
+      displayName: Tag image for Nexus
       inputs:
         command: 'tag'
-        arguments: 'summershalloween/summershalloween:$(Build.BuildNumber) harbor.summershome.duckdns.org/summershalloween/summershalloween:prod.$(Build.BuildNumber)'
+        arguments: 'HalloweenApp/summershalloween:$(Build.BuildNumber) nexus.summershome.duckdns.org/HalloweenApp/summershalloween:prod.$(Build.BuildNumber)'
     - task: Docker@2
-      displayName: Login to Harbor
+      displayName: Login to Nexus
       inputs:
         command: 'login'
-        containerRegistry: 'Harbor Container Registry'
+        containerRegistry: 'Nexus Docker'
     - task: Docker@2
-      displayName: Push image to Harbor
+      displayName: Push image to Nexus
       inputs:
         command: 'push'
-        containerRegistry: 'Harbor Container Registry'
-        repository: 'summershalloween/summershalloween'
+        containerRegistry: 'Nexus Docker'
+        repository: 'HalloweenApp/summershalloween'
         tags: |
           prod.$(Build.BuildNumber)
