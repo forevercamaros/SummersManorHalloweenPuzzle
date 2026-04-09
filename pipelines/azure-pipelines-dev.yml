@@ -39,6 +39,7 @@ stages:
     steps:
     - checkout: self
       persistCredentials: true
+      clean: true
     - task: Docker@2
       displayName: Tag image for Nexus
       inputs:
@@ -63,6 +64,7 @@ stages:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)/k8s/overlays/dev'
         script: |
+          set -e
           kustomize edit set image \
             nexus.summershome.duckdns.org/summershalloween/summershalloween:dev.$(Build.BuildNumber)
     - task: Bash@3
@@ -71,7 +73,9 @@ stages:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)'
         script: |
+          set -e
           kubectl apply -k k8s/overlays/dev
+          kubectl rollout status deployment/webapp -n halloween-web-app-dev --timeout=180s
     - task: Bash@3
       displayName: Commit updated image tag
       env:
@@ -80,12 +84,14 @@ stages:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)'
         script: |
+          set -e
           git config user.email "pipeline@devops"
           git config user.name "Azure Pipeline"
+          BRANCH=$(echo "$(Build.SourceBranch)" | sed 's|refs/heads/||')
+          git checkout "$BRANCH"
           git add k8s/overlays/dev/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update dev image tag to $(Build.BuildNumber) ***NO_CI***"
-          BRANCH=$(echo "$(Build.SourceBranch)" | sed 's|refs/heads/||')
           git fetch https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle "$BRANCH"
           git rebase FETCH_HEAD
           git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:"$BRANCH"
