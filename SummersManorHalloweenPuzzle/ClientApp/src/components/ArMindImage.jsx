@@ -7,6 +7,8 @@ export default function ArMindImage({
   targetSrc = '/ar/demon.mind',
   modelSrc = '/ar/black_demon/scene.gltf',
   onDetected,
+  onClose,         // called when the user taps the exit button
+  detectedClue,    // text shown as an overlay once the target is found
   // Keep these optional; avoid passing new THREE.* from parents
   modelPosition,
   modelRotationEuler,
@@ -21,6 +23,7 @@ export default function ArMindImage({
 
   const [status, setStatus] = useState('Initializing AR...');
   const [error, setError] = useState('');
+  const [targetFound, setTargetFound] = useState(false);
 
   // Create stable defaults once to avoid re-running the effect
   const pos = useMemo(() => {
@@ -133,6 +136,7 @@ export default function ArMindImage({
         anchor.onTargetFound = () => {
           if (!seen) {
             setStatus('Target found');
+            setTargetFound(true);
             onDetected && onDetected();
           }
           seen = true;
@@ -179,6 +183,7 @@ export default function ArMindImage({
       ref={containerRef}
       style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'black', touchAction: 'none' }}
     >
+      {/* Status / error banner */}
       {(status || error) && (
         <div style={{
           position: 'absolute',
@@ -193,6 +198,59 @@ export default function ArMindImage({
           pointerEvents: 'none'
         }}>
           {error ? `Error: ${error}` : status}
+        </div>
+      )}
+
+      {/* Exit button */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            zIndex: 2,
+            background: 'rgba(139,0,0,0.92)',
+            color: '#ff6b1a',
+            border: '2px solid #ff6b1a',
+            borderRadius: 8,
+            padding: '10px 18px',
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            boxShadow: '0 0 12px rgba(255,107,26,0.4)',
+          }}
+        >
+          {targetFound ? 'Exit AR & Continue →' : 'Exit AR'}
+        </button>
+      )}
+
+      {/* Clue overlay — appears when the target is detected */}
+      {targetFound && detectedClue && (
+        <div style={{
+          position: 'absolute',
+          bottom: 24,
+          left: 16,
+          right: 16,
+          background: 'rgba(0,0,0,0.88)',
+          color: '#dedede',
+          border: '2px solid #ff6b1a',
+          borderRadius: 12,
+          padding: '1rem 1.25rem',
+          fontSize: '1.05rem',
+          zIndex: 2,
+          textAlign: 'center',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          boxShadow: '0 0 24px rgba(255,107,26,0.4)',
+          lineHeight: 1.5,
+        }}>
+          <div style={{ color: '#ff6b1a', fontWeight: 'bold', fontSize: '1.15rem', marginBottom: 8 }}>
+            👻 Clue Revealed!
+          </div>
+          {detectedClue}
         </div>
       )}
     </div>

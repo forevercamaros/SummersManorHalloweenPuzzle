@@ -397,7 +397,7 @@ const FAILURE_MESSAGES = [
     "The vengeful spirits laugh at your misguided attempt!"
 ];
 
-// Fisher�Yates shuffle to randomize color buttons
+// Fisher�Yates shuffle to randomize color buttons
 const shuffleArray = (arr) => {
     const copy = [...arr];
     for (let i = copy.length - 1; i > 0; i--) {
@@ -435,8 +435,10 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
     const scannedCodesRef = useRef(new Set());
     useEffect(() => { scannedCodesRef.current = scannedCodes; }, [scannedCodes]);
 
-    // New: AR detection state (true once any valid code is seen)
+    // New: AR detection state (true once the physical marker is found)
     const [arDetected, setArDetected] = useState(false);
+    // Controls whether the fullscreen AR camera view is mounted
+    const [arActive, setArActive] = useState(false);
 
     const handleCloseClue = () => setShowClue(false);
     const handleShowClue = () => {
@@ -455,7 +457,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
     const focusBonusInput = () => { if (bonusElement.current) bonusElement.current.focus(); };
 
     useEffect(() => {
-        if (answerElement.current && type !== 'sequence' && type !== 'qrsequence') {
+        if (answerElement.current && type !== 'sequence' && type !== 'qrsequence' && type !== 'ar') {
             answerElement.current.focus();
         }
         if (RiddleData.type === "audio" && audioElement.current && !clueRevealed) {
@@ -477,6 +479,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
         setFailureMessage('');
         setFadeOut(false);
         setArDetected(false);
+        setArActive(false);
     }, [RiddleData]);
 
     const handleColorClick = useCallback((colorValue) => {
@@ -707,6 +710,18 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
         return 'accepted';
     }, [expectedSet, expectedCount]);
 
+    // Called when the player taps "Exit AR" in the ArMindImage overlay
+    const handleArClose = useCallback(() => {
+        setArActive(false);
+        if (arDetected) {
+            if (RiddleData.bonusText && RiddleData.bonusText.trim() !== '' && typeof RiddleData.bonusText !== 'undefined' && clueRevealed === false) {
+                setShowBonus(true);
+            } else {
+                onSolved();
+            }
+        }
+    }, [arDetected, RiddleData.bonusText, clueRevealed, onSolved]);
+
     return (
         <Transition in={true} timeout={1000}>
             {state => (
@@ -765,15 +780,33 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
                             </Row>
                         )}
 
-                        {type === "ar" && (
+                        {type === "ar" && !arActive && (
+                            <Row>
+                                <Col>
+                                    <SequenceButtonsContainer>
+                                        <div style={{ textAlign: 'center', marginBottom: '1rem', color: '#dedede', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', fontSize: '1.05rem' }}>
+                                            Find the AR marker and point your camera at it to reveal a clue!
+                                        </div>
+                                        <SpookyButton onClick={() => setArActive(true)}>
+                                            Launch AR Camera
+                                        </SpookyButton>
+                                        {arDetected && (
+                                            <div style={{ marginTop: '1rem', color: '#2cba3f', textAlign: 'center', fontWeight: 'bold', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
+                                                ✓ AR Target Detected — Riddle complete!
+                                            </div>
+                                        )}
+                                    </SequenceButtonsContainer>
+                                </Col>
+                            </Row>
+                        )}
+
+                        {type === "ar" && arActive && (
                             <ArMindImage
                                 targetSrc="/ar/demon.mind"
-                                black_demon="/ar/scene.gltf"
+                                modelSrc="/ar/black_demon/scene.gltf"
                                 onDetected={() => setArDetected(true)}
-                            // Optional: tweak transform to align with your printed marker
-                            // modelPosition={new THREE.Vector3(0, 0, 0)}
-                            // modelRotationEuler={new THREE.Euler(-Math.PI / 2, 0, 0)}
-                            // modelScale={0.8}
+                                onClose={handleArClose}
+                                detectedClue={RiddleData.clue}
                             />
                         )}
 
@@ -870,7 +903,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
                             </FailureOverlay>
                         )}
 
-                        {type !== "sequence" && type !== "qrsequence" && (
+                        {type !== "sequence" && type !== "qrsequence" && type !== "ar" && (
                             <Row>
                                 <Col>
                                     <SpookyInputGroup>
