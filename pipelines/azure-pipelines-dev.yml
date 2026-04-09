@@ -88,7 +88,7 @@ stages:
           git config user.email "pipeline@devops"
           git config user.name "Azure Pipeline"
           BRANCH=$(echo "$(Build.SourceBranch)" | sed 's|refs/heads/||')
-          git checkout "$BRANCH"
+          git checkout -B "$BRANCH" "origin/$BRANCH"
           git add k8s/overlays/dev/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update dev image tag to $(Build.BuildNumber) ***NO_CI***"
