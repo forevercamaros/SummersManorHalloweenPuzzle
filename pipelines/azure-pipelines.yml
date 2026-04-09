@@ -91,6 +91,8 @@ stages:
           git add k8s/overlays/test/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update test image tag to $(Build.BuildNumber) ***NO_CI***"
+          git fetch https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle master
+          git rebase FETCH_HEAD
           git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:master
 
 - stage: PROD
@@ -149,4 +151,6 @@ stages:
           git add k8s/overlays/prod/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update prod image tag to $(Build.BuildNumber) ***NO_CI***"
+          git fetch https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle master
+          git rebase FETCH_HEAD
           git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:master
