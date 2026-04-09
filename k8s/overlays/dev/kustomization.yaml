@@ -4,9 +4,9 @@ kind: Kustomization
 namespace: halloween-web-app-dev
 
 resources:
-  - ../../base
-  - ingress.yaml
+- ../../base
+- ingress.yaml
 
 images:
-  - name: nexus.summershome.duckdns.org/summershalloween/summershalloween
-    newTag: dev.1.0.12
+- name: nexus.summershome.duckdns.org/summershalloween/summershalloween
+  newTag: dev.1.0.16
