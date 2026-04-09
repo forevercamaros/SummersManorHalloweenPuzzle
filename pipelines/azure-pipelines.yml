@@ -43,6 +43,8 @@ stages:
     displayName: Deploy To Test
     pool: Default
     steps:
+    - checkout: self
+      persistCredentials: true
     - task: Docker@2
       displayName: Tag image for Nexus
       inputs:
@@ -79,7 +81,7 @@ stages:
     - task: Bash@3
       displayName: Commit updated image tag
       env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        GIT_PAT: $(GIT_PAT)
       inputs:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)'
@@ -89,7 +91,7 @@ stages:
           git add k8s/overlays/test/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update test image tag to $(Build.BuildNumber) ***NO_CI***"
-          git -c http.extraheader="Authorization: Bearer $SYSTEM_ACCESSTOKEN" push origin HEAD:master
+          git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:master
 
 - stage: PROD
   trigger: manual
@@ -99,6 +101,8 @@ stages:
     displayName: Deploy To Prod
     pool: Default
     steps:
+    - checkout: self
+      persistCredentials: true
     - task: Docker@2
       displayName: Tag image for Nexus
       inputs:
@@ -135,7 +139,7 @@ stages:
     - task: Bash@3
       displayName: Commit updated image tag
       env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        GIT_PAT: $(GIT_PAT)
       inputs:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)'
@@ -145,4 +149,4 @@ stages:
           git add k8s/overlays/prod/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update prod image tag to $(Build.BuildNumber) ***NO_CI***"
-          git -c http.extraheader="Authorization: Bearer $SYSTEM_ACCESSTOKEN" push origin HEAD:master
+          git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:master
