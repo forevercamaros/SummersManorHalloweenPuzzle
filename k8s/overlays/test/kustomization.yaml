@@ -4,9 +4,9 @@ kind: Kustomization
 namespace: halloween-web-app-test
 
 resources:
-  - ../../base
-  - ingress.yaml
+- ../../base
+- ingress.yaml
 
 images:
-  - name: nexus.summershome.duckdns.org/summershalloween/summershalloween
-    newTag: test.1.0.176
+- name: nexus.summershome.duckdns.org/summershalloween/summershalloween
+  newTag: test.1.0.178
