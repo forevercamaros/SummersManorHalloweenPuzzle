@@ -85,4 +85,7 @@ stages:
           git add k8s/overlays/dev/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update dev image tag to $(Build.BuildNumber) ***NO_CI***"
-          git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:$(Build.SourceBranchName)
+          BRANCH=$(echo "$(Build.SourceBranch)" | sed 's|refs/heads/||')
+          git fetch https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle "$BRANCH"
+          git rebase FETCH_HEAD
+          git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:"$BRANCH"
