@@ -1,0 +1,34 @@
+# Triggered when k8s manifests change on master (e.g. replica count, memory limits, etc.)
+# This applies the current kustomize state to the cluster without rebuilding images.
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - k8s/**
+name: deploy.$(Date:yyyyMMdd).$(Rev:r)
+stages:
+- stage: Deploy
+  displayName: Apply k8s Config Changes
+  jobs:
+  - job: ApplyChanges
+    displayName: Apply Kustomize Overlays
+    pool: Default
+    steps:
+    - task: Bash@3
+      displayName: Apply test overlay
+      inputs:
+        targetType: 'inline'
+        workingDirectory: '$(Build.SourcesDirectory)'
+        script: |
+          echo "=== Applying test overlay ==="
+          kubectl apply -k k8s/overlays/test
+    - task: Bash@3
+      displayName: Apply prod overlay
+      inputs:
+        targetType: 'inline'
+        workingDirectory: '$(Build.SourcesDirectory)'
+        script: |
+          echo "=== Applying prod overlay ==="
+          kubectl apply -k k8s/overlays/prod

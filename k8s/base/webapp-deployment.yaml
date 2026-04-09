@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  labels:
+    app: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: webapp
+        image: nexus.summershome.duckdns.org/summershalloween/summershalloween
+        ports:
+        - containerPort: 80
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          value: webapp
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          value: Rpibbb013
+        - name: MONGO_SERVER
+          value: mongo
