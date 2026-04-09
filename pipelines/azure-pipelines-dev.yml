@@ -2,6 +2,9 @@ trigger:
   branches:
     include:
     - dev/*
+  paths:
+    exclude:
+    - k8s/**
 name: 1.0.$(Rev:r)
 variables:
 - name: solution
@@ -26,7 +29,7 @@ stages:
         Dockerfile: '$(system.defaultworkingdirectory)/SummersManorHalloweenPuzzle/Dockerfile.webapp'
         tags: |
           $(Build.BuildNumber)
-          
+
 - stage: DEV
   displayName: Deploy To Dev
   jobs:
@@ -52,3 +55,32 @@ stages:
         repository: 'summershalloween/summershalloween'
         tags: |
           dev.$(Build.BuildNumber)
+    - task: Bash@3
+      displayName: Update kustomize image tag (dev)
+      inputs:
+        targetType: 'inline'
+        workingDirectory: '$(Build.SourcesDirectory)/k8s/overlays/dev'
+        script: |
+          kustomize edit set image \
+            nexus.summershome.duckdns.org/summershalloween/summershalloween:dev.$(Build.BuildNumber)
+    - task: Bash@3
+      displayName: Deploy to dev cluster
+      inputs:
+        targetType: 'inline'
+        workingDirectory: '$(Build.SourcesDirectory)'
+        script: |
+          kubectl apply -k k8s/overlays/dev
+    - task: Bash@3
+      displayName: Commit updated image tag
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      inputs:
+        targetType: 'inline'
+        workingDirectory: '$(Build.SourcesDirectory)'
+        script: |
+          git config user.email "pipeline@devops"
+          git config user.name "Azure Pipeline"
+          git add k8s/overlays/dev/kustomization.yaml
+          git diff --staged --quiet && echo "No changes to commit." && exit 0
+          git commit -m "Update dev image tag to $(Build.BuildNumber) ***NO_CI***"
+          git -c http.extraheader="Authorization: Bearer $SYSTEM_ACCESSTOKEN" push origin HEAD:$(Build.SourceBranchName)
