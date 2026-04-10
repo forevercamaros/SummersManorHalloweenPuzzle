@@ -58,7 +58,7 @@ namespace SummersManorHalloweenPuzzle
             provider.Mappings[".wasm"] = "application/wasm";
 
             app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = provider });
-            app.UseSpaStaticFiles();
+            app.UseSpaStaticFiles(new StaticFileOptions { ContentTypeProvider = provider });
 
             app.UseRouting();
 
