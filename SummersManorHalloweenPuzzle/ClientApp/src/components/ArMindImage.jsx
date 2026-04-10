@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MindARThree } from 'mind-ar/dist/mindar-image-three.prod.js';
 
 export default function ArMindImage({
-  targetSrc = '/ar/demon.mind',
+  targetSrc = '/ar/target.mind',
   modelSrc = '/ar/black_demon/scene.gltf',
   onDetected,
   onClose,         // called when the user taps the exit button
