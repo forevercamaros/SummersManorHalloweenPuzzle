@@ -77,6 +77,7 @@ export default function ArMindImage({
         }
         setStatus('Requesting camera...');
 
+        setStatus(`Loading AR target: ${targetSrc}...`);
         const mindarThree = new MindARThree({
           container: containerRef.current,
           imageTargetSrc: targetSrc
@@ -154,7 +155,9 @@ export default function ArMindImage({
         setStatus('Point the camera at the marker');
       } catch (e) {
         console.error('MindAR init failed:', e);
-        setError(e?.message || String(e));
+        console.error('Target file attempted:', targetSrc);
+        console.error('Full error details:', JSON.stringify(e, Object.getOwnPropertyNames(e), 2));
+        setError(`${e?.message || String(e)} (Target: ${targetSrc})`);
       }
     })();
 
