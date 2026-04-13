@@ -205,6 +205,8 @@ export default function EditRiddleData() {
   const [compilingMind, setCompilingMind] = useState(false);
   const [mindProgress, setMindProgress] = useState(0);
   const imageInputRef = useRef(null);
+  const [showManageMindModal, setShowManageMindModal] = useState(false);
+  const [deletingMindFile, setDeletingMindFile] = useState(null);
 
   useEffect(() => {
     fetchRiddleData();
@@ -371,6 +373,40 @@ export default function EditRiddleData() {
       setCompilingMind(false);
       setMindProgress(0);
       if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteMindFile = async (fileName) => {
+    setDeletingMindFile(fileName);
+    try {
+      const response = await fetch(`/DeleteMindFile/${encodeURIComponent(fileName)}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const result = await response.json();
+
+      if (result.success) {
+        showAlert('success', `AR target "${fileName}" deleted successfully!`);
+        await fetchMindFiles();
+
+        // Clear the mindFile from any riddles using this file
+        setRiddles(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(key => {
+            if (updated[key].mindFile === fileName) {
+              updated[key].mindFile = '';
+            }
+          });
+          return updated;
+        });
+      } else {
+        showAlert('error', 'Failed to delete .mind file: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting mind file:', error);
+      showAlert('error', 'Failed to delete AR target: ' + error.message);
+    } finally {
+      setDeletingMindFile(null);
     }
   };
 
@@ -733,16 +769,25 @@ export default function EditRiddleData() {
                 <Col md={6}>
                   <Form.Group className="mb-3">
                     <Form.Label>AR Target File (.mind)</Form.Label>
-                    <AudioFileSelector>
-                      <Form.Select
-                        className="audio-select"
-                        value={riddle.mindFile || ''}
-                        onChange={(e) => handleRiddleChange(riddleKey, 'mindFile', e.target.value)}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                      <AudioFileSelector style={{ flex: 1 }}>
+                        <Form.Select
+                          className="audio-select"
+                          value={riddle.mindFile || ''}
+                          onChange={(e) => handleRiddleChange(riddleKey, 'mindFile', e.target.value)}
+                        >
+                          <option value="">Select an AR target...</option>
+                          {mindFiles.map(file => (<option key={file} value={file}>{file}</option>))}
+                        </Form.Select>
+                      </AudioFileSelector>
+                      <SpookyButton 
+                        size="sm" 
+                        onClick={() => setShowManageMindModal(true)}
+                        style={{ whiteSpace: 'nowrap' }}
                       >
-                        <option value="">Select an AR target...</option>
-                        {mindFiles.map(file => (<option key={file} value={file}>{file}</option>))}
-                      </Form.Select>
-                    </AudioFileSelector>
+                        Manage Files
+                      </SpookyButton>
+                    </div>
                     <div className="upload-section">
                       <small className="form-text" style={{ color: '#ff6b1a' }}>Or compile a new AR target from an image:</small>
                       <Form.Control 
@@ -1019,6 +1064,55 @@ export default function EditRiddleData() {
         <Modal.Footer>
           <SpookyButton variant="secondary" onClick={closeColorModal}>Cancel</SpookyButton>
           <SuccessButton onClick={applySelectedColor}>Add to Sequence</SuccessButton>
+        </Modal.Footer>
+      </SpookyModal>
+
+      {/* Manage Mind Files Modal */}
+      <SpookyModal show={showManageMindModal} onHide={() => setShowManageMindModal(false)} centered size="lg">
+        <Modal.Header closeButton><Modal.Title>Manage AR Target Files</Modal.Title></Modal.Header>
+        <Modal.Body>
+          {mindFiles.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#ff6b1a', padding: '2rem' }}>
+              No AR target files found. Upload an image in the riddle editor to create one.
+            </div>
+          ) : (
+            <div>
+              <div style={{ marginBottom: 12, color: '#ff6b1a', fontWeight: 'bold' }}>
+                Available AR Targets ({mindFiles.length})
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {mindFiles.map(file => (
+                  <div 
+                    key={file}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                      background: 'rgba(139, 0, 0, 0.2)',
+                      border: '1px solid #ff6b1a',
+                      borderRadius: 6
+                    }}
+                  >
+                    <span style={{ color: '#dedede', flex: 1 }}>{file}</span>
+                    <DangerButton 
+                      size="sm"
+                      onClick={() => handleDeleteMindFile(file)}
+                      disabled={deletingMindFile === file}
+                    >
+                      {deletingMindFile === file ? 'Deleting...' : 'Delete'}
+                    </DangerButton>
+                  </div>
+                ))}
+              </div>
+              <InstructionText style={{ marginTop: 16 }}>
+                Note: Deleting a file will remove it from any riddles using it.
+              </InstructionText>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <SpookyButton onClick={() => setShowManageMindModal(false)}>Close</SpookyButton>
         </Modal.Footer>
       </SpookyModal>
     </StyledContainer>

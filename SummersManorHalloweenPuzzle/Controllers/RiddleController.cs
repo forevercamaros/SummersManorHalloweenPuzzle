@@ -322,6 +322,51 @@ namespace SummersManorHalloweenPuzzle.Controllers
             }
         }
 
+        [HttpDelete]
+        [Route("DeleteMindFile/{fileName}")]
+        public DeleteMindResponse DeleteMindFile(string fileName)
+        {
+            try
+            {
+                _logger.LogInformation("DeleteMindFile endpoint called for: {FileName}", fileName);
+
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    return new DeleteMindResponse { Success = false, Error = "No filename provided" };
+                }
+
+                // Sanitize filename to prevent path traversal
+                var safeName = Path.GetFileName(fileName);
+
+                if (!safeName.EndsWith(".mind", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new DeleteMindResponse { Success = false, Error = "Only .mind files can be deleted" };
+                }
+
+                var arPath = GetWebArPath();
+                var filePath = Path.Combine(arPath, safeName);
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return new DeleteMindResponse { Success = false, Error = "File not found" };
+                }
+
+                System.IO.File.Delete(filePath);
+                _logger.LogInformation("Deleted .mind file: {FileName}", safeName);
+
+                return new DeleteMindResponse
+                {
+                    Success = true,
+                    Message = $"AR target file '{safeName}' deleted successfully"
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error deleting mind file: {FileName}", fileName);
+                return new DeleteMindResponse { Success = false, Error = e.Message };
+            }
+        }
+
 
         [HttpPost]
         [Route("SaveRiddleData")]
@@ -513,6 +558,13 @@ namespace SummersManorHalloweenPuzzle.Controllers
     {
         public bool Success { get; set; }
         public string FileName { get; set; }
+        public string Message { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class DeleteMindResponse
+    {
+        public bool Success { get; set; }
         public string Message { get; set; }
         public string Error { get; set; }
     }
