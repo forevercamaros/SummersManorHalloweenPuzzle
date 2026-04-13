@@ -329,7 +329,17 @@ export default function EditRiddleData() {
       // Compile using MindAR with the loaded Image element
       const compiler = new Compiler();
       const dataList = await compiler.compileImageTargets([img], (progress) => {
-        setMindProgress(Math.round(progress * 100));
+        // MindAR progress can be 0-1 or 0-100 depending on version
+        // Ensure it's always between 0 and 100
+        let percentage = progress;
+        if (percentage <= 1) {
+          percentage = Math.round(percentage * 100);
+        } else {
+          percentage = Math.round(percentage);
+        }
+        // Clamp between 0 and 100 to prevent display issues
+        percentage = Math.max(0, Math.min(100, percentage));
+        setMindProgress(percentage);
       });
 
       // Clean up the object URL
