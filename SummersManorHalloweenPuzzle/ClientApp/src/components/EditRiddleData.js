@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Form, Button, Row, Col, Card, Alert, Modal, ProgressBar, Badge } from 'react-bootstrap';
 import styled from 'styled-components';
 import { SpookyModal, SpookyButton, DangerButton, SuccessButton } from './styles/SpookyModalStyles';
 import QRCode from 'qrcode';
+import { Compiler } from 'mind-ar/dist/mindar-image.prod.js';
 
 const StyledContainer = styled(Container)`
   margin-top: 20px;
@@ -199,9 +200,16 @@ export default function EditRiddleData() {
   // Per-riddle map of code -> dataURL for display
   const [qrImages, setQrImages] = useState({}); // { [riddleKey]: { [code]: dataUrl } }
 
+  // AR Mind file state
+  const [mindFiles, setMindFiles] = useState([]); // List of available .mind files
+  const [compilingMind, setCompilingMind] = useState(false);
+  const [mindProgress, setMindProgress] = useState(0);
+  const imageInputRef = useRef(null);
+
   useEffect(() => {
     fetchRiddleData();
     fetchAudioFiles();
+    fetchMindFiles();
   }, []);
 
   const fetchRiddleData = async () => {
@@ -251,6 +259,18 @@ export default function EditRiddleData() {
     }
   };
 
+  const fetchMindFiles = async () => {
+    try {
+      const response = await fetch('/GetMindFiles');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (data.success) setMindFiles(data.mindFiles || []);
+    } catch (error) {
+      console.error('Error fetching mind files:', error);
+      setMindFiles([]);
+    }
+  };
+
   const handleFileUpload = async (event, riddleKey) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -280,6 +300,56 @@ export default function EditRiddleData() {
       setUploadingFile(false);
       setUploadProgress(0);
       event.target.value = '';
+    }
+  };
+
+  const handleImageUploadForMind = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showAlert('error', 'Please select an image file (PNG, JPG, etc.)');
+      return;
+    }
+
+    setCompilingMind(true);
+    setMindProgress(0);
+
+    try {
+      // Read image as blob
+      const imageBlob = file;
+
+      // Compile using MindAR
+      const compiler = new Compiler();
+      const dataList = await compiler.compileImageTargets([imageBlob], (progress) => {
+        setMindProgress(Math.round(progress * 100));
+      });
+
+      // Generate filename from original image name
+      const baseName = file.name.replace(/\.[^/.]+$/, '');
+      const mindFileName = `${baseName}.mind`;
+
+      // Create blob and upload to server
+      const mindBlob = new Blob([dataList]);
+      const formData = new FormData();
+      formData.append('mindFile', mindBlob, mindFileName);
+
+      const response = await fetch('/UploadMindFile', { method: 'POST', body: formData });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const result = await response.json();
+
+      if (result.success) {
+        showAlert('success', `AR target "${result.fileName}" compiled and saved successfully!`);
+        await fetchMindFiles();
+      } else {
+        showAlert('error', 'Failed to save .mind file: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error compiling mind file:', error);
+      showAlert('error', 'Failed to compile AR target: ' + error.message);
+    } finally {
+      setCompilingMind(false);
+      setMindProgress(0);
+      if (imageInputRef.current) imageInputRef.current.value = '';
     }
   };
 
@@ -634,6 +704,42 @@ export default function EditRiddleData() {
                           <ProgressBar animated now={100} variant="warning" style={{ height: '8px' }} />
                         </div>
                       )}
+                    </div>
+                  </Form.Group>
+                </Col>
+              )}
+              {riddle.type === 'ar' && (
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>AR Target File (.mind)</Form.Label>
+                    <AudioFileSelector>
+                      <Form.Select
+                        className="audio-select"
+                        value={riddle.mindFile || ''}
+                        onChange={(e) => handleRiddleChange(riddleKey, 'mindFile', e.target.value)}
+                      >
+                        <option value="">Select an AR target...</option>
+                        {mindFiles.map(file => (<option key={file} value={file}>{file}</option>))}
+                      </Form.Select>
+                    </AudioFileSelector>
+                    <div className="upload-section">
+                      <small className="form-text" style={{ color: '#ff6b1a' }}>Or compile a new AR target from an image:</small>
+                      <Form.Control 
+                        ref={imageInputRef}
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleImageUploadForMind} 
+                        disabled={compilingMind} 
+                      />
+                      {compilingMind && (
+                        <div>
+                          <small>Compiling AR target... {mindProgress}%</small>
+                          <ProgressBar now={mindProgress} variant="warning" style={{ height: '8px' }} />
+                        </div>
+                      )}
+                      <small className="form-text" style={{ color: '#ccc', fontSize: '0.85em', marginTop: '4px' }}>
+                        Upload a clear, high-contrast image to track with the AR camera
+                      </small>
                     </div>
                   </Form.Group>
                 </Col>

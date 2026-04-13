@@ -802,7 +802,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
                         {type === "ar" && arActive && (
                             <ArMindImage
-                                targetSrc="/ar/target.mind"
+                                targetSrc={RiddleData.mindFile ? `/ar/${RiddleData.mindFile}` : '/ar/target.mind'}
                                 modelSrc="/ar/black_demon/scene.gltf"
                                 onDetected={() => setArDetected(true)}
                                 onClose={handleArClose}

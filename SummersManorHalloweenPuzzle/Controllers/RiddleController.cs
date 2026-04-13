@@ -60,6 +60,27 @@ namespace SummersManorHalloweenPuzzle.Controllers
             return lower;
         }
 
+        private string GetWebArPath()
+        {
+            var contentRoot = _environment.ContentRootPath;
+            var webRoot = _environment.WebRootPath ?? Path.Combine(contentRoot, "wwwroot");
+            var arPath = Path.Combine(webRoot, "ar");
+
+            if (!Directory.Exists(arPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(arPath);
+                    _logger.LogInformation("Created ar directory at {Path}", arPath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed creating ar directory {Path}", arPath);
+                }
+            }
+            return arPath;
+        }
+
         [HttpGet]
         [Route("GetRiddleData")]
         public RiddleDataResponse GetRiddleData()
@@ -227,6 +248,80 @@ namespace SummersManorHalloweenPuzzle.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("GetMindFiles")]
+        public MindFilesResponse GetMindFiles()
+        {
+            try
+            {
+                var arPath = GetWebArPath();
+                _logger.LogInformation("GetMindFiles: resolved arPath={ArPath}", arPath);
+
+                if (!Directory.Exists(arPath))
+                {
+                    _logger.LogWarning("AR directory not found: {ArPath}", arPath);
+                    return new MindFilesResponse { Success = true, MindFiles = new List<string>() };
+                }
+
+                var files = Directory.EnumerateFiles(arPath, "*.mind", SearchOption.TopDirectoryOnly)
+                    .Select(Path.GetFileName)
+                    .OrderBy(n => n)
+                    .ToList();
+
+                _logger.LogInformation("GetMindFiles: count={Count} files=[{Files}]", files.Count, string.Join(", ", files));
+
+                return new MindFilesResponse { Success = true, MindFiles = files };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting mind files");
+                return new MindFilesResponse { Success = false, Error = e.Message, MindFiles = new List<string>() };
+            }
+        }
+
+        [HttpPost]
+        [Route("UploadMindFile")]
+        public async Task<UploadMindResponse> UploadMindFile(IFormFile mindFile)
+        {
+            try
+            {
+                _logger.LogInformation("UploadMindFile endpoint called");
+
+                if (mindFile == null || mindFile.Length == 0)
+                {
+                    return new UploadMindResponse { Success = false, Error = "No file provided" };
+                }
+
+                if (!mindFile.FileName.EndsWith(".mind", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new UploadMindResponse { Success = false, Error = "Only .mind files are allowed" };
+                }
+
+                var arPath = GetWebArPath();
+                var fileName = Path.GetFileName(mindFile.FileName);
+                var filePath = Path.Combine(arPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await mindFile.CopyToAsync(stream);
+                }
+
+                _logger.LogInformation("Uploaded .mind file: {FileName} ({Size} bytes)", fileName, mindFile.Length);
+
+                return new UploadMindResponse
+                {
+                    Success = true,
+                    FileName = fileName,
+                    Message = "AR target file uploaded successfully"
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error uploading mind file");
+                return new UploadMindResponse { Success = false, Error = e.Message };
+            }
+        }
+
 
         [HttpPost]
         [Route("SaveRiddleData")]
@@ -368,6 +463,10 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [JsonPropertyName("qrSequence")]
         [BsonElement("QrSequence")]
         public List<string> QrSequence { get; set; } = new List<string>();
+
+        [JsonPropertyName("mindFile")]
+        [BsonElement("MindFile")]
+        public string MindFile { get; set; }
     }
 
     public class RiddleDataResponse
@@ -396,6 +495,21 @@ namespace SummersManorHalloweenPuzzle.Controllers
     }
 
     public class UploadAudioResponse
+    {
+        public bool Success { get; set; }
+        public string FileName { get; set; }
+        public string Message { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class MindFilesResponse
+    {
+        public bool Success { get; set; }
+        public List<string> MindFiles { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class UploadMindResponse
     {
         public bool Success { get; set; }
         public string FileName { get; set; }
