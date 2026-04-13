@@ -88,11 +88,11 @@ stages:
           git config user.email "pipeline@devops"
           git config user.name "Azure Pipeline"
           BRANCH=$(echo "$(Build.SourceBranch)" | sed 's|refs/heads/||')
-          git fetch origin "$BRANCH"
+          REMOTE_URL="https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle"
+          rm -rf .git/rebase-merge .git/rebase-apply
+          git fetch "$REMOTE_URL" "$BRANCH"
           git checkout -B "$BRANCH" FETCH_HEAD
           git add k8s/overlays/dev/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update dev image tag to $(Build.BuildNumber) ***NO_CI***"
-          git fetch https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle "$BRANCH"
-          git rebase FETCH_HEAD
-          git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:"$BRANCH"
+          git push "$REMOTE_URL" HEAD:"$BRANCH"

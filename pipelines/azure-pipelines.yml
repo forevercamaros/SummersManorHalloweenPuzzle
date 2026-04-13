@@ -45,6 +45,7 @@ stages:
     steps:
     - checkout: self
       persistCredentials: true
+      clean: true
     - task: Docker@2
       displayName: Tag image for Nexus
       inputs:
@@ -86,14 +87,18 @@ stages:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)'
         script: |
+          set -e
           git config user.email "pipeline@devops"
           git config user.name "Azure Pipeline"
+          BRANCH=master
+          REMOTE_URL="https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle"
+          rm -rf .git/rebase-merge .git/rebase-apply
+          git fetch "$REMOTE_URL" "$BRANCH"
+          git checkout -B "$BRANCH" FETCH_HEAD
           git add k8s/overlays/test/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update test image tag to $(Build.BuildNumber) ***NO_CI***"
-          git fetch https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle master
-          git rebase FETCH_HEAD
-          git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:master
+          git push "$REMOTE_URL" HEAD:"$BRANCH"
 
 - stage: PROD
   trigger: manual
@@ -105,6 +110,7 @@ stages:
     steps:
     - checkout: self
       persistCredentials: true
+      clean: true
     - task: Docker@2
       displayName: Tag image for Nexus
       inputs:
@@ -146,11 +152,15 @@ stages:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)'
         script: |
+          set -e
           git config user.email "pipeline@devops"
           git config user.name "Azure Pipeline"
+          BRANCH=master
+          REMOTE_URL="https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle"
+          rm -rf .git/rebase-merge .git/rebase-apply
+          git fetch "$REMOTE_URL" "$BRANCH"
+          git checkout -B "$BRANCH" FETCH_HEAD
           git add k8s/overlays/prod/kustomization.yaml
           git diff --staged --quiet && echo "No changes to commit." && exit 0
           git commit -m "Update prod image tag to $(Build.BuildNumber) ***NO_CI***"
-          git fetch https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle master
-          git rebase FETCH_HEAD
-          git push https://pat:$GIT_PAT@dev.azure.com/charlessummers/General/_git/SummersManorHalloweenPuzzle HEAD:master
+          git push "$REMOTE_URL" HEAD:"$BRANCH"

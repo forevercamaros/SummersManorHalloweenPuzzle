@@ -315,14 +315,25 @@ export default function EditRiddleData() {
     setMindProgress(0);
 
     try {
-      // Read image as blob
-      const imageBlob = file;
+      // Create object URL for the file
+      const imageUrl = URL.createObjectURL(file);
 
-      // Compile using MindAR
+      // Load image into an Image element
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imageUrl;
+      });
+
+      // Compile using MindAR with the loaded Image element
       const compiler = new Compiler();
-      const dataList = await compiler.compileImageTargets([imageBlob], (progress) => {
+      const dataList = await compiler.compileImageTargets([img], (progress) => {
         setMindProgress(Math.round(progress * 100));
       });
+
+      // Clean up the object URL
+      URL.revokeObjectURL(imageUrl);
 
       // Generate filename from original image name
       const baseName = file.name.replace(/\.[^/.]+$/, '');
