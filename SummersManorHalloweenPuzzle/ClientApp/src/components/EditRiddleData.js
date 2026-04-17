@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Container, Form, Button, Row, Col, Card, Alert, Modal, ProgressBar, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Form, Row, Col, Card, Alert, Modal, ProgressBar, Badge } from 'react-bootstrap';
 import styled from 'styled-components';
 import { SpookyModal, SpookyButton, DangerButton, SuccessButton } from './styles/SpookyModalStyles';
 import QRCode from 'qrcode';
-import { Compiler } from 'mind-ar/dist/mindar-image.prod.js';
 
 const StyledContainer = styled(Container)`
   margin-top: 20px;
@@ -201,12 +200,7 @@ export default function EditRiddleData() {
   const [qrImages, setQrImages] = useState({}); // { [riddleKey]: { [code]: dataUrl } }
 
   // AR Mind file state
-  const [mindFiles, setMindFiles] = useState([]); // List of available .mind files
-  const [compilingMind, setCompilingMind] = useState(false);
-  const [mindProgress, setMindProgress] = useState(0);
-  const imageInputRef = useRef(null);
-  const [showManageMindModal, setShowManageMindModal] = useState(false);
-  const [deletingMindFile, setDeletingMindFile] = useState(null);
+  const [mindFiles, setMindFiles] = useState([]);
 
   useEffect(() => {
     fetchRiddleData();
@@ -302,111 +296,6 @@ export default function EditRiddleData() {
       setUploadingFile(false);
       setUploadProgress(0);
       event.target.value = '';
-    }
-  };
-
-  const handleImageUploadForMind = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      showAlert('error', 'Please select an image file (PNG, JPG, etc.)');
-      return;
-    }
-
-    setCompilingMind(true);
-    setMindProgress(0);
-
-    try {
-      // Create object URL for the file
-      const imageUrl = URL.createObjectURL(file);
-
-      // Load image into an Image element
-      const img = new Image();
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = imageUrl;
-      });
-
-      // Compile using MindAR with the loaded Image element
-      const compiler = new Compiler();
-      const dataList = await compiler.compileImageTargets([img], (progress) => {
-        // MindAR progress can be 0-1 or 0-100 depending on version
-        // Ensure it's always between 0 and 100
-        let percentage = progress;
-        if (percentage <= 1) {
-          percentage = Math.round(percentage * 100);
-        } else {
-          percentage = Math.round(percentage);
-        }
-        // Clamp between 0 and 100 to prevent display issues
-        percentage = Math.max(0, Math.min(100, percentage));
-        setMindProgress(percentage);
-      });
-
-      // Clean up the object URL
-      URL.revokeObjectURL(imageUrl);
-
-      // Generate filename from original image name
-      const baseName = file.name.replace(/\.[^/.]+$/, '');
-      const mindFileName = `${baseName}.mind`;
-
-      // Create blob and upload to server
-      const mindBlob = new Blob([dataList]);
-      const formData = new FormData();
-      formData.append('mindFile', mindBlob, mindFileName);
-
-      const response = await fetch('/UploadMindFile', { method: 'POST', body: formData });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const result = await response.json();
-
-      if (result.success) {
-        showAlert('success', `AR target "${result.fileName}" compiled and saved successfully!`);
-        await fetchMindFiles();
-      } else {
-        showAlert('error', 'Failed to save .mind file: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Error compiling mind file:', error);
-      showAlert('error', 'Failed to compile AR target: ' + error.message);
-    } finally {
-      setCompilingMind(false);
-      setMindProgress(0);
-      if (imageInputRef.current) imageInputRef.current.value = '';
-    }
-  };
-
-  const handleDeleteMindFile = async (fileName) => {
-    setDeletingMindFile(fileName);
-    try {
-      const response = await fetch(`/DeleteMindFile/${encodeURIComponent(fileName)}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const result = await response.json();
-
-      if (result.success) {
-        showAlert('success', `AR target "${fileName}" deleted successfully!`);
-        await fetchMindFiles();
-
-        // Clear the mindFile from any riddles using this file
-        setRiddles(prev => {
-          const updated = { ...prev };
-          Object.keys(updated).forEach(key => {
-            if (updated[key].mindFile === fileName) {
-              updated[key].mindFile = '';
-            }
-          });
-          return updated;
-        });
-      } else {
-        showAlert('error', 'Failed to delete .mind file: ' + result.error);
-      }
-    } catch (error) {
-      console.error('Error deleting mind file:', error);
-      showAlert('error', 'Failed to delete AR target: ' + error.message);
-    } finally {
-      setDeletingMindFile(null);
     }
   };
 
@@ -769,44 +658,21 @@ export default function EditRiddleData() {
                 <Col md={6}>
                   <Form.Group className="mb-3">
                     <Form.Label>AR Target File (.mind)</Form.Label>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                      <AudioFileSelector style={{ flex: 1 }}>
-                        <Form.Select
-                          className="audio-select"
-                          value={riddle.mindFile || ''}
-                          onChange={(e) => handleRiddleChange(riddleKey, 'mindFile', e.target.value)}
-                        >
-                          <option value="">Select an AR target...</option>
-                          {mindFiles.map(file => (<option key={file} value={file}>{file}</option>))}
-                        </Form.Select>
-                      </AudioFileSelector>
-                      <SpookyButton 
-                        size="sm" 
-                        onClick={() => setShowManageMindModal(true)}
-                        style={{ whiteSpace: 'nowrap' }}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <Form.Select
+                        value={riddle.mindFile || ''}
+                        onChange={(e) => handleRiddleChange(riddleKey, 'mindFile', e.target.value)}
+                        style={{ flex: 1 }}
                       >
-                        Manage Files
-                      </SpookyButton>
+                        <option value="">Select an AR target...</option>
+                        {mindFiles.map(file => (<option key={file} value={file}>{file}</option>))}
+                      </Form.Select>
                     </div>
-                    <div className="upload-section">
-                      <small className="form-text" style={{ color: '#ff6b1a' }}>Or compile a new AR target from an image:</small>
-                      <Form.Control 
-                        ref={imageInputRef}
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleImageUploadForMind} 
-                        disabled={compilingMind} 
-                      />
-                      {compilingMind && (
-                        <div>
-                          <small>Compiling AR target... {mindProgress}%</small>
-                          <ProgressBar now={mindProgress} variant="warning" style={{ height: '8px' }} />
-                        </div>
-                      )}
-                      <small className="form-text" style={{ color: '#ccc', fontSize: '0.85em', marginTop: '4px' }}>
-                        Upload a clear, high-contrast image to track with the AR camera
-                      </small>
-                    </div>
+                    {mindFiles.length === 0 && (
+                      <InstructionText style={{ marginTop: 6 }}>
+                        No .mind files found. Place .mind files in the /ar folder to select them here.
+                      </InstructionText>
+                    )}
                   </Form.Group>
                 </Col>
               )}
@@ -858,7 +724,7 @@ export default function EditRiddleData() {
                   <Form.Label>{riddle.type === 'ar' ? 'Configure AR Target Codes' : 'Configure QR Codes'}</Form.Label>
                   <InstructionText>
                     Click "Add Code" to auto-generate a code (or type your own). The QR will appear below.
-                    Click/tap a QR to remove it. {riddle.type === 'ar' ? 'Print and place one at the haunted location. When the camera sees it, a ghost will appear.' : ''}
+                    Click/tap a QR to remove it. {riddle.type === 'ar' ? 'Print and place one at the haunted location. When the camera sees it, a ghost will appear.' : '' }
                   </InstructionText>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <Form.Control
@@ -1064,55 +930,6 @@ export default function EditRiddleData() {
         <Modal.Footer>
           <SpookyButton variant="secondary" onClick={closeColorModal}>Cancel</SpookyButton>
           <SuccessButton onClick={applySelectedColor}>Add to Sequence</SuccessButton>
-        </Modal.Footer>
-      </SpookyModal>
-
-      {/* Manage Mind Files Modal */}
-      <SpookyModal show={showManageMindModal} onHide={() => setShowManageMindModal(false)} centered size="lg">
-        <Modal.Header closeButton><Modal.Title>Manage AR Target Files</Modal.Title></Modal.Header>
-        <Modal.Body>
-          {mindFiles.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#ff6b1a', padding: '2rem' }}>
-              No AR target files found. Upload an image in the riddle editor to create one.
-            </div>
-          ) : (
-            <div>
-              <div style={{ marginBottom: 12, color: '#ff6b1a', fontWeight: 'bold' }}>
-                Available AR Targets ({mindFiles.length})
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {mindFiles.map(file => (
-                  <div 
-                    key={file}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '12px 16px',
-                      background: 'rgba(139, 0, 0, 0.2)',
-                      border: '1px solid #ff6b1a',
-                      borderRadius: 6
-                    }}
-                  >
-                    <span style={{ color: '#dedede', flex: 1 }}>{file}</span>
-                    <DangerButton 
-                      size="sm"
-                      onClick={() => handleDeleteMindFile(file)}
-                      disabled={deletingMindFile === file}
-                    >
-                      {deletingMindFile === file ? 'Deleting...' : 'Delete'}
-                    </DangerButton>
-                  </div>
-                ))}
-              </div>
-              <InstructionText style={{ marginTop: 16 }}>
-                Note: Deleting a file will remove it from any riddles using it.
-              </InstructionText>
-            </div>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <SpookyButton onClick={() => setShowManageMindModal(false)}>Close</SpookyButton>
         </Modal.Footer>
       </SpookyModal>
     </StyledContainer>
