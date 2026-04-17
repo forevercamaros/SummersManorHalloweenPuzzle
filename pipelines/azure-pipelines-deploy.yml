@@ -4,6 +4,7 @@ trigger:
   branches:
     include:
     - master
+    - dev*
   paths:
     include:
     - k8s/**
@@ -17,7 +18,17 @@ stages:
     pool: Default
     steps:
     - task: Bash@3
+      displayName: Apply dev overlay
+      condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/dev'))
+      inputs:
+        targetType: 'inline'
+        workingDirectory: '$(Build.SourcesDirectory)'
+        script: |
+          echo "=== Applying dev overlay ==="
+          kubectl apply -k k8s/overlays/dev
+    - task: Bash@3
       displayName: Apply test overlay
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
       inputs:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)'
@@ -26,6 +37,7 @@ stages:
           kubectl apply -k k8s/overlays/test
     - task: Bash@3
       displayName: Apply prod overlay
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
       inputs:
         targetType: 'inline'
         workingDirectory: '$(Build.SourcesDirectory)'
