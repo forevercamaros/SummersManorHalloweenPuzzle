@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MindARThree } from 'mind-ar/dist/mindar-image-three.prod.js';
 
 export default function ArMindImage({
-  targetSrc = '/ar/target.mind',
+  targetSrc = null,
   modelSrc = '/ar/black_demon/scene.gltf',
   onDetected,
   onClose,         // called when the user taps the exit button
@@ -24,6 +24,21 @@ export default function ArMindImage({
   const [status, setStatus] = useState('Initializing AR...');
   const [error, setError] = useState('');
   const [targetFound, setTargetFound] = useState(false);
+
+  const handleClose = () => {
+    try { rendererRef.current?.setAnimationLoop(null); } catch {}
+    try {
+      const mindar = mindarRef.current;
+      if (mindar) {
+        try { disposeObject(mindar.scene); } catch {}
+        mindar.stop?.();
+      }
+    } catch {}
+    const el = containerRef.current;
+    if (el) el.innerHTML = '';
+    startedRef.current = false;
+    onClose && onClose();
+  };
 
   // Create stable defaults once to avoid re-running the effect
   const pos = useMemo(() => {
@@ -75,7 +90,11 @@ export default function ArMindImage({
           setError('Camera requires HTTPS (or http://localhost). Open with https://<host>:<port> and trust the cert.');
           return;
         }
-        setStatus('Requesting camera...');
+
+        if (!targetSrc) {
+          setError('No AR target file selected. Please configure a .mind file for this riddle in the settings.');
+          return;
+        }
 
         setStatus(`Loading AR target: ${targetSrc}...`);
         const mindarThree = new MindARThree({
@@ -204,15 +223,16 @@ export default function ArMindImage({
         </div>
       )}
 
-      {/* Exit button */}
+      {/* Exit button — rendered outside containerRef so MindAR canvas cannot intercept it */}
       {onClose && (
         <button
-          onClick={onClose}
+          onClick={handleClose}
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: 16,
             right: 16,
-            zIndex: 2,
+            zIndex: 9999,
+            touchAction: 'auto',
             background: 'rgba(139,0,0,0.92)',
             color: '#ff6b1a',
             border: '2px solid #ff6b1a',
@@ -234,7 +254,7 @@ export default function ArMindImage({
       {/* Clue overlay — appears when the target is detected */}
       {targetFound && detectedClue && (
         <div style={{
-          position: 'absolute',
+          position: 'fixed',
           bottom: 24,
           left: 16,
           right: 16,
@@ -244,11 +264,12 @@ export default function ArMindImage({
           borderRadius: 12,
           padding: '1rem 1.25rem',
           fontSize: '1.05rem',
-          zIndex: 2,
+          zIndex: 9999,
           textAlign: 'center',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           boxShadow: '0 0 24px rgba(255,107,26,0.4)',
           lineHeight: 1.5,
+          pointerEvents: 'none',
         }}>
           <div style={{ color: '#ff6b1a', fontWeight: 'bold', fontSize: '1.15rem', marginBottom: 8 }}>
             👻 Clue Revealed!
