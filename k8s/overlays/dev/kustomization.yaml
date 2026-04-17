@@ -9,4 +9,4 @@ resources:
 
 images:
 - name: nexus.summershome.duckdns.org/summershalloween/summershalloween
-  newTag: dev.1.0.35
+  newTag: dev.1.0.36
