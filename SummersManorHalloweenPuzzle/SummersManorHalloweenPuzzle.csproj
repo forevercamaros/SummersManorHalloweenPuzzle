@@ -53,7 +53,7 @@
     <!-- Also publish the ar folder to wwwroot/ar so the runtime API can find .mind files -->
     <ItemGroup>
       <ArFiles Include="$(SpaRoot)build\ar\**" />
-      <ResolvedFileToPublish Include="@(ArFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+      <ResolvedFileToPublish Include="@(ArFiles->'%(FullPath)')">
         <RelativePath>wwwroot\ar\%(ArFiles.RecursiveDir)%(ArFiles.Filename)%(ArFiles.Extension)</RelativePath>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
