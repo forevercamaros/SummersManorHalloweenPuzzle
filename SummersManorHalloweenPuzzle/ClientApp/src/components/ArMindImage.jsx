@@ -9,6 +9,7 @@ export default function ArMindImage({
   onDetected,
   onClose,         // called when the user taps the exit button
   detectedClue,    // text shown as an overlay once the target is found
+  audioSrc = null,
   // Keep these optional; avoid passing new THREE.* from parents
   modelPosition,
   modelRotationEuler,
@@ -19,7 +20,8 @@ export default function ArMindImage({
   const rendererRef = useRef(null);
   const mixerRef = useRef(null);
   const clockRef = useRef(new THREE.Clock());
-  const startedRef = useRef(false); // prevents double init (React 18 StrictMode, rerenders)
+  const startedRef = useRef(false);
+  const audioRef = useRef(null);
 
   const [status, setStatus] = useState('Initializing AR...');
   const [error, setError] = useState('');
@@ -32,6 +34,13 @@ export default function ArMindImage({
       if (mindar) {
         try { disposeObject(mindar.scene); } catch {}
         mindar.stop?.();
+      }
+    } catch {}
+    try {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
       }
     } catch {}
     const el = containerRef.current;
@@ -158,6 +167,15 @@ export default function ArMindImage({
             setStatus('Target found');
             setTargetFound(true);
             onDetected && onDetected();
+            if (audioSrc) {
+              try {
+                const audio = new Audio(audioSrc);
+                audioRef.current = audio;
+                audio.play().catch(e => console.warn('AR audio play failed:', e));
+              } catch (e) {
+                console.warn('AR audio init failed:', e);
+              }
+            }
           }
           seen = true;
         };

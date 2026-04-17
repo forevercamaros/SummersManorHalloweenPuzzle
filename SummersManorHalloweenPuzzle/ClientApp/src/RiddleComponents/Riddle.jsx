@@ -807,6 +807,7 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
                                 onDetected={() => setArDetected(true)}
                                 onClose={handleArClose}
                                 detectedClue={RiddleData.clue}
+                                audioSrc={RiddleData.arAudioFile ? `/ar/${RiddleData.arAudioFile}` : null}
                                 modelScale={RiddleData.arModelScale ?? 1.0}
                                 modelPosition={RiddleData.arModelPosition || [0, 0, 0]}
                                 modelRotationEuler={

@@ -201,11 +201,15 @@ export default function EditRiddleData() {
 
   // AR Mind file state
   const [mindFiles, setMindFiles] = useState([]);
+  const [arAudioFiles, setArAudioFiles] = useState([]);
+  const [showManageMindModal, setShowManageMindModal] = useState(false);
+  const [deletingMindFile, setDeletingMindFile] = useState(null);
 
   useEffect(() => {
     fetchRiddleData();
     fetchAudioFiles();
     fetchMindFiles();
+    fetchArAudioFiles();
   }, []);
 
   const fetchRiddleData = async () => {
@@ -264,6 +268,18 @@ export default function EditRiddleData() {
     } catch (error) {
       console.error('Error fetching mind files:', error);
       setMindFiles([]);
+    }
+  };
+
+  const fetchArAudioFiles = async () => {
+    try {
+      const response = await fetch('/GetArAudioFiles');
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (data.success) setArAudioFiles(data.audioFiles || []);
+    } catch (error) {
+      console.error('Error fetching AR audio files:', error);
+      setArAudioFiles([]);
     }
   };
 
@@ -671,6 +687,22 @@ export default function EditRiddleData() {
                     {mindFiles.length === 0 && (
                       <InstructionText style={{ marginTop: 6 }}>
                         No .mind files found. Place .mind files in the /ar folder to select them here.
+                      </InstructionText>
+                    )}
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>AR Clue Audio File (.mp3)</Form.Label>
+                    <Form.Select
+                      value={riddle.arAudioFile || ''}
+                      onChange={(e) => handleRiddleChange(riddleKey, 'arAudioFile', e.target.value)}
+                    >
+                      <option value="">None — no audio</option>
+                      {arAudioFiles.map(file => (<option key={file} value={file}>{file}</option>))}
+                    </Form.Select>
+                    {arAudioFiles.length === 0 && (
+                      <InstructionText style={{ marginTop: 6 }}>
+                        No mp3s found. Place mp3 files in the /ar folder to select them here.
                       </InstructionText>
                     )}
                   </Form.Group>

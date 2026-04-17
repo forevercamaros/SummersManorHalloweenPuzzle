@@ -367,7 +367,32 @@ namespace SummersManorHalloweenPuzzle.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("GetArAudioFiles")]
+        public ArAudioFilesResponse GetArAudioFiles()
+        {
+            try
+            {
+                var arPath = GetWebArPath();
+                _logger.LogInformation("GetArAudioFiles: resolved arPath={ArPath}", arPath);
 
+                if (!Directory.Exists(arPath))
+                    return new ArAudioFilesResponse { Success = true, AudioFiles = new List<string>() };
+
+                var files = Directory.EnumerateFiles(arPath, "*.mp3", SearchOption.TopDirectoryOnly)
+                    .Select(Path.GetFileName)
+                    .OrderBy(n => n)
+                    .ToList();
+
+                _logger.LogInformation("GetArAudioFiles: count={Count}", files.Count);
+                return new ArAudioFilesResponse { Success = true, AudioFiles = files };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting AR audio files");
+                return new ArAudioFilesResponse { Success = false, Error = e.Message, AudioFiles = new List<string>() };
+            }
+        }
         [HttpPost]
         [Route("SaveRiddleData")]
         public SaveRiddleDataResponse SaveRiddleData([FromBody] SaveRiddleDataRequest request)
@@ -513,6 +538,10 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [BsonElement("MindFile")]
         public string MindFile { get; set; }
 
+        [JsonPropertyName("arAudioFile")]
+        [BsonElement("ArAudioFile")]
+        public string ArAudioFile { get; set; }
+
         [JsonPropertyName("arModelScale")]
         [BsonElement("ArModelScale")]
         public double? ArModelScale { get; set; }
@@ -578,6 +607,13 @@ namespace SummersManorHalloweenPuzzle.Controllers
     {
         public bool Success { get; set; }
         public string Message { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class ArAudioFilesResponse
+    {
+        public bool Success { get; set; }
+        public List<string> AudioFiles { get; set; }
         public string Error { get; set; }
     }
 }
