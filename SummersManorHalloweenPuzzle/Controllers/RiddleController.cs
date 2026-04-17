@@ -512,6 +512,18 @@ namespace SummersManorHalloweenPuzzle.Controllers
         [JsonPropertyName("mindFile")]
         [BsonElement("MindFile")]
         public string MindFile { get; set; }
+
+        [JsonPropertyName("arModelScale")]
+        [BsonElement("ArModelScale")]
+        public double? ArModelScale { get; set; }
+
+        [JsonPropertyName("arModelPosition")]
+        [BsonElement("ArModelPosition")]
+        public List<double>? ArModelPosition { get; set; }
+
+        [JsonPropertyName("arModelRotation")]
+        [BsonElement("ArModelRotation")]
+        public List<double>? ArModelRotation { get; set; }
     }
 
     public class RiddleDataResponse

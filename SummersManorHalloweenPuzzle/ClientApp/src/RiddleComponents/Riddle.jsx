@@ -802,11 +802,18 @@ const MemoizedRiddle = memo(function Riddle({ onSolved, RiddleData, onAddTime })
 
                         {type === "ar" && arActive && (
                             <ArMindImage
-                                targetSrc={RiddleData.mindFile ? `/ar/${RiddleData.mindFile}` : '/ar/target.mind'}
+                                targetSrc={RiddleData.mindFile ? `/ar/${RiddleData.mindFile}` : null}
                                 modelSrc="/ar/black_demon/scene.gltf"
                                 onDetected={() => setArDetected(true)}
                                 onClose={handleArClose}
                                 detectedClue={RiddleData.clue}
+                                modelScale={RiddleData.arModelScale ?? 1.0}
+                                modelPosition={RiddleData.arModelPosition || [0, 0, 0]}
+                                modelRotationEuler={
+                                  (RiddleData.arModelRotation || [0, 0, 0]).map(
+                                    deg => deg * (Math.PI / 180)
+                                  )
+                                }
                             />
                         )}
 

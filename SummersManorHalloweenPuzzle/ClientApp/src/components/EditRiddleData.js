@@ -674,6 +674,60 @@ export default function EditRiddleData() {
                       </InstructionText>
                     )}
                   </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Model Scale</Form.Label>
+                    <Form.Control
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={riddle.arModelScale ?? 1.0}
+                      onChange={(e) => handleRiddleChange(riddleKey, 'arModelScale', parseFloat(e.target.value) || 1.0)}
+                    />
+                    <InstructionText>1.0 = default size. Use smaller values (e.g. 0.3) to shrink the model.</InstructionText>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Model Position (X / Y / Z)</Form.Label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {['X', 'Y', 'Z'].map((axis, i) => (
+                        <Form.Control
+                          key={axis}
+                          type="number"
+                          step="0.01"
+                          placeholder={axis}
+                          value={(riddle.arModelPosition || [0, 0, 0])[i] ?? 0}
+                          onChange={(e) => {
+                            const pos = [...(riddle.arModelPosition || [0, 0, 0])];
+                            pos[i] = parseFloat(e.target.value) || 0;
+                            handleRiddleChange(riddleKey, 'arModelPosition', pos);
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <InstructionText>Offset the model from the marker centre (metres).</InstructionText>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Model Rotation — Euler degrees (X / Y / Z)</Form.Label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {['X', 'Y', 'Z'].map((axis, i) => (
+                        <Form.Control
+                          key={axis}
+                          type="number"
+                          step="1"
+                          placeholder={axis}
+                          value={(riddle.arModelRotation || [0, 0, 0])[i] ?? 0}
+                          onChange={(e) => {
+                            const rot = [...(riddle.arModelRotation || [0, 0, 0])];
+                            rot[i] = parseFloat(e.target.value) || 0;
+                            handleRiddleChange(riddleKey, 'arModelRotation', rot);
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <InstructionText>Rotate the model in degrees. Try X=90 to stand the model upright.</InstructionText>
+                  </Form.Group>
                 </Col>
               )}
             </Row>
