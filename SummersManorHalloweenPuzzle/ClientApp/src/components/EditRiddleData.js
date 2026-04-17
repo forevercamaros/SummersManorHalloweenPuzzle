@@ -515,7 +515,7 @@ export default function EditRiddleData() {
         });
         riddle.sequenceColorNames = remapped;
       }
-      if (riddle.type === 'qrsequence' || riddle.type === 'ar') {
+      if (riddle.type === 'qrsequence') {
         const seq = (riddle.qrSequence || []).map(s => (s ?? '').toString().trim()).filter(s => s.length > 0);
         riddle.qrSequence = seq;
       }
@@ -532,9 +532,9 @@ export default function EditRiddleData() {
           invalidRiddles.push(`${key}: No color sequence configured`);
         }
       }
-      if (riddle.type === 'qrsequence' || riddle.type === 'ar') {
+      if (riddle.type === 'qrsequence') {
         if (!riddle.qrSequence || riddle.qrSequence.length === 0) {
-          invalidRiddles.push(`${key}: No QR/AR codes configured`);
+          invalidRiddles.push(`${key}: No QR codes configured`);
         }
       }
     });
@@ -772,13 +772,13 @@ export default function EditRiddleData() {
               </>
             )}
 
-            {(riddle.type === 'qrsequence' || riddle.type === 'ar') && (
+            {riddle.type === 'qrsequence' && (
               <>
                 <Form.Group className="mb-3">
-                  <Form.Label>{riddle.type === 'ar' ? 'Configure AR Target Codes' : 'Configure QR Codes'}</Form.Label>
+                  <Form.Label>Configure QR Codes</Form.Label>
                   <InstructionText>
                     Click "Add Code" to auto-generate a code (or type your own). The QR will appear below.
-                    Click/tap a QR to remove it. {riddle.type === 'ar' ? 'Print and place one at the haunted location. When the camera sees it, a ghost will appear.' : '' }
+                    Click/tap a QR to remove it.
                   </InstructionText>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <Form.Control
@@ -794,7 +794,7 @@ export default function EditRiddleData() {
 
                 {(riddle.qrSequence || []).length > 0 ? (
                   <SequenceDisplay>
-                    <div className="sequence-title">{riddle.type === 'ar' ? 'AR Codes for this riddle (click a QR to remove):' : 'Codes for this riddle (click a QR to remove):'}</div>
+                    <div className="sequence-title">Codes for this riddle (click a QR to remove):</div>
                     <QrGrid>
                       {(riddle.qrSequence || []).map((code, index) => {
                         const url = (qrImages[riddleKey] && qrImages[riddleKey][code]) || '';

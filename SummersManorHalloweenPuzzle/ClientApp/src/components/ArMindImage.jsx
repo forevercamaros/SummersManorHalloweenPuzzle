@@ -201,29 +201,31 @@ export default function ArMindImage({
   }, [targetSrc, modelSrc, modelScale, onDetected]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'black', touchAction: 'none' }}
-    >
-      {/* Status / error banner */}
-      {(status || error) && (
-        <div style={{
-          position: 'absolute',
-          top: 8,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(0,0,0,0.5)',
-          color: '#fff',
-          padding: '6px 10px',
-          borderRadius: 6,
-          border: '1px solid rgba(255,107,26,0.5)',
-          pointerEvents: 'none'
-        }}>
-          {error ? `Error: ${error}` : status}
-        </div>
-      )}
+    <>
+      <div
+        ref={containerRef}
+        style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'black', touchAction: 'none' }}
+      >
+        {/* Status / error banner */}
+        {(status || error) && (
+          <div style={{
+            position: 'absolute',
+            top: 8,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0,0,0,0.5)',
+            color: '#fff',
+            padding: '6px 10px',
+            borderRadius: 6,
+            border: '1px solid rgba(255,107,26,0.5)',
+            pointerEvents: 'none'
+          }}>
+            {error ? `Error: ${error}` : status}
+          </div>
+        )}
+      </div>
 
-      {/* Exit button — rendered outside containerRef so MindAR canvas cannot intercept it */}
+      {/* Exit button — outside containerRef so innerHTML='' cannot remove it */}
       {onClose && (
         <button
           onClick={handleClose}
@@ -251,7 +253,7 @@ export default function ArMindImage({
         </button>
       )}
 
-      {/* Clue overlay — appears when the target is detected */}
+      {/* Clue overlay — outside containerRef for the same reason */}
       {targetFound && detectedClue && (
         <div style={{
           position: 'fixed',
@@ -277,6 +279,6 @@ export default function ArMindImage({
           {detectedClue}
         </div>
       )}
-    </div>
+    </>
   );
 }
