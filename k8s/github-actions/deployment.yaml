@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-actions-runner
+  namespace: github-actions
+  labels:
+    app: github-actions-runner
+spec:
+  replicas: 1 # Will be overridden by HPA
+  selector:
+    matchLabels:
+      app: github-actions-runner
+  template:
+    metadata:
+      labels:
+        app: github-actions-runner
+    spec:
+      serviceAccountName: github-actions-runner
+      
+      # Container with dind (Docker-in-Docker) for building images
+      containers:
+        - name: runner
+          image: ghcr.io/actions/runner:latest
+          imagePullPolicy: IfNotPresent
+          
+          # Required environment variables
+          env:
+            - name: GITHUB_URL
+              value: "https://github.com"
+            
+            - name: GITHUB_OWNER
+              valueFrom:
+                secretKeyRef:
+                  name: github-actions-runner-secret
+                  key: GITHUB_OWNER
+            
+            - name: GITHUB_REPOSITORY
+              valueFrom:
+                secretKeyRef:
+                  name: github-actions-runner-secret
+                  key: GITHUB_REPO
+            
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-actions-runner-secret
+                  key: GITHUB_TOKEN
+            
+            - name: RUNNER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            
+            - name: RUNNER_LABELS
+              value: "self-hosted,linux,docker,kubernetes"
+            
+            - name: RUNNER_WORKDIR
+              value: "/home/runner/work"
+            
+            # Disable automatic updates (manage via image updates)
+            - name: DISABLE_UPDATE_CHECK
+              value: "true"
+            
+            # Docker configuration
+            - name: DOCKER_REGISTRY
+              valueFrom:
+                secretKeyRef:
+                  name: github-actions-runner-secret
+                  key: DOCKER_REGISTRY
+            
+            - name: DOCKER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: github-actions-runner-secret
+                  key: DOCKER_USERNAME
+            
+            - name: DOCKER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: github-actions-runner-secret
+                  key: DOCKER_PASSWORD
+          
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          
+          volumeMounts:
+            - name: work
+              mountPath: /home/runner/work
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+          
+          # Liveliness probe to restart stuck runners
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - ps aux | grep -q "[r]unner"
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 10
+      
+      # Docker daemon running alongside the runner
+      initContainers:
+        - name: setup-docker
+          image: busybox:latest
+          command: ["sh", "-c", "chmod 666 /var/run/docker.sock || true"]
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run
+      
+      volumes:
+        - name: work
+          emptyDir:
+            sizeLimit: 10Gi
+        
+        # Mount the Docker socket from the host
+        # Note: This requires Docker to be available on the host
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+      
+      # Restart policy
+      restartPolicy: Always
+      
+      # Tolerations for node taints (customize as needed)
+      tolerations:
+        - key: "workload-type"
+          operator: "Equal"
+          value: "ci-cd"
+          effect: "NoSchedule"
+      
+      # Node selector (customize as needed)
+      nodeSelector:
+        workload-type: ci-cd

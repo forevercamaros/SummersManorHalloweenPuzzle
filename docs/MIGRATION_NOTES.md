@@ -41,6 +41,7 @@ on:
 - Uses `on:` instead of `trigger:`
 - Uses `paths-ignore:` instead of `paths: exclude:`
 - Supports `workflow_dispatch` for manual triggers
+- **Runner is now Kubernetes-based with auto-scaling**
 
 ### 2. Manual Triggers
 
@@ -187,12 +188,13 @@ See [GITHUB_RUNNER_SETUP.md](./GITHUB_RUNNER_SETUP.md) for setup instructions.
 
 ### 1. Custom Agent Pool "Default"
 
-**What changed**: Renamed to self-hosted runner with labels
+**What changed**: Converted to Kubernetes-based self-hosted runners
 
 **What to do**: 
-1. Register your Hyper-V Ubuntu VM as a self-hosted runner
-2. Assign labels: `self-hosted`, `linux`, `docker`
-3. Follow [GITHUB_RUNNER_SETUP.md](./GITHUB_RUNNER_SETUP.md)
+1. Deploy GitHub Actions runners to your Kubernetes cluster
+2. Configure GitHub PAT and Docker credentials
+3. Follow [K8S_RUNNER_SETUP.md](./K8S_RUNNER_SETUP.md)
+4. Runners will auto-scale based on workload (1-5 replicas by default)
 
 ### 2. Service Connections
 
@@ -216,12 +218,13 @@ See [GITHUB_RUNNER_SETUP.md](./GITHUB_RUNNER_SETUP.md) for setup instructions.
 
 ### 4. Kustomize and kubectl
 
-**Prerequisites**: These must be installed on your self-hosted runner
+**Prerequisites**: Runners now run in your Kubernetes cluster, so they have native access to kubectl
 
 **What to do**:
-1. Verify `kustomize` and `kubectl` are installed on your runner VM
-2. Verify `kubeconfig` is properly configured on the runner
-3. Test manually: `kubectl get nodes` and `kustomize version`
+1. Deploy runners via `kubectl apply -k k8s/github-actions/`
+2. Configure kubeconfig (already available in runners)
+3. Test manually: `kubectl get nodes` from within a workflow
+4. Follow [K8S_RUNNER_SETUP.md](./K8S_RUNNER_SETUP.md)
 
 ## Testing Before Going Live
 

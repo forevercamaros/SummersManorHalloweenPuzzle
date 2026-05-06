@@ -15,7 +15,7 @@ env:
 jobs:
   apply-changes:
     name: Apply k8s Config Changes
-    runs-on: [self-hosted, linux, docker]
+    runs-on: [self-hosted, linux, docker, kubernetes]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

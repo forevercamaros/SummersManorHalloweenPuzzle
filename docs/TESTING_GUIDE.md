@@ -4,11 +4,11 @@ This guide walks you through testing the migrated GitHub Actions workflows befor
 
 ## Pre-Testing Checklist
 
-- [ ] Self-hosted runner is registered and online (green status in Settings → Runners)
+- [ ] GitHub Actions runners deployed to `github-actions` namespace
+- [ ] Runner pods are online and "Idle" in GitHub Settings → Runners
 - [ ] Repository secrets are configured: `NEXUS_DOCKER_USERNAME`, `NEXUS_DOCKER_PASSWORD`
-- [ ] `kustomize` and `kubectl` are installed on the runner VM
-- [ ] `kubeconfig` is properly configured on the runner VM
-- [ ] Docker is running on the runner VM
+- [ ] Kubernetes cluster access verified from runner pods
+- [ ] Kustomize overlays configured for dev/test/prod environments
 
 ## Test 1: Dev Workflow Test
 
@@ -198,46 +198,57 @@ If all workflows appear with no warnings, syntax is valid.
 
 ## Common Issues and Solutions
 
-### Runner offline or not responding
+### Runner pod stuck in "Pending" state
 
-**Problem**: Workflows get stuck in "Queued"
-
-**Solution**:
 ```bash
-# On runner VM
-ssh user@<vm-ip>
-cd ~/github-runner
-sudo ./svc.sh restart
-
-# Verify
-sudo ./svc.sh status
+kubectl describe pod -n github-actions <pod-name>
 ```
+
+Common causes:
+- **Node selector mismatch**: No nodes with label `workload-type: ci-cd`
+- **Resource constraints**: Insufficient CPU/memory on cluster
+- **Docker socket not available**: Ensure nodes have Docker daemon
+
+**Solution**: See [K8S_RUNNER_SETUP.md](./K8S_RUNNER_SETUP.md#troubleshooting)
+
+### Runner not showing in GitHub
+
+1. Verify runner pod is running:
+   ```bash
+   kubectl get pods -n github-actions
+   ```
+2. Check logs: `kubectl logs -f -n github-actions deployment/github-actions-runner`
+3. Verify GitHub token is correct in the secret
+4. See [K8S_RUNNER_SETUP.md](./K8S_RUNNER_SETUP.md#troubleshooting)
 
 ### Docker login fails
 
 **Problem**: "failed to authenticate to Docker registry"
 
 **Solution**:
-1. Verify secrets: Go to Settings → Secrets and verify `NEXUS_DOCKER_USERNAME` and `NEXUS_DOCKER_PASSWORD` exist
-2. Test manually on runner:
+1. Verify secrets in pod:
    ```bash
-   ssh user@<vm-ip>
-   docker login -u <username> -p <password> nexus.summershome.duckdns.org
+   kubectl get secret github-actions-runner-secret -n github-actions -o yaml
    ```
+2. Verify credentials are correct in the secret
+3. Check pod logs: `kubectl logs -n github-actions <pod-name> | grep -i docker`
+4. See [K8S_RUNNER_SETUP.md](./K8S_RUNNER_SETUP.md#troubleshooting)
 
 ### kubectl commands fail
 
 **Problem**: "Unable to connect to cluster" or "kubeconfig not found"
 
 **Solution**:
-1. SSH to runner: `ssh user@<vm-ip>`
-2. Test: `kubectl get nodes`
-3. If fails, verify kubeconfig:
+1. Verify runner pod has kubectl access:
    ```bash
-   cat ~/.kube/config
-   chmod 600 ~/.kube/config
-   kubectl cluster-info
+   kubectl exec -it -n github-actions <pod-name> -- kubectl get nodes
    ```
+2. Check RBAC permissions:
+   ```bash
+   kubectl get clusterrolebinding github-actions-runner
+   ```
+3. Check pod logs for errors
+4. See [K8S_RUNNER_SETUP.md](./K8S_RUNNER_SETUP.md#troubleshooting)
 
 ### Workflow queued indefinitely
 
@@ -245,25 +256,37 @@ sudo ./svc.sh status
 
 **Solution**:
 1. Go to Settings → Actions → Runners
-2. Verify self-hosted runner is online (green indicator)
-3. If offline, restart runner service on VM
-4. If multiple runners, check labels match in workflow
+2. Verify runner pods are "Idle" (green indicator)
+3. Check runner pod status:
+   ```bash
+   kubectl get pods -n github-actions
+   kubectl describe pod -n github-actions <pod-name>
+   ```
+4. If offline, restart the deployment:
+   ```bash
+   kubectl rollout restart deployment/github-actions-runner -n github-actions
+   ```
+5. Verify labels match workflow: `[self-hosted, linux, docker, kubernetes]`
 
 ### Out of disk space
 
 **Problem**: "No space left on device"
 
-**Solution** (on runner VM):
+**Solution** (on Kubernetes cluster):
 ```bash
-# Clean up old Docker images
-docker image prune -a -f
+# Clean up in runner pods
+kubectl exec -n github-actions <pod-name> -- docker image prune -a -f
+kubectl exec -n github-actions <pod-name> -- docker volume prune -f
 
-# Clean up Docker volumes
-docker volume prune -f
+# Check disk usage on nodes
+kubectl top nodes
+kubectl describe node <node-name>
 
-# Check disk usage
-df -h
+# Clean up old workflow artifacts
+kubectl delete pods -n github-actions --older-than=7d
 ```
+
+Or increase the ephemeral storage limit in `deployment.yaml`
 
 ## Workflow Monitoring
 

@@ -18,7 +18,7 @@ env:
 jobs:
   build:
     name: Build
-    runs-on: [self-hosted, linux, docker]
+    runs-on: [self-hosted, linux, docker, kubernetes]
     outputs:
       build_number: ${{ github.run_number }}
     steps:
@@ -39,7 +39,7 @@ jobs:
   deploy-test:
     name: Deploy To Test
     needs: build
-    runs-on: [self-hosted, linux, docker]
+    runs-on: [self-hosted, linux, docker, kubernetes]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -92,7 +92,7 @@ jobs:
   deploy-prod:
     name: Deploy To Prod
     needs: build
-    runs-on: [self-hosted, linux, docker]
+    runs-on: [self-hosted, linux, docker, kubernetes]
     if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
