@@ -1,0 +1,144 @@
+name: build-test-prod
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'k8s/**'
+  workflow_dispatch:
+
+env:
+  SOLUTION: '**/*.sln'
+  BUILD_PLATFORM: 'x64'
+  BUILD_CONFIGURATION: 'Release'
+  DOCKER_REPO: 'summershalloween/summershalloween'
+  NEXUS_REGISTRY: 'nexus.summershome.duckdns.org'
+
+jobs:
+  build:
+    name: Build
+    runs-on: [self-hosted, linux, docker]
+    outputs:
+      build_number: ${{ github.run_number }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prune all Docker images
+        run: docker image prune -a -f
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --no-cache \
+            -f SummersManorHalloweenPuzzle/Dockerfile.webapp \
+            -t ${{ env.DOCKER_REPO }}:${{ github.run_number }} \
+            .
+
+  deploy-test:
+    name: Deploy To Test
+    needs: build
+    runs-on: [self-hosted, linux, docker]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Tag image for Nexus
+        run: |
+          docker tag \
+            ${{ env.DOCKER_REPO }}:${{ needs.build.outputs.build_number }} \
+            ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:test.${{ needs.build.outputs.build_number }}
+
+      - name: Login to Nexus
+        run: |
+          echo "${{ secrets.NEXUS_DOCKER_PASSWORD }}" | docker login \
+            -u "${{ secrets.NEXUS_DOCKER_USERNAME }}" \
+            --password-stdin \
+            ${{ env.NEXUS_REGISTRY }}
+
+      - name: Push image to Nexus
+        run: |
+          docker push ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:test.${{ needs.build.outputs.build_number }}
+
+      - name: Update kustomize image tag (test)
+        working-directory: k8s/overlays/test
+        run: |
+          kustomize edit set image \
+            ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:test.${{ needs.build.outputs.build_number }}
+
+      - name: Deploy to test cluster
+        run: kubectl apply -k k8s/overlays/test
+
+      - name: Commit updated image tag
+        env:
+          GIT_AUTHOR_NAME: 'GitHub Actions'
+          GIT_AUTHOR_EMAIL: 'actions@github.com'
+          GIT_COMMITTER_NAME: 'GitHub Actions'
+          GIT_COMMITTER_EMAIL: 'actions@github.com'
+        run: |
+          set -e
+          git add k8s/overlays/test/kustomization.yaml
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Update test image tag to ${{ needs.build.outputs.build_number }} ***NO_CI***"
+          git push origin master
+
+  deploy-prod:
+    name: Deploy To Prod
+    needs: build
+    runs-on: [self-hosted, linux, docker]
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Tag image for Nexus
+        run: |
+          docker tag \
+            ${{ env.DOCKER_REPO }}:${{ needs.build.outputs.build_number }} \
+            ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:prod.${{ needs.build.outputs.build_number }}
+
+      - name: Login to Nexus
+        run: |
+          echo "${{ secrets.NEXUS_DOCKER_PASSWORD }}" | docker login \
+            -u "${{ secrets.NEXUS_DOCKER_USERNAME }}" \
+            --password-stdin \
+            ${{ env.NEXUS_REGISTRY }}
+
+      - name: Push image to Nexus
+        run: |
+          docker push ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:prod.${{ needs.build.outputs.build_number }}
+
+      - name: Update kustomize image tag (prod)
+        working-directory: k8s/overlays/prod
+        run: |
+          kustomize edit set image \
+            ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:prod.${{ needs.build.outputs.build_number }}
+
+      - name: Deploy to prod cluster
+        run: kubectl apply -k k8s/overlays/prod
+
+      - name: Commit updated image tag
+        env:
+          GIT_AUTHOR_NAME: 'GitHub Actions'
+          GIT_AUTHOR_EMAIL: 'actions@github.com'
+          GIT_COMMITTER_NAME: 'GitHub Actions'
+          GIT_COMMITTER_EMAIL: 'actions@github.com'
+        run: |
+          set -e
+          git add k8s/overlays/prod/kustomization.yaml
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Update prod image tag to ${{ needs.build.outputs.build_number }} ***NO_CI***"
+          git push origin master

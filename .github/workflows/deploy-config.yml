@@ -1,0 +1,39 @@
+name: deploy-config
+
+on:
+  push:
+    branches:
+      - master
+      - 'dev/**'
+    paths:
+      - 'k8s/**'
+  workflow_dispatch:
+
+env:
+  BUILD_CONFIG_VERSION: 'deploy.${{ github.run_id }}'
+
+jobs:
+  apply-changes:
+    name: Apply k8s Config Changes
+    runs-on: [self-hosted, linux, docker]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Apply dev overlay
+        if: startsWith(github.ref, 'refs/heads/dev')
+        run: |
+          echo "=== Applying dev overlay ==="
+          kubectl apply -k k8s/overlays/dev
+
+      - name: Apply test overlay
+        if: github.ref == 'refs/heads/master'
+        run: |
+          echo "=== Applying test overlay ==="
+          kubectl apply -k k8s/overlays/test
+
+      - name: Apply prod overlay
+        if: github.ref == 'refs/heads/master'
+        run: |
+          echo "=== Applying prod overlay ==="
+          kubectl apply -k k8s/overlays/prod

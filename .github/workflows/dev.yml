@@ -1,0 +1,89 @@
+name: dev
+
+on:
+  push:
+    branches:
+      - 'dev/**'
+    paths-ignore:
+      - 'k8s/**'
+  workflow_dispatch:
+
+env:
+  SOLUTION: '**/*.sln'
+  BUILD_PLATFORM: 'x64'
+  BUILD_CONFIGURATION: 'Release'
+  DOCKER_REPO: 'summershalloween/summershalloween'
+  NEXUS_REGISTRY: 'nexus.summershome.duckdns.org'
+
+jobs:
+  build:
+    name: Build
+    runs-on: [self-hosted, linux, docker]
+    outputs:
+      build_number: ${{ github.run_number }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f SummersManorHalloweenPuzzle/Dockerfile.webapp \
+            -t ${{ env.DOCKER_REPO }}:${{ github.run_number }} \
+            .
+
+  deploy-dev:
+    name: Deploy To Dev
+    needs: build
+    runs-on: [self-hosted, linux, docker]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Tag image for Nexus
+        run: |
+          docker tag \
+            ${{ env.DOCKER_REPO }}:${{ needs.build.outputs.build_number }} \
+            ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:dev.${{ needs.build.outputs.build_number }}
+
+      - name: Login to Nexus
+        run: |
+          echo "${{ secrets.NEXUS_DOCKER_PASSWORD }}" | docker login \
+            -u "${{ secrets.NEXUS_DOCKER_USERNAME }}" \
+            --password-stdin \
+            ${{ env.NEXUS_REGISTRY }}
+
+      - name: Push image to Nexus
+        run: |
+          docker push ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:dev.${{ needs.build.outputs.build_number }}
+
+      - name: Update kustomize image tag (dev)
+        working-directory: k8s/overlays/dev
+        run: |
+          kustomize edit set image \
+            ${{ env.NEXUS_REGISTRY }}/${{ env.DOCKER_REPO }}:dev.${{ needs.build.outputs.build_number }}
+
+      - name: Deploy to dev cluster
+        run: |
+          kubectl apply -k k8s/overlays/dev
+          kubectl rollout status deployment/webapp -n halloween-web-app-dev --timeout=180s
+
+      - name: Commit updated image tag
+        env:
+          GIT_AUTHOR_NAME: 'GitHub Actions'
+          GIT_AUTHOR_EMAIL: 'actions@github.com'
+          GIT_COMMITTER_NAME: 'GitHub Actions'
+          GIT_COMMITTER_EMAIL: 'actions@github.com'
+        run: |
+          set -e
+          BRANCH=$(echo "${{ github.ref }}" | sed 's|refs/heads/||')
+          git add k8s/overlays/dev/kustomization.yaml
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Update dev image tag to ${{ needs.build.outputs.build_number }} ***NO_CI***"
+          git push origin "$BRANCH"
