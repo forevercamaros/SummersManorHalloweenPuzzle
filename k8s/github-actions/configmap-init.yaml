@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: github-runner-init
+  namespace: github-actions
+data:
+  init.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Starting GitHub Actions runner initialization..."
+
+    # Install dependencies
+    apt-get update -qq
+    apt-get install -y curl git unzip jq ca-certificates 2>&1 | tail -5
+
+    echo "Dependencies installed."
+
+    # Get a fresh runner registration token using the PAT
+    echo "Fetching runner registration token..."
+    REG_TOKEN=$(curl -s -X POST \
+      -H "Authorization: token ${GITHUB_TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      "https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runners/registration-token" \
+      | jq -r '.token')
+
+    if [ -z "$REG_TOKEN" ] || [ "$REG_TOKEN" = "null" ]; then
+      echo "ERROR: Failed to get registration token. Check GITHUB_TOKEN permissions."
+      exit 1
+    fi
+
+    echo "Registration token obtained."
+
+    # Download latest runner
+    RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | jq -r '.tag_name' | sed 's/v//')
+    echo "Installing GitHub Actions runner v${RUNNER_VERSION}"
+
+    mkdir -p /home/runner
+    cd /home/runner
+
+    # Download and extract
+    curl -sL "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" -o runner.tar.gz
+    tar xzf runner.tar.gz
+    rm runner.tar.gz
+
+    # Install runner dependencies
+    ./bin/installdependencies.sh 2>&1 | tail -3
+
+    # Configure runner
+    ./config.sh \
+      --unattended \
+      --url "https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}" \
+      --token "${REG_TOKEN}" \
+      --name "${RUNNER_NAME}" \
+      --labels "self-hosted,linux,docker,kubernetes" \
+      --work "_work"
+
+    echo "Runner configured. Starting..."
+    exec ./run.sh

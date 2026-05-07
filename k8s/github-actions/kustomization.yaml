@@ -9,6 +9,7 @@ resources:
   - clusterrole.yaml
   - clusterrolebinding.yaml
   - secret.yaml
+  - configmap-init.yaml
   - deployment.yaml
   - hpa.yaml
 
