@@ -10,13 +10,32 @@ data:
 
     echo "Starting GitHub Actions runner initialization..."
 
-    # Install dependencies
+    # Install dependencies as root (including runner runtime libs)
     apt-get update -qq
-    apt-get install -y curl git unzip jq ca-certificates 2>&1 | tail -5
+    apt-get install -y curl git unzip jq ca-certificates sudo \
+      lsb-release libicu74 libssl3 libkrb5-3 zlib1g libgcc-s1 2>&1 | tail -5
 
     echo "Dependencies installed."
 
-    # Get a fresh runner registration token using the PAT
+    # Create a non-root runner user (runner binary refuses to run as root)
+    useradd -m -s /bin/bash runner 2>/dev/null || true
+    chown -R runner:runner /home/runner
+
+    # Run runner.sh as the runner user, preserving container env vars (-p flag)
+    exec su -p -s /bin/bash runner /scripts/runner.sh
+
+  runner.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Running as user: $(id)"
+    echo "Current dir: $(pwd)"
+
+    # Ensure runner user owns its home dir
+    mkdir -p /home/runner/_work
+    cd /home/runner
+    echo "Changed to: $(pwd)"
+
     echo "Fetching runner registration token..."
     REG_TOKEN=$(curl -s -X POST \
       -H "Authorization: token ${GITHUB_TOKEN}" \
@@ -31,22 +50,17 @@ data:
 
     echo "Registration token obtained."
 
-    # Download latest runner
     RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | jq -r '.tag_name' | sed 's/v//')
     echo "Installing GitHub Actions runner v${RUNNER_VERSION}"
+    echo "Downloading to: $(pwd)/runner.tar.gz  (writable: $(test -w . && echo yes || echo NO))"
 
-    mkdir -p /home/runner
-    cd /home/runner
-
-    # Download and extract
-    curl -sL "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" -o runner.tar.gz
+    curl -fL "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" \
+      -o runner.tar.gz
+    echo "Download complete. Extracting..."
     tar xzf runner.tar.gz
     rm runner.tar.gz
 
-    # Install runner dependencies
-    ./bin/installdependencies.sh 2>&1 | tail -3
-
-    # Configure runner
+    echo "Configuring runner..."
     ./config.sh \
       --unattended \
       --url "https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}" \
@@ -57,3 +71,4 @@ data:
 
     echo "Runner configured. Starting..."
     exec ./run.sh
+
