@@ -17,30 +17,16 @@ spec:
     spec:
       serviceAccountName: github-actions-runner
       
-      # Container with dind (Docker-in-Docker) for building images
       containers:
         - name: runner
-          image: ghcr.io/actions/runner:latest
+          image: myoung34/github-runner:latest
           imagePullPolicy: IfNotPresent
           
-          # Required environment variables
           env:
-            - name: GITHUB_URL
-              value: "https://github.com"
+            - name: REPO_URL
+              value: "https://github.com/forevercamaros/SummersManorHalloweenPuzzle"
             
-            - name: GITHUB_OWNER
-              valueFrom:
-                secretKeyRef:
-                  name: github-actions-runner-secret
-                  key: GITHUB_OWNER
-            
-            - name: GITHUB_REPOSITORY
-              valueFrom:
-                secretKeyRef:
-                  name: github-actions-runner-secret
-                  key: GITHUB_REPO
-            
-            - name: GITHUB_TOKEN
+            - name: ACCESS_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: github-actions-runner-secret
@@ -56,29 +42,6 @@ spec:
             
             - name: RUNNER_WORKDIR
               value: "/home/runner/work"
-            
-            # Disable automatic updates (manage via image updates)
-            - name: DISABLE_UPDATE_CHECK
-              value: "true"
-            
-            # Docker configuration
-            - name: DOCKER_REGISTRY
-              valueFrom:
-                secretKeyRef:
-                  name: github-actions-runner-secret
-                  key: DOCKER_REGISTRY
-            
-            - name: DOCKER_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: github-actions-runner-secret
-                  key: DOCKER_USERNAME
-            
-            - name: DOCKER_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: github-actions-runner-secret
-                  key: DOCKER_PASSWORD
           
           resources:
             requests:
@@ -91,10 +54,9 @@ spec:
           volumeMounts:
             - name: work
               mountPath: /home/runner/work
-            - name: docker-sock
-              mountPath: /var/run/docker.sock
+            - name: containerd-sock
+              mountPath: /run/containerd
           
-          # Liveliness probe to restart stuck runners
           livenessProbe:
             exec:
               command:
@@ -105,37 +67,17 @@ spec:
             periodSeconds: 60
             timeoutSeconds: 10
       
-      # Docker daemon running alongside the runner
-      initContainers:
-        - name: setup-docker
-          image: busybox:latest
-          command: ["sh", "-c", "chmod 666 /var/run/docker.sock || true"]
-          volumeMounts:
-            - name: docker-sock
-              mountPath: /var/run
-      
       volumes:
         - name: work
           emptyDir:
             sizeLimit: 10Gi
         
-        # Mount the Docker socket from the host
-        # Note: This requires Docker to be available on the host
-        - name: docker-sock
+        - name: containerd-sock
           hostPath:
-            path: /var/run/docker.sock
-            type: Socket
+            path: /run/containerd
+            type: Directory
       
-      # Restart policy
       restartPolicy: Always
       
-      # Tolerations for node taints (customize as needed)
-      tolerations:
-        - key: "workload-type"
-          operator: "Equal"
-          value: "ci-cd"
-          effect: "NoSchedule"
-      
-      # Node selector (customize as needed)
-      nodeSelector:
-        workload-type: ci-cd
+      tolerations: []
+      nodeSelector: {}
